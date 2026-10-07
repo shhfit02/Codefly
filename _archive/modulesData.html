@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Modules</title>
+
+  <!-- Compiled Tailwind + bespoke CSS -->
+  <link rel="stylesheet" href="../CSS/tailwind.build.css">
+  <link rel="stylesheet" href="../CSS/home.css">
+  <link rel="stylesheet" href="../CSS/popup.css">
+
+  <!-- Boxicons -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <style>
+    .module-hero {
+      background: linear-gradient(130deg, #0ea5e9, #6366f1);
+      color: #fff;
+      border-radius: 28px;
+      padding: 32px;
+      box-shadow: 0 25px 55px rgba(99, 102, 241, 0.25);
+    }
+    .filter-chip {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 0.4rem 1.1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #e0e7ff;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .filter-chip.active,
+    .filter-chip:hover {
+      background: #fff;
+      color: #1e293b;
+      transform: translateY(-1px);
+    }
+    .module-card {
+      position: relative;
+    }
+    .level-pill {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(15,23,42,0.85);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.8rem;
+      border-radius: 999px;
+      backdrop-filter: blur(6px);
+    }
+    .lesson-list {
+      background: #f8fafc;
+      border-radius: 22px;
+      border: 1px solid #e2e8f0;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .lesson-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .lesson-item:first-child {
+      padding-top: 0;
+    }
+    .lesson-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .lesson-info {
+      font-size: 0.9rem;
+      color: #0f172a;
+      font-weight: 500;
+    }
+    .lesson-meta {
+      text-align: right;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    .lesson-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <div id="toastBox"></div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar close">
+    <header>
+      <div class="image-text">
+        <span class="image">
+          <img src="../Assets/logo4.png" alt="logo">
+        </span>
+        <div class="text header-text">
+          <span class="name">Codefly</span>
+          <span class="profession">Dashboard</span>
+        </div>
+      </div>
+
+      <i class='bx bx-chevron-right toggle' title="Toggle sidebar"></i>
+    </header>
+
+    <div class="menu-bar">
+      <div class="menu">
+        <ul class="menu-links">
+          <li class="nav-link">
+            <a href="../HTML/home.html">
+              <i class='bx bx-home-alt icon'></i>
+              <span class="text nav-text">Home</span>
+            </a>
+          </li>
+
+          <li class="nav-link active">
+            <a href="../HTML/module.html">
+              <i class='bx bx-layer icon'></i>
+              <span class="text nav-text">Module</span>
+            </a>
+          </li>
+
+          <li class="nav-link">
+            <a href="../HTML/workspace.php">
+              <i class='bx bx-code-block icon'></i>
+              <span class="text nav-text">Code Block</span>
+            </a>
+          </li>
+
+          <li class="nav-link">
+            <a href="../HTML/leaderboard.html">
+              <i class='bx bx-trophy icon'></i>
+              <span class="text nav-text">Leaderboard</span>
+            </a>
+          </li>
+          
+          <li class="nav-link">
+            <a href="../HTML/account-setting.html">
+              <i class='bx bx-cog icon'></i>
+              <span class="text nav-text">Settings</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bottom-content">
+        <li>
+          <a href="../PHP/logout.php">
+            <i class='bx bx-log-out icon'></i>
+            <span class="text nav-text">Logout</span>
+          </a>
+        </li>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <section class="home h-screen">
+    <div class="p-6 flex gap-6 h-full">
+      <div class="flex flex-col w-full gap-4 relative overflow-y-scroll no-scrollbar">
+
+        <!-- HERO -->
+        <div class="module-hero space-y-6">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <p class="uppercase tracking-[0.4em] text-white/70 text-xs mb-2">Learning Path</p>
+              <h1 class="text-3xl font-semibold">Choose your next lesson</h1>
+              <p class="text-white/80 max-w-2xl mt-2">
+                Progress through structured CodeFly modules that take you from first hover to advanced autonomous flights.
+              </p>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div class="bg-white/15 rounded-2xl px-4 py-3 backdrop-blur">
+                <p class="text-white/70 text-xs uppercase tracking-[0.2em]">Total Modules</p>
+                <p class="text-2xl font-semibold">3</p>
+              </div>
+              <div class="bg-white/15 rounded-2xl px-4 py-3 backdrop-blur">
+                <p class="text-white/70 text-xs uppercase tracking-[0.2em]">Completed</p>
+                <p class="text-2xl font-semibold">0</p>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4">
+            <div class="relative">
+              <i class='bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-white/70 text-xl'></i>
+              <input type="text" placeholder="Search modules..."
+                class="w-full bg-white/15 border border-white/30 text-white placeholder-white/70 pl-12 pr-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white/60"
+                id="moduleSearchInput">
+            </div>
+            <div class="flex flex-wrap gap-2" id="filterChips">
+              <button class="filter-chip active" data-level="all">All Modules</button>
+              <button class="filter-chip" data-level="basic">Basic</button>
+              <button class="filter-chip" data-level="block">Block Code</button>
+              <button class="filter-chip" data-level="advanced">Advanced</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODULE GRID -->
+        <main class="mt-2">
+          <h2 class="text-xl font-semibold mb-4">Modules</h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="moduleGrid" aria-live="polite"></div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <div
+    id="moduleLockModal"
+    class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 px-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="moduleLockTitle"
+  >
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
+      <button
+        type="button"
+        class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+        aria-label="Close modal"
+        data-close-lock-modal
+      >
+        <i class="bx bx-x text-2xl"></i>
+      </button>
+      <div class="flex flex-col items-center text-center gap-4">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold uppercase tracking-widest">
+          <i class="bx bx-lock-alt text-base"></i>
+          Locked Module
+        </span>
+        <h3 id="moduleLockTitle" class="text-2xl font-bold text-slate-900">Module not released yet</h3>
+        <p id="moduleLockMessage" class="text-sm text-slate-600">
+          Module 3 - Advanced Drone Dev is currently in pre-release. Complete the earlier tracks to request access.
+        </p>
+        <div class="w-full text-left bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-500 space-y-2">
+          <p class="font-semibold text-slate-700">How to unlock:</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Finish the Basics Module checkpoints.</li>
+            <li>Submit Code Block lesson logic for review.</li>
+            <li>Wait for CodeFly Control to enable Module 3.</li>
+          </ul>
+        </div>
+        <div class="w-full flex flex-col gap-3">
+          <button
+            type="button"
+            class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
+            id="lockedModuleContinueBtn"
+          >
+            Continue to module
+          </button>
+          <button
+            type="button"
+            class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition"
+            data-close-lock-modal
+          >
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../JS/home.js"></script>
+  <script src="../JS/popup.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('moduleSearchInput');
+      const filterChips = document.querySelectorAll('#filterChips .filter-chip');
+      const moduleGrid = document.getElementById('moduleGrid');
+      const moduleLockModal = document.getElementById('moduleLockModal');
+      const moduleLockMessage = document.getElementById('moduleLockMessage');
+      const moduleLockCloseButtons = document.querySelectorAll('[data-close-lock-modal]');
+      let pendingModuleLink = null;
+      const statusStyles = {
+        done: { label: 'Done', class: 'bg-emerald-100 text-emerald-700', icon: 'bx bx-check-circle' },
+        next: { label: 'Next up', class: 'bg-blue-100 text-blue-700', icon: 'bx bx-chevron-right' },
+        locked: { label: 'Locked', class: 'bg-slate-200 text-slate-500', icon: 'bx bx-lock-alt' }
+      };
+      const modulesData = [
+        {
+          id: 'basic',
+          level: 'basic',
+          levelLabel: 'Basic',
+          title: 'Basics Module',
+          subtitle: 'Flight 101',
+          image: '../Assets/basicModule.png',
+          levelPillClass: 'bg-emerald-500/90',
+          progress: { icon: 'bx bx-check-circle', text: '7 / 10 lessons', badgeClass: 'text-emerald-600 bg-emerald-50' },
+          description: 'Gradually introduce stick control, telemetry variables and core safety logic before autonomous routines.',
+          duration: '2h 15m',
+          lessonFocus: 'Manual control',
+          tags: [],
+          link: '../HTML/basicModule.html',
+          lessons: [
+            { title: 'Drone Safety & Airspace Rules', topic: 'Pre-flight checklist', duration: '12m', status: 'done' },
+            { title: 'Stick Controls & Trim Balancing', topic: 'Hands-on warmup', duration: '15m', status: 'done' },
+            { title: 'Variables 101', topic: 'Telemetry values', duration: '18m', status: 'next' },
+            { title: 'Loops for Flight Patterns', topic: 'Orbit / zigzag drill', duration: '22m', status: 'locked' }
+          ]
+        },
+        {
+          id: 'block',
+          level: 'block',
+          levelLabel: 'Block Code',
+          title: 'Block-Code Module',
+          subtitle: 'Visual logic',
+          image: '../Assets/blockModule.png',
+          levelPillClass: 'bg-blue-500/90',
+          progress: { icon: 'bx bx-bot', text: 'Blockly track', badgeClass: 'text-blue-600 bg-blue-50' },
+          description: 'Sequence camera triggers, wait blocks and events with clean drag-and-drop logic for young pilots.',
+          duration: '3h 05m',
+          lessonFocus: 'Lesson builder',
+          tags: [],
+          link: '../HTML/codeBlockModule.html',
+          lessons: [
+            { title: 'Workspace Tour', topic: 'Palette + canvas', duration: '10m', status: 'done' },
+            { title: 'Event Driven Take-off', topic: 'When flag clicked', duration: '16m', status: 'done' },
+            { title: 'Sensor Branching', topic: 'If altitude > 2m', duration: '24m', status: 'next' },
+            { title: 'Reusable Code Blocks', topic: 'Custom stacks', duration: '28m', status: 'next' }
+          ]
+        },
+        {
+          id: 'advanced',
+          level: 'advanced',
+          levelLabel: 'Advanced',
+          title: 'Module 3 - Advanced Drone Dev',
+          subtitle: 'ESP32 flight lab',
+          image: '../Assets/advancedModule.png',
+          levelPillClass: 'bg-amber-500/90',
+          progress: { icon: 'bx bx-chip', text: 'ESP32 lab', badgeClass: 'text-amber-600 bg-amber-50' },
+          description: 'Theme: "Build and Code Your Own Drone". Learn ESP32 hardware mapping, sensor reads, motor control, and takeoff logic.',
+          duration: '8 focused labs',
+          lessonFocus: 'ESP32 hardware',
+          tags: [],
+          link: '../HTML/advancedModule.html',
+          locked: false,
+          lessons: [
+            { title: 'Meet the ESP32', topic: 'Pins & power', duration: '15m', status: 'locked' },
+            { title: 'Arduino IDE Setup', topic: 'Blink upload', duration: '20m', status: 'locked' },
+            { title: 'Reading Sensors', topic: 'Ultrasonic data', duration: '25m', status: 'locked' },
+            { title: 'Controlling Motors', topic: 'PWM routines', duration: '30m', status: 'locked' }
+          ]
+        }
+      ];
+      let moduleCards = [];
+      let activeFilter = 'all';
+      let searchTerm = '';
+
+      function buildMissionList(lessons) {
+        return lessons.map(lesson => {
+          const status = statusStyles[lesson.status] || statusStyles.locked;
+          return `
+            <div class="lesson-item">
+              <div>
+                <p class="lesson-info lesson-title">${lesson.title}</p>
+                <p class="lesson-meta">${lesson.topic}</p>
+              </div>
+              <div class="lesson-meta">
+                <span>${lesson.duration}</span><br>
+                <span class="lesson-status ${status.class}">
+                  <i class='${status.icon}'></i>${status.label}
+                </span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderModules() {
+        moduleGrid.innerHTML = modulesData.map(module => {
+          const isLockedModule = Boolean(module.locked);
+          const baseButtonClasses = 'inline-flex items-center justify-center gap-2 text-sm font-semibold transition px-5 py-2 rounded-full shadow-sm w-full text-center';
+          const linkClasses = isLockedModule
+            ? `${baseButtonClasses} text-blue-600 bg-blue-50 hover:bg-blue-100 cursor-pointer locked-module-link`
+            : `${baseButtonClasses} text-white bg-blue-600 hover:bg-blue-700`;
+          const linkAttributes = isLockedModule
+            ? `href="${module.link}" data-locked-module="true" data-module-title="${module.title}" data-module-href="${module.link}"`
+            : `href="${module.link}"`;
+          return `
+          <article class="module-card group bg-white rounded-3xl shadow-md overflow-hidden hover:shadow-2xl transition-transform hover:-translate-y-1" data-level="${module.level}">
+            <div class="relative">
+              <img src="${module.image}" alt="${module.title}" class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500">
+              <span class="level-pill ${module.levelPillClass}">${module.levelLabel}</span>
+            </div>
+            <div class="p-5 space-y-4">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <h3 class="text-lg font-semibold text-slate-900">${module.title}</h3>
+                  <p class="text-xs text-slate-500">${module.subtitle}</p>
+                </div>
+                <span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${module.progress.badgeClass}">
+                  <i class='${module.progress.icon}'></i>${module.progress.text}
+                </span>
+              </div>
+              <p class="module-description text-gray-600 text-sm">${module.description}</p>
+              <div class="flex items-center justify-between text-xs text-gray-500">
+                <span class="flex items-center gap-1"><i class='bx bx-time-five'></i> ${module.duration}</span>
+                <span class="flex items-center gap-1"><i class='bx bx-book'></i> ${module.lessons.length} lessons</span>
+              </div>
+              <div class="lesson-list">
+                <div class="flex items-center justify-between mb-1">
+                  <h4 class="text-sm font-semibold text-slate-700">Lesson path</h4>
+                  <span class="text-xs text-slate-400">${module.lessonFocus}</span>
+                </div>
+                ${buildMissionList(module.lessons)}
+              </div>
+              <div class="pt-4">
+                <a ${linkAttributes} class="${linkClasses}">
+                  Go to module
+                  <i class='bx bx-right-arrow-alt text-lg'></i>
+                </a>
+              </div>
+            </div>
+          </article>
+        `}).join('');
+        moduleCards = moduleGrid.querySelectorAll('.module-card');
+        applyFilters();
+        attachLockedModuleHandlers();
+        wireLockedModuleLinks();
+      }
+
+      function applyFilters() {
+        moduleCards.forEach(card => {
+          const level = card.dataset.level || '';
+          const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
+          const description = card.querySelector('.module-description')?.textContent.toLowerCase() || '';
+          const lessonTitles = Array.from(card.querySelectorAll('.lesson-title')).map(el => el.textContent.toLowerCase());
+          const matchesLevel = activeFilter === 'all' || level === activeFilter;
+          const matchesSearch = !searchTerm ||
+            title.includes(searchTerm) ||
+            description.includes(searchTerm) ||
+            lessonTitles.some(text => text.includes(searchTerm));
+          card.style.display = matchesLevel && matchesSearch ? '' : 'none';
+        });
+      }
+
+      function showLockedModuleModal(title, link) {
+        if (!moduleLockModal || !moduleLockMessage) return;
+        moduleLockMessage.textContent = `${title} is not released yet. Complete the earlier tracks or wait for CodeFly Control to unlock it.`;
+        pendingModuleLink = link || null;
+        moduleLockModal.classList.remove('hidden');
+        moduleLockModal.classList.add('flex');
+      }
+
+      function hideLockedModuleModal() {
+        if (!moduleLockModal) return;
+        moduleLockModal.classList.add('hidden');
+        moduleLockModal.classList.remove('flex');
+        pendingModuleLink = null;
+      }
+
+      function attachLockedModuleHandlers() {
+        if (!moduleGrid) return;
+        const lockedLinks = moduleGrid.querySelectorAll('[data-locked-module="true"]');
+        lockedLinks.forEach(link => {
+          link.addEventListener('click', event => {
+            event.preventDefault();
+            const moduleTitle = link.dataset.moduleTitle || 'This module';
+            const moduleHref = link.dataset.moduleHref || '';
+            showLockedModuleModal(moduleTitle, moduleHref);
+          });
+        });
+      }
+
+      document.getElementById('lockedModuleContinueBtn')?.addEventListener('click', () => {
+        if (pendingModuleLink) {
+          window.location.href = pendingModuleLink;
+        } else {
+          hideLockedModuleModal();
+        }
+      });
+
+      moduleLockCloseButtons.forEach(button => {
+        button.addEventListener('click', hideLockedModuleModal);
+      });
+
+      moduleLockModal?.addEventListener('click', event => {
+        if (event.target === moduleLockModal) {
+          hideLockedModuleModal();
+        }
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !moduleLockModal?.classList.contains('hidden')) {
+          hideLockedModuleModal();
+        }
+      });
+
+      filterChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          filterChips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeFilter = chip.dataset.level || 'all';
+          applyFilters();
+        });
+      });
+
+      searchInput?.addEventListener('input', (e) => {
+        searchTerm = e.target.value.trim().toLowerCase();
+        applyFilters();
+      });
+
+      function wireLockedModuleLinks() {
+        const lockedLinks = document.querySelectorAll('.locked-module-link');
+        lockedLinks.forEach(link => {
+          if (link.dataset.lockBound) return;
+          link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const moduleTitle = link.dataset.moduleTitle || 'This module';
+            const href = link.dataset.moduleHref || link.getAttribute('href');
+            pendingModuleLink = href;
+            if (moduleLockMessage) {
+              moduleLockMessage.textContent = `${moduleTitle} is exclusive for advanced pilots. Continue when ready?`;
+            }
+            moduleLockModal.classList.remove('hidden');
+            moduleLockModal.classList.add('flex');
+          });
+          link.dataset.lockBound = 'true';
+        });
+      }
+
+      renderModules();
+    });
+  </script>
+</body>
+</html>

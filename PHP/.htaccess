@@ -1,0 +1,3 @@
+# JSON endpoints: never print PHP warnings into responses; they still go to the error log.
+php_flag display_errors Off
+php_flag log_errors On

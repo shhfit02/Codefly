@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../Assets/logo4.png">
+  <title>Add User</title>
+  <link rel="stylesheet" href="../CSS/tailwind.build.css">
+  <link rel="stylesheet" href="../CSS/home.css">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <nav class="sidebar close">
+    <header>
+      <div class="image-text">
+        <span class="image"><img src="../Assets/logo4.png" alt="logo"></span>
+        <div class="text header-text">
+          <span class="name">Codefly</span>
+          <span class="profession">Admin Dashboard</span>
+        </div>
+      </div>
+      <i class='bx bx-chevron-right toggle'></i>
+    </header>
+    <div class="menu-bar">
+      <div class="menu">
+        <ul class="menu-links">
+          <li class="nav-link"><a href="../HTML/adminDashboard.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Admin Center</span></a></li>
+          <li class="nav-link"><a href="../HTML/AddModule.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
+          <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
+          <li class="nav-link active"><a href="../HTML/manageUser.html"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
+          <li class="nav-link"><a href="../HTML/adminLeaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
+        </ul>
+      </div>
+      <div class="bottom-content">
+        <ul class="menu-links">
+          <li><a href="../PHP/logout.php"><i class='bx bx-log-out icon'></i><span class="text nav-text">Logout</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="home min-h-screen">
+    <div class="p-6 flex flex-col gap-6">
+      <div class="rounded-3xl p-6 md:p-8 text-white shadow-lg overflow-hidden" style="background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 60%, #7c3aed 100%); border-radius: 28px;">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-[0.35em] text-white/70">Users</p>
+            <h1 class="text-3xl md:text-4xl font-semibold">Add a new user</h1>
+            <p class="text-sm md:text-base text-white/80 mt-2 max-w-2xl">Create an account with basic details. You can update profile fields later.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl bg-white shadow-lg border border-slate-100 p-6">
+        <h2 class="text-xl font-semibold text-slate-900 mb-4">User Details</h2>
+        <form class="grid grid-cols-1 md:grid-cols-2 gap-4" action="../PHP/addUser.php" method="post">
+          <label class="flex flex-col gap-1 text-sm text-slate-700">
+            Username
+            <input name="username" required class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="username" autocomplete="off">
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-slate-700">
+            Full Name
+            <input name="full_name" class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="Full name">
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-slate-700">
+            Email
+            <input type="email" name="email" required class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="email@example.com" autocomplete="off">
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-slate-700">
+            Password
+            <input type="password" name="password" required class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="••••••••" autocomplete="new-password">
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-slate-700">
+            Age
+            <input type="number" name="age" min="0" class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="Age">
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-slate-700">
+            Gender
+            <select name="gender" class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300">
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer-not">Prefer not</option>
+            </select>
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-slate-700">
+            Level
+            <select name="level" class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          <div class="md:col-span-2 flex gap-3 mt-2">
+            <a href="../HTML/manageUser.html" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50">Cancel</a>
+            <button type="submit" class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-white text-sm font-semibold shadow focus:outline-none focus:ring-2 focus:ring-blue-200" style="background: linear-gradient(130deg, #0ea5e9, #6366f1);">Create User</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+  <footer class="app-footer" style="width:100%; text-align:center; padding:16px 12px; font-size:12px; color:#64748b;">
+    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
+  </footer></body>
+</html>

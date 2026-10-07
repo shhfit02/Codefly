@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Modules</title>
+
+  <!-- Compiled Tailwind + bespoke CSS -->
+  <link rel="stylesheet" href="../CSS/tailwind.build.css">
+  <link rel="stylesheet" href="../CSS/home.css">
+  <link rel="stylesheet" href="../CSS/popup.css">
+
+  <!-- Boxicons -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <style>
+    .module-hero {
+      background: linear-gradient(130deg, #0ea5e9, #6366f1);
+      color: #fff;
+      border-radius: 28px;
+      padding: 32px;
+      box-shadow: 0 25px 55px rgba(99, 102, 241, 0.25);
+    }
+    .filter-chip {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 0.4rem 1.1rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #e0e7ff;
+      transition: background 0.2s, color 0.2s, transform 0.2s;
+    }
+    .filter-chip.active,
+    .filter-chip:hover {
+      background: #fff;
+      color: #1e293b;
+      transform: translateY(-1px);
+    }
+    .module-card {
+      position: relative;
+    }
+    .level-pill {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(15,23,42,0.85);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.8rem;
+      border-radius: 999px;
+      backdrop-filter: blur(6px);
+    }
+    .lesson-list {
+      background: #f8fafc;
+      border-radius: 22px;
+      border: 1px solid #e2e8f0;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .form-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 24px;
+      box-shadow: 0 15px 40px rgba(15, 23, 42, 0.08);
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <div id="toastBox"></div>
+
+  <!-- SIDEBAR -->
+  <?php include 'sidebar.php'; ?>
+
+  <!-- MAIN CONTENT -->
+  <section class="home h-screen">
+    <div class="p-6 flex gap-6 h-full">
+      <div class="flex flex-col w-full gap-4 relative overflow-y-scroll no-scrollbar">
+
+        <!-- HERO -->
+        <div class="module-hero space-y-6">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+              <p class="uppercase tracking-[0.4em] text-white/70 text-xs mb-2">Modules</p>
+              <h1 class="text-3xl font-semibold">Create or update a module</h1>
+              <p class="text-white/80 max-w-2xl mt-2">
+                Set up module metadata, attach lessons, and publish it to learners. New modules appear instantly below for preview.
+              </p>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div class="bg-white/15 rounded-2xl px-4 py-3 backdrop-blur">
+                <p class="text-white/70 text-xs uppercase tracking-[0.2em]">Total Modules</p>
+                <p id="stat-total-modules" class="text-2xl font-semibold">3</p>
+              </div>
+              <div class="bg-white/15 rounded-2xl px-4 py-3 backdrop-blur">
+                <p class="text-white/70 text-xs uppercase tracking-[0.2em]">Completed</p>
+                <p id="stat-completed-modules" class="text-2xl font-semibold">0</p>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4">
+            <div class="relative">
+              <i class='bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-white/70 text-xl'></i>
+              <input type="text" placeholder="Search modules..."
+                class="w-full bg-white/15 border border-white/30 text-white placeholder-white/70 pl-12 pr-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white/60"
+                id="moduleSearchInput">
+            </div>
+            <div class="flex flex-wrap gap-2" id="filterChips">
+              <button class="filter-chip active" data-level="all">All Modules</button>
+              <button class="filter-chip" data-level="basic">Basic</button>
+              <button class="filter-chip" data-level="block">Block Code</button>
+              <button class="filter-chip" data-level="advanced">Advanced</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODULE GRID -->
+        <main class="mt-2">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold">Modules</h2>
+            <a
+              id="addModuleTopBtn"
+              href="../HTML/NewModule.html"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-slate-700 text-sm font-semibold border border-slate-200 bg-white shadow-sm hover:bg-slate-50 transition"
+            >
+              <i class="bx bx-plus text-lg"></i>
+              Add module
+            </a>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="moduleGrid" aria-live="polite"></div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <div
+    id="moduleLockModal"
+    class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 px-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="moduleLockTitle"
+  >
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
+      <button
+        type="button"
+        class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+        aria-label="Close modal"
+        data-close-lock-modal
+      >
+        <i class="bx bx-x text-2xl"></i>
+      </button>
+      <div class="flex flex-col items-center text-center gap-4">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold uppercase tracking-widest">
+          <i class="bx bx-lock-alt text-base"></i>
+          Locked Module
+        </span>
+        <h3 id="moduleLockTitle" class="text-2xl font-bold text-slate-900">Module not released yet</h3>
+        <p id="moduleLockMessage" class="text-sm text-slate-600">
+          Module 3 - Advanced Drone Dev is currently in pre-release. Complete the earlier tracks to request access.
+        </p>
+        <div class="w-full text-left bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm text-slate-500 space-y-2">
+          <p class="font-semibold text-slate-700">How to unlock:</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Finish the Basics Module checkpoints.</li>
+            <li>Submit Code Block lesson logic for review.</li>
+            <li>Wait for CodeFly Control to enable Module 3.</li>
+          </ul>
+        </div>
+        <div class="w-full flex flex-col gap-3">
+          <button
+            type="button"
+            class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
+            id="lockedModuleContinueBtn"
+          >
+            Continue to module
+          </button>
+          <button
+            type="button"
+            class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition"
+            data-close-lock-modal
+          >
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="deleteModuleModal"
+    class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 px-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="deleteModuleTitle"
+  >
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
+      <button
+        type="button"
+        class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+        aria-label="Close modal"
+        data-close-delete-modal
+      >
+        <i class="bx bx-x text-2xl"></i>
+      </button>
+      <div class="flex flex-col gap-4 items-center text-center">
+        <h3 id="deleteModuleTitle" class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <i class="bx bx-trash text-red-600 text-2xl"></i>
+          Delete this module?
+        </h3>
+        <p id="deleteModuleMessage" class="text-sm text-slate-600">
+          This will remove the module and its lessons. This action cannot be undone.
+        </p>
+        <div class="flex flex-col sm:flex-row sm:justify-center gap-3 mt-2 w-full">
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition w-32"
+            data-close-delete-modal
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-red-600 text-white font-semibold hover:bg-red-500 transition w-32"
+            id="confirmDeleteModuleBtn"
+          >
+            Yes, delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <script src="../JS/home.js"></script>
+    <script src="../JS/popup.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('addModuleTopBtn')?.remove();
+      const searchInput = document.getElementById('moduleSearchInput');
+      const filterChips = document.querySelectorAll('#filterChips .filter-chip');
+      const moduleGrid = document.getElementById('moduleGrid');
+      const moduleLockModal = document.getElementById('moduleLockModal');
+      const moduleLockMessage = document.getElementById('moduleLockMessage');
+      const moduleLockCloseButtons = document.querySelectorAll('[data-close-lock-modal]');
+      const deleteModal = document.getElementById('deleteModuleModal');
+      const deleteModuleMessage = document.getElementById('deleteModuleMessage');
+      const deleteCloseButtons = document.querySelectorAll('[data-close-delete-modal]');
+      const deleteConfirmBtn = document.getElementById('confirmDeleteModuleBtn');
+      const statTotalModules = document.getElementById('stat-total-modules');
+      const statCompletedModules = document.getElementById('stat-completed-modules');
+      const lessonsContainer = document.getElementById('lessonsContainer');
+      const missionsContainer = lessonsContainer;
+      const addModuleForm = document.getElementById('addModuleForm');
+      const addMissionRowBtn = document.getElementById('addMissionRow');
+      let pendingModuleLink = null;
+      const statusStyles = {
+        done: { label: 'Done', class: 'bg-emerald-100 text-emerald-700', icon: 'bx bx-check-circle' },
+        next: { label: 'Next up', class: 'bg-blue-100 text-blue-700', icon: 'bx bx-chevron-right' },
+        locked: { label: 'Locked', class: 'bg-slate-200 text-slate-500', icon: 'bx bx-lock-alt' }
+      };
+      const LEVEL_PILL = {
+        basic: 'bg-emerald-500/90',
+        block: 'bg-blue-500/90',
+        advanced: 'bg-amber-500/90',
+        custom: 'bg-slate-700/90',
+      };
+      let modulesData = [];
+      let moduleCards = [];
+      let activeFilter = 'all';
+      let searchTerm = '';
+      let pendingDeleteId = null;
+
+      function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        return String(text)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function renderModules() {
+        if (!moduleGrid) return;
+        
+        const modulesHTML = modulesData.map(module => {
+        // Admin view: unlock everything
+        const isLockedModule = false;
+          const baseButtonClasses = 'inline-flex items-center justify-center gap-2 text-sm font-semibold transition px-5 py-2 rounded-full shadow-sm w-full text-center';
+          const linkClasses = isLockedModule
+            ? `${baseButtonClasses} text-blue-600 bg-blue-50 hover:bg-blue-100 cursor-pointer locked-module-link`
+            : `${baseButtonClasses} text-white`;
+          const gradient = 'linear-gradient(130deg, #0ea5e9, #6366f1)';
+          const cover = module.image_path || module.image || '../Assets/basicModule.png';
+          const levelLabel = module.level ? module.level.charAt(0).toUpperCase() + module.level.slice(1) : 'Module';
+            const viewHref = `ViewLesson.html?id=${encodeURIComponent(module.id)}`;
+          return `
+          <article class="module-card group bg-white rounded-3xl shadow-md overflow-hidden hover:shadow-2xl transition-transform hover:-translate-y-1" data-level="${escapeHtml(module.level || 'custom')}" data-id="${escapeHtml(module.id)}">
+            <div class="relative">
+              <img src="${escapeHtml(cover)}" alt="${escapeHtml(module.title)}" class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500">
+              <span class="level-pill ${LEVEL_PILL[module.level] || LEVEL_PILL.custom}">${escapeHtml(levelLabel)}</span>
+            </div>
+            <div class="p-5 space-y-4">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <h3 class="text-lg font-semibold text-slate-900">${escapeHtml(module.title)}</h3>
+                  <p class="text-xs text-slate-500">${escapeHtml(module.subtitle || '')}</p>
+                </div>
+              </div>
+              <p class="module-description text-gray-600 text-sm">${escapeHtml(module.description || '')}</p>
+              <div class="pt-4 flex items-center gap-2">
+                <a href="${viewHref}" class="${linkClasses} flex-1" style="background: ${isLockedModule ? '' : gradient};" data-locked-module="${isLockedModule}" data-module-title="${escapeHtml(module.title)}" data-module-href="${viewHref}">
+                  Go to module
+                  <i class='bx bx-right-arrow-alt text-lg'></i>
+                </a>
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-blue-50 text-blue-600 text-sm font-semibold hover:bg-blue-100 transition"
+                  aria-label="Edit module"
+                  data-edit-module="${escapeHtml(module.id)}"
+                >
+                  <i class="bx bx-edit-alt text-lg"></i>
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100 transition"
+                  aria-label="Delete module"
+                  data-delete-module="${escapeHtml(module.id)}"
+                >
+                  <i class="bx bx-trash text-lg"></i>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </article>
+        `}).join('');
+
+        const addModuleCardHTML = `
+          <a href="../HTML/NewModule.html" class="module-card group bg-white rounded-3xl shadow-md overflow-hidden hover:shadow-2xl transition-transform hover:-translate-y-1 flex flex-col border-2 border-dashed border-slate-200 hover:border-sky-400">
+            <div class="relative w-full h-44 bg-slate-50 flex items-center justify-center">
+                <i class='bx bx-plus-circle text-5xl text-slate-300 group-hover:text-sky-500 transition-colors'></i>
+            </div>
+            <div class="p-5 space-y-4 flex-grow flex flex-col items-center justify-center text-center">
+                <h3 class="text-lg font-semibold text-slate-800 group-hover:text-sky-600">Add New Module</h3>
+                <p class="text-sm text-slate-500 mt-1">Click to create</p>
+            </div>
+          </a>
+        `;
+
+        moduleGrid.innerHTML = modulesHTML + addModuleCardHTML;
+        
+        moduleCards = moduleGrid.querySelectorAll('.module-card');
+        applyFilters();
+        attachLockedModuleHandlers();
+        wireLockedModuleLinks();
+        wireEditDelete();
+        updateStats();
+      }
+
+      function applyFilters() {
+        moduleCards.forEach(card => {
+          const level = card.dataset.level || '';
+          const title = card.querySelector('h3')?.textContent.toLowerCase() || '';
+          const description = card.querySelector('.module-description')?.textContent.toLowerCase() || '';
+          const missionTitles = Array.from(card.querySelectorAll('.lesson-title')).map(el => el.textContent.toLowerCase());
+          const matchesLevel = activeFilter === 'all' || level === activeFilter;
+          const matchesSearch = !searchTerm ||
+            title.includes(searchTerm) ||
+            description.includes(searchTerm) ||
+            missionTitles.some(text => text.includes(searchTerm));
+          card.style.display = matchesLevel && matchesSearch ? '' : 'none';
+        });
+      }
+
+      function showLockedModuleModal(title, link) {
+        if (!moduleLockModal || !moduleLockMessage) return;
+        moduleLockMessage.textContent = `${title} is not released yet. Complete the earlier tracks or wait for CodeFly Control to unlock it.`;
+        pendingModuleLink = link || null;
+        moduleLockModal.classList.remove('hidden');
+        moduleLockModal.classList.add('flex');
+      }
+
+      function hideLockedModuleModal() {
+        if (!moduleLockModal) return;
+        moduleLockModal.classList.add('hidden');
+        moduleLockModal.classList.remove('flex');
+        pendingModuleLink = null;
+      }
+
+      function attachLockedModuleHandlers() {
+        if (!moduleGrid) return;
+        const lockedLinks = moduleGrid.querySelectorAll('[data-locked-module="true"]');
+        lockedLinks.forEach(link => {
+          link.addEventListener('click', event => {
+            event.preventDefault();
+            const moduleTitle = link.dataset.moduleTitle || 'This module';
+            const moduleHref = link.dataset.moduleHref || '';
+            showLockedModuleModal(moduleTitle, moduleHref);
+          });
+        });
+      }
+
+      document.getElementById('lockedModuleContinueBtn')?.addEventListener('click', () => {
+        if (pendingModuleLink) {
+          window.location.href = pendingModuleLink;
+        } else {
+          hideLockedModuleModal();
+        }
+      });
+
+      moduleLockCloseButtons.forEach(button => {
+        button.addEventListener('click', hideLockedModuleModal);
+      });
+
+      moduleLockModal?.addEventListener('click', event => {
+        if (event.target === moduleLockModal) {
+          hideLockedModuleModal();
+        }
+      });
+
+      deleteCloseButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          if (deleteModal) {
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+          }
+          pendingDeleteId = null;
+        });
+      });
+
+      deleteModal?.addEventListener('click', (event) => {
+        if (event.target === deleteModal) {
+          deleteModal.classList.add('hidden');
+          deleteModal.classList.remove('flex');
+          pendingDeleteId = null;
+        }
+      });
+
+      deleteConfirmBtn?.addEventListener('click', async () => {
+        if (!pendingDeleteId) return;
+        deleteConfirmBtn.disabled = true;
+        try {
+          const result = await deleteModule(pendingDeleteId);
+          if (result.ok) {
+            modulesData = modulesData.filter(m => Number(m.id) !== pendingDeleteId);
+            renderModules();
+            if (typeof showToast === 'function') {
+              showToast('<ion-icon name="trash"></ion-icon>Module deleted.', 'success');
+            }
+          } else if (typeof showToast === 'function') {
+            showToast('<ion-icon name="alert-circle"></ion-icon>Failed to delete module.', 'error');
+          }
+        } catch (e) {
+          if (typeof showToast === 'function') {
+            showToast('<ion-icon name="alert-circle"></ion-icon>Failed to delete module.', 'error');
+          }
+        } finally {
+          deleteConfirmBtn.disabled = false;
+          pendingDeleteId = null;
+          if (deleteModal) {
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+          }
+        }
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !moduleLockModal?.classList.contains('hidden')) {
+          hideLockedModuleModal();
+        }
+        if (event.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+          deleteModal.classList.add('hidden');
+          deleteModal.classList.remove('flex');
+          pendingDeleteId = null;
+        }
+      });
+
+      filterChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          filterChips.forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeFilter = chip.dataset.level || 'all';
+          applyFilters();
+        });
+      });
+
+      searchInput?.addEventListener('input', (e) => {
+        searchTerm = e.target.value.trim().toLowerCase();
+        applyFilters();
+      });
+
+      function wireLockedModuleLinks() {
+        const lockedLinks = document.querySelectorAll('.locked-module-link');
+        lockedLinks.forEach(link => {
+          if (link.dataset.lockBound) return;
+          link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const moduleTitle = link.dataset.moduleTitle || 'This module';
+            const href = link.dataset.moduleHref || link.getAttribute('href');
+            pendingModuleLink = href;
+            moduleLockMessage.textContent = `${moduleTitle} is exclusive for advanced pilots. Continue when ready?`;
+            moduleLockModal.classList.remove('hidden');
+            moduleLockModal.classList.add('flex');
+          });
+          link.dataset.lockBound = 'true';
+        });
+      }
+
+      async function loadModules() {
+        try {
+          const resp = await fetch('../PHP/listModules.php');
+          const data = await resp.json();
+          if (!resp.ok || data?.status !== 'success') {
+            throw new Error(data?.message || 'Unable to load modules.');
+          }
+          modulesData = data.data || [];
+          renderModules();
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function deleteModule(id) {
+        const payload = { module_id: id };
+        const resp = await fetch('../PHP/deleteModule.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok && data?.status === 'success', data };
+      }
+
+      function wireEditDelete() {
+        moduleGrid.querySelectorAll('[data-edit-module]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-edit-module');
+            if (id) window.location.href = `editModule.html?id=${id}`;
+          });
+        });
+        moduleGrid.querySelectorAll('[data-delete-module]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = parseInt(btn.getAttribute('data-delete-module') || '0', 10);
+            if (!id) return;
+            pendingDeleteId = id;
+            const moduleTitle = btn.closest('.module-card')?.querySelector('h3')?.textContent || 'this module';
+            if (deleteModuleMessage) {
+              deleteModuleMessage.textContent = `Delete "${moduleTitle}" and its lessons? This cannot be undone.`;
+            }
+            if (deleteModal) {
+              deleteModal.classList.remove('hidden');
+              deleteModal.classList.add('flex');
+            }
+          });
+        });
+      }
+
+      function updateStats() {
+        if (statTotalModules) {
+          statTotalModules.textContent = modulesData.length.toString();
+        }
+        if (statCompletedModules) {
+          const completed = modulesData.filter((m) => m.completed).length;
+          statCompletedModules.textContent = completed.toString();
+        }
+      }
+
+      function slugify(text) {
+        return text
+          .toString()
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '') || `module-${Date.now()}`;
+      }
+
+      function addMissionRow() {
+        if (!missionsContainer) return;
+        const row = document.createElement('div');
+        row.className = 'grid grid-cols-5 gap-2 items-center bg-white rounded-xl border border-slate-200 p-2';
+        row.innerHTML = `
+          <input type="text" name="lessonTitle" class="col-span-3 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-300" placeholder="Lesson title">
+          <input type="text" name="lessonDuration" class="col-span-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-300" placeholder="Duration">
+          <button type="button" class="col-span-1 text-slate-500 hover:text-rose-600 text-sm remove-lesson">Remove</button>
+        `;
+        missionsContainer.appendChild(row);
+      }
+
+      function collectMissions() {
+        if (!missionsContainer) return [];
+        const rows = Array.from(missionsContainer.querySelectorAll('.grid'));
+        return rows
+          .map((row) => {
+            const title = row.querySelector('input[name="lessonTitle"]')?.value.trim();
+            const duration = row.querySelector('input[name="lessonDuration"]')?.value.trim();
+            if (!title) return null;
+            return { title, topic: '', duration: duration || '', status: 'locked' };
+          })
+          .filter(Boolean);
+      }
+
+      function resetForm() {
+        addModuleForm?.reset();
+        if (missionsContainer) {
+          missionsContainer.innerHTML = '';
+        }
+      }
+
+      addMissionRow();
+      addMissionRowBtn?.addEventListener('click', addMissionRow);
+
+      missionsContainer?.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-lesson')) {
+          e.preventDefault();
+          e.target.closest('.grid')?.remove();
+        }
+      });
+
+      addModuleForm?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(addModuleForm);
+        const title = formData.get('title')?.toString().trim();
+        const subtitle = formData.get('subtitle')?.toString().trim();
+        const level = formData.get('level')?.toString() || 'custom';
+        if (!title) {
+          if (typeof showToast === 'function') {
+            showToast('<ion-icon name="alert-circle"></ion-icon>Title is required.', 'error');
+          }
+          return;
+        }
+
+        const newModule = {
+          id: slugify(title),
+          level,
+          levelLabel: level === 'custom' ? 'Custom' : (level.charAt(0).toUpperCase() + level.slice(1)),
+          title,
+          subtitle,
+          image: formData.get('image')?.toString().trim() || '../Assets/basicModule.png',
+          levelPillClass: LEVEL_PILL[level] || LEVEL_PILL.custom,
+          description: formData.get('description')?.toString().trim() || '',
+          duration: formData.get('duration')?.toString().trim() || '',
+          missionFocus: '',
+          tags: [],
+          link: formData.get('link')?.toString().trim() || '#',
+          locked: formData.get('locked') === 'on',
+          lessons: collectMissions(),
+        };
+
+        modulesData = [...modulesData, newModule];
+        renderModules();
+        resetForm();
+        if (typeof showToast === 'function') {
+          showToast('<ion-icon name="checkmark-circle"></ion-icon>Module created.', 'success');
+        }
+      });
+
+      loadModules();
+    });
+  </script>
+  <footer class="app-footer" style="width:100%; text-align:center; padding:16px 12px; font-size:12px; color:#64748b;">
+    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
+  </footer></body>
+</html>

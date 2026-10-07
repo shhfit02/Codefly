@@ -1,0 +1,25 @@
+node_modules/
+.codex/
+.vscode/
+npm-debug.log*
+
+# Local secrets (copy the *.example.php files)
+PHP/mail_config.php
+PHP/weather_config.php
+
+# Personal data and runtime uploads: database dumps (password hashes, emails),
+# users' photos, module covers/videos uploaded through the app (folders are created on upload)
+_archive/db/
+Assets/uploads/
+
+# Unused 24 MB animation (not referenced anywhere)
+Assets/logo2.gif
+
+# Photos saved by tello_bridge.py
+photos/
+
+# Scratch / downloaded files
+blockly-12.3.1.tgz
+temp.txt
+scratch.html
+__pycache__/

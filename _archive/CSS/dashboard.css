@@ -1,0 +1,64 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2563eb;
+  color: white;
+  padding: 10px 20px;
+}
+
+.topbar h1 {
+  margin: 0;
+}
+
+.controls button {
+  background: white;
+  color: #2563eb;
+  border: none;
+  padding: 6px 12px;
+  margin-left: 5px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  height: calc(100vh - 50px);
+}
+
+#blocklyDiv {
+  flex: 2;
+  height: 100%;
+}
+
+.right-panel {
+  flex: 1;
+  background: #f3f4f6;
+  border-left: 2px solid #ddd;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.right-panel h2 {
+  margin-top: 0;
+}
+
+#consoleOutput {
+  background: black;
+  color: lime;
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  overflow-y: auto;
+}

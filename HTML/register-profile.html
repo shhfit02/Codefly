@@ -1,0 +1,67 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../Assets/logo4.png">
+  <title>Registration</title>
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body class="auth-page">
+  <header>
+    <div class="logo">
+      <img src="../Assets/codeflyLogo_clean.png" alt="CodeFly Logo">
+    </div>
+  </header>
+
+  <main>
+    <div class="wrapper" aria-live="polite">
+      <section class="form-box register" aria-labelledby="register-title">
+        <h2 id="register-title">Create Your Profile</h2>
+
+        <div id="profile-errors" class="form-alert form-alert-error" role="alert" hidden>
+          <p>Before continuing, please fix the following:</p>
+          <ul></ul>
+        </div>
+
+        <form action="../PHP/register_profile.php" method="post" novalidate>
+          <div class="input-box">
+            <span class="icon"><ion-icon name="person"></ion-icon></span>
+            <input type="text" name="fullname" id="fullname" autocomplete="name" required>
+            <label for="fullname">Full Name</label>
+          </div>
+          <div class="input-box">
+            <span class="icon"><ion-icon name="calendar"></ion-icon></span>
+            <input type="number" name="age" id="age" min="13" max="100" step="1" inputmode="numeric" required>
+            <label for="age">Age</label>
+          </div>
+          <div class="input-box select-box">
+            <span class="icon"><ion-icon name="male-female"></ion-icon></span>
+            <select name="gender" id="gender" required>
+              <option value="" disabled hidden selected></option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="prefer-not">Prefer not to say</option>
+            </select>
+            <label for="gender">Gender</label>
+          </div>
+
+          <button type="submit" class="btn">Next</button>
+          <div class="login-register">
+            <p>Already have an account? <a href="../index.html" class="register-link">Login</a></p>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+  
+  <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="../JS/registerProfile.js" defer></script>
+  <script src="../JS/script.js"></script>
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <footer class="app-footer">
+    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
+  </footer></body>
+</html>

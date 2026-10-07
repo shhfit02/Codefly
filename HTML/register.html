@@ -1,0 +1,77 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../Assets/logo4.png">
+  <title>Registration</title>
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body class="auth-page">
+  <header>
+    <div class="logo">
+      <img src="../Assets/codeflyLogo_clean.png" alt="CodeFly Logo">
+    </div>  
+  </header>
+
+  <main>
+    <div class="wrapper" aria-live="polite">
+      <section class="form-box register" aria-labelledby="register-final-title">
+        <h2 id="register-final-title">Create Your Account</h2>
+
+        <div class="profile-summary" aria-label="Profile details review">
+          <p class="profile-summary__title">Profile Details</p>
+          <p><strong>Name:</strong> <span id="summary-name">-</span></p>
+          <p><strong>Age:</strong> <span id="summary-age">-</span></p>
+          <p><strong>Gender:</strong> <span id="summary-gender">-</span></p>
+          <a href="register-profile.html" class="profile-summary__edit">Edit details</a>
+        </div>
+
+        <div id="register-errors" class="form-alert form-alert-error" role="alert" hidden>
+          <p>Before we can register you, please fix:</p>
+          <ul></ul>
+        </div>
+
+        <form action="../PHP/register.php" method="post" novalidate>
+          <div class="input-box">
+            <span class="icon"><ion-icon name="person"></ion-icon></span>
+            <input type="text" name="username" id="username" required autocomplete="username">
+            <label for="username">Username</label>
+          </div>
+          <div class="input-box">
+            <span class="icon"><ion-icon name="mail"></ion-icon></span>
+            <input type="email" name="email" id="email" required autocomplete="email">
+            <label for="email">Email</label>
+          </div>
+          <div class="input-box">
+            <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+            <input type="password" name="password" id="password" required autocomplete="new-password" minlength="8">
+            <label for="password">Password</label>
+          </div>
+          <div class="remember-forgot">
+            <label>
+              <input type="checkbox" name="agree" id="agree" required>
+              I agree to terms & conditions
+            </label>
+            <a href="../Terms and Conditions Codefly.pdf" target="_blank" rel="noopener">T&amp;C</a>
+          </div>
+      
+          <button type="submit" class="btn">Register</button>
+          <div class="login-register">
+            <p>Already have an account? <a href="../index.html" class="register-link">Login</a></p>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+  
+  <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="../JS/register.js" defer></script>
+  <script src="../JS/script.js"></script>
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <footer class="app-footer">
+    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
+  </footer></body>
+</html>

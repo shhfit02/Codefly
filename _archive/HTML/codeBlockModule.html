@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Block Code Module</title>
+
+  <!-- Compiled Tailwind + bespoke CSS -->
+  <link rel="stylesheet" href="../CSS/tailwind.build.css">
+  <link rel="stylesheet" href="../CSS/home.css">
+  <link rel="stylesheet" href="../CSS/popup.css">
+
+  <!-- Boxicons -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <style>
+    body.modal-open {
+      overflow: hidden;
+    }
+    .module-hero {
+      background: linear-gradient(130deg, #0ea5e9, #6366f1);
+      color: #fff;
+      border-radius: 28px;
+      padding: 32px;
+      box-shadow: 0 25px 55px rgba(99, 102, 241, 0.25);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2rem;
+      align-items: center;
+    }
+    .hero-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 0.3rem 0.9rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .hero-image {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 22px;
+      box-shadow: 0 15px 40px rgba(15,23,42,0.35);
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 1.25rem;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 25px rgba(15,23,42,0.08);
+    }
+    .stat-card h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    .stat-card p {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 0.35rem;
+    }
+    .lesson-controls .filter-chip {
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #475569;
+      background: #fff;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    .lesson-controls .filter-chip.active,
+    .lesson-controls .filter-chip:hover {
+      color: #0f172a;
+      background: #e0effe;
+      box-shadow: 0 8px 18px rgba(14,165,233,0.25);
+    }
+    .lesson-card {
+      background: #fff;
+      border-radius: 24px;
+      border: 1px solid #e2e8f0;
+      padding: 1.5rem;
+      box-shadow: 0 16px 32px rgba(15,23,42,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .lesson-status {
+      border-radius: 999px;
+      padding: 0.2rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .lesson-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: #475569;
+    }
+    .lesson-tags span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      background: #f5f3ff;
+      color: #6d28d9;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .resource-card {
+      border-radius: 18px;
+      padding: 1rem;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <div id="toastBox"></div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar close">
+    <header>
+      <div class="image-text">
+        <span class="image">
+          <img src="../Assets/logo4.png" alt="logo">
+        </span>
+        <div class="text header-text">
+          <span class="name">Codefly</span>
+          <span class="profession">Dashboard</span>
+        </div>
+      </div>
+
+      <i class='bx bx-chevron-right toggle' title="Toggle sidebar"></i>
+    </header>
+
+    <div class="menu-bar">
+      <div class="menu">
+        <ul class="menu-links">
+          <li class="nav-link">
+            <a href="../HTML/home.html">
+              <i class='bx bx-home-alt icon'></i>
+              <span class="text nav-text">Home</span>
+            </a>
+          </li>
+
+          <li class="nav-link active">
+            <a href="../HTML/module.html">
+              <i class='bx bx-layer icon'></i>
+              <span class="text nav-text">Module</span>
+            </a>
+          </li>
+
+          <li class="nav-link">
+            <a href="../HTML/workspace.php">
+              <i class='bx bx-code-block icon'></i>
+              <span class="text nav-text">Code Block</span>
+            </a>
+          </li>
+
+          <li class="nav-link">
+            <a href="../HTML/leaderboard.html">
+              <i class='bx bx-trophy icon'></i>
+              <span class="text nav-text">Leaderboard</span>
+            </a>
+          </li>
+          
+          <li class="nav-link">
+            <a href="../HTML/account-setting.html">
+              <i class='bx bx-cog icon'></i>
+              <span class="text nav-text">Settings</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bottom-content">
+        <li>
+          <a href="../PHP/logout.php">
+            <i class='bx bx-log-out icon'></i>
+            <span class="text nav-text">Logout</span>
+          </a>
+        </li>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <section class="home h-screen">
+    <div class="p-6 flex gap-6 h-full">
+      <div class="flex flex-col w-full gap-4 relative overflow-y-auto no-scrollbar">
+        <main class="mt-6 space-y-8">
+          <section class="module-hero">
+            <div class="space-y-4">
+              <nav class="flex items-center gap-2 text-sm text-white/80 uppercase tracking-wide" aria-label="Breadcrumb">
+                <a href="../HTML/module.html" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/40 hover:bg-white/15 transition" aria-label="Back to modules">
+                  <i class='bx bx-arrow-back text-base text-white'></i>
+                </a>
+                <span class="text-white/60">/</span>
+                <span class="font-semibold text-white">Drone Block Builder</span>
+              </nav>
+              <div class="space-y-1">
+                <h1 class="text-3xl font-bold">Drone Block Builder</h1>
+                <p class="text-slate-100 text-base mt-1 max-w-xl">Nine lessons — one for every block category: takeoff, navigation, camera, flips, loops, logic, math, variables, plus a capstone lesson to stitch them together.</p>
+              </div>
+              <div class="flex flex-wrap gap-3">
+                <a id="resumeMissionButton" href="#" class="px-5 py-2.5 bg-white text-slate-900 font-semibold rounded-full shadow-lg shadow-purple-500/40 hover:-translate-y-0.5 transition inline-flex items-center gap-2">
+                  <span data-label>Resume lesson</span>
+                  <i class='bx bx-right-arrow-alt text-lg'></i>
+                </a>
+                <button class="px-4 py-2 border border-white/50 rounded-full text-white hover:bg-white/15 transition" data-syllabus-btn>
+                  Download syllabus
+                </button>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <img src="../Assets/blockModule.png" alt="Block Code preview" class="hero-image">
+              <div class="bg-white/15 rounded-2xl p-4 backdrop-blur">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-sm uppercase tracking-wide text-white/70">Lesson path</p>
+                    <p class="text-2xl font-semibold">Lesson 1 - Takeoff &amp; Landing Safety</p>
+                  </div>
+                </div>
+                <div class="mt-3 bg-white/25 rounded-full h-3">
+                  <div class="h-full bg-white rounded-full" style="width: 0%;"></div>
+                </div>
+                <p class="text-sm mt-1 text-white/80">0 / 9 lessons complete</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="stat-card">
+              <h4>Total Lessons</h4>
+              <p>9</p>
+              <span class="text-sm text-slate-500">8 categories + 1 capstone</span>
+            </div>
+            <div class="stat-card">
+              <h4>Project slots</h4>
+              <p>3</p>
+              <span class="text-sm text-slate-500">Lesson templates to remix</span>
+            </div>
+            <div class="stat-card">
+              <h4>Recommended pace</h4>
+              <p>9 days</p>
+              <span class="text-sm text-slate-500">1 category-focused lesson daily</span>
+            </div>
+          </section>
+
+          <section class="space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h2 class="text-2xl font-semibold text-slate-900">Lesson path</h2>
+                <p class="text-sm text-slate-500">Each lesson trains a single toolbox category, then ends with a quick guided lesson.</p>
+              </div>
+              <div class="lesson-controls flex flex-col gap-3 w-full lg:max-w-3xl">
+                <div class="lesson-search relative w-full">
+                  <i class='bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg'></i>
+                  <input
+                    id="lessonSearchInput"
+                    type="search"
+                    placeholder="Search lesson, focus or tag"
+                    class="w-full pl-11 pr-4 py-2.5 rounded-full border border-slate-200 bg-white text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 placeholder:text-slate-400">
+                </div>
+                <div class="flex flex-wrap gap-2 justify-start" id="lessonFilterChips">
+                  <button class="filter-chip active" data-status="all">All</button>
+                  <button class="filter-chip" data-status="completed">Completed</button>
+                  <button class="filter-chip" data-status="next">Next up</button>
+                  <button class="filter-chip" data-status="locked">Locked</button>
+                </div>
+              </div>
+            </div>
+            <div id="lessonList" class="space-y-4" aria-live="polite"></div>
+          </section>
+          
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <div id="syllabusModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 hidden px-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 pt-10 space-y-4 text-center relative">
+      <button type="button" class="absolute top-4 right-4 text-slate-400 hover:text-slate-900 text-2xl" aria-label="Close" data-close-modal>
+        <i class='bx bx-x'></i>
+      </button>
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-blue-50 text-blue-600 mx-auto">
+        <i class='bx bx-info-circle text-3xl'></i>
+      </div>
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Heads up</p>
+        <h2 class="text-2xl font-bold text-slate-900 mt-2">Syllabus not available</h2>
+        <p class="text-slate-600 mt-2">We're still compiling the PDF syllabus for this module. Check back soon.</p>
+      </div>
+      <div class="flex flex-col sm:flex-row sm:justify-center gap-3 mt-4">
+        <button type="button" class="px-5 py-2.5 rounded-full border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition" data-close-modal>
+          Close
+        </button>
+        <button type="button" class="px-5 py-2.5 rounded-full bg-slate-900 text-white font-semibold hover:bg-slate-800 transition" data-close-modal>
+          Got it
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../JS/home.js"></script>
+  <script src="../JS/popup.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const lessonList = document.getElementById('lessonList');
+      const lessonSearchInput = document.getElementById('lessonSearchInput');
+      const filterChips = document.querySelectorAll('#missionFilterChips .filter-chip');
+      const syllabusModal = document.getElementById('syllabusModal');
+      const syllabusButtons = document.querySelectorAll('[data-syllabus-btn]');
+      const syllabusModalCloseButtons = syllabusModal ? syllabusModal.querySelectorAll('[data-close-modal]') : [];
+      const resumeMissionButton = document.getElementById('resumeMissionBtn');
+
+      const showSyllabusModal = () => {
+        if (!syllabusModal) return;
+        syllabusModal.classList.remove('hidden');
+        document.body.classList.add('modal-open');
+      };
+
+      const hideSyllabusModal = () => {
+        if (!syllabusModal) return;
+        syllabusModal.classList.add('hidden');
+        document.body.classList.remove('modal-open');
+      };
+
+      syllabusButtons.forEach((button) => {
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          showSyllabusModal();
+        });
+      });
+
+      syllabusModalCloseButtons.forEach((button) => {
+        button.addEventListener('click', hideSyllabusModal);
+      });
+
+      syllabusModal?.addEventListener('click', (event) => {
+        if (event.target === syllabusModal) {
+          hideSyllabusModal();
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !syllabusModal?.classList.contains('hidden')) {
+          hideSyllabusModal();
+        }
+      });
+
+      const statusStyles = {
+        completed: { label: 'Completed', class: 'bg-emerald-100 text-emerald-700', icon: 'bx bx-check-circle' },
+        next: { label: 'In progress', class: 'bg-purple-100 text-purple-700', icon: 'bx bx-play-circle' },
+        locked: { label: 'Locked', class: 'bg-slate-200 text-slate-500', icon: 'bx bx-lock-alt' },
+      };
+      const lessons = [
+        {
+          id: 'lesson-01',
+          order: 1,
+          title: 'Takeoff & Landing Safety',
+          description: 'Power-up checks, safe takeoff and landing blocks, and the green-flag event to wrap it together.',
+          duration: '12 min',
+          focus: 'Takeoff',
+          status: 'locked',
+          requirement: 'Module locked',
+          tags: ['Takeoff', 'Landing', 'Events'],
+          link: '#',
+        },
+        {
+          id: 'lesson-02',
+          order: 2,
+          title: 'Navigation: Move & Turn',
+          description: 'Forward, back, left, right, and turn blocks with distance/degree inputs and simple safety spacing.',
+          duration: '18 min',
+          focus: 'Navigation',
+          status: 'locked',
+          requirement: 'Module locked',
+          tags: ['Navigation', 'Turns', 'Spacing'],
+          link: '#',
+        },
+        {
+          id: 'lesson-03',
+          order: 3,
+          title: 'Camera: Shots & Framing',
+          description: 'Use camera/take-photo blocks, align shots with yaw moves, and add pauses for clearer captures.',
+          duration: '15 min',
+          focus: 'Camera',
+          status: 'locked',
+          requirement: 'Module locked',
+          tags: ['Camera', 'Framing', 'Pauses'],
+          link: '../HTML/moduleCode-3.html',
+        },
+        {
+          id: 'lesson-04',
+          order: 4,
+          title: 'Flip & Trick Basics',
+          description: 'Trigger flips safely, set heights, and chain simple trick combos with waits.',
+          duration: '16 min',
+          focus: 'Flip',
+          status: 'locked',
+          requirement: 'Module locked',
+          tags: ['Flip', 'Safety', 'Timing'],
+          link: '../HTML/moduleCode-4.html',
+        },
+        {
+          id: 'lesson-05',
+          order: 5,
+          title: 'Loops for Patterns',
+          description: 'Repeat paths for grids and orbits; tune counts and delays for smooth patterns.',
+          duration: '18 min',
+          focus: 'Loops',
+          status: 'locked',
+          requirement: 'Module locked',
+          tags: ['Loops', 'Patterns', 'Timing'],
+          link: '../HTML/moduleCode-5.html',
+        },
+        {
+          id: 'lesson-06',
+          order: 6,
+          title: 'Logic: If/Else Rules',
+          description: 'Use logic blocks to guard moves - battery checks, height limits, and obstacle flags.',
+          duration: '18 min',
+          focus: 'Logic',
+          status: 'locked',
+          requirement: 'Module locked',
+          tags: ['Logic', 'Safety', 'Conditions'],
+          link: '../HTML/moduleCode-6.html',
+        },
+        {
+          id: 'lesson-07',
+          order: 7,
+          title: 'Math for Lessons',
+          description: 'Scale distances, clamp speeds, and combine operators to calculate safe paths.',
+          duration: '17 min',
+          focus: 'Math',
+          status: 'locked',
+          requirement: 'Module locked',
+          tags: ['Math', 'Operators', 'Scaling'],
+          link: '../HTML/moduleCode-7.html',
+        },
+        {
+          id: 'lesson-08',
+          order: 8,
+          title: 'Variables & Memory',
+          description: 'Store reusable values like cruise speed, photo count, and altitudes; reuse across moves.',
+          duration: '18 min',
+          focus: 'Variables',
+          status: 'locked',
+          requirement: 'Module locked',
+          tags: ['Variables', 'State', 'Reuse'],
+          link: '../HTML/moduleCode-8.html',
+        },
+        {
+          id: 'lesson-09',
+          order: 9,
+          title: 'Capstone: Full Lesson',
+          description: 'Combine takeoff, navigation, camera, flips, loops, logic, math, and variables into one lesson.',
+          duration: '22 min',
+          focus: 'Capstone',
+          status: 'locked',
+          requirement: 'Module locked',
+          tags: ['Capstone', 'Lesson', 'Integration'],
+          link: '#',
+        },
+      ];
+
+      const setResumeMissionLink = () => {
+        if (!resumeMissionButton) return;
+        resumeMissionButton.setAttribute('href', '#');
+        resumeMissionButton.setAttribute('aria-disabled', 'true');
+        const labelEl = resumeMissionButton.querySelector('[data-label]');
+        if (labelEl) {
+          labelEl.textContent = 'Locked';
+        }
+      };
+
+      let activeStatus = 'all';
+      let searchTerm = '';
+
+      function renderMissions() {
+        const filtered = lessons.filter((lesson) => {
+          const matchesStatus = activeStatus === 'all' || lesson.status === activeStatus;
+          const normalizedSearch = `${lesson.title} ${lesson.description} ${lesson.tags.join(' ')}`.toLowerCase();
+          const matchesSearch = !searchTerm || normalizedSearch.includes(searchTerm);
+          return matchesStatus && matchesSearch;
+        });
+
+        if (!filtered.length) {
+          lessonList.innerHTML = `
+            <div class="lesson-card text-center">
+              <p class="text-lg font-semibold text-slate-700">No lessons match your filters</p>
+              <p class="text-sm text-slate-500">Try clearing the search box or switching the status filter.</p>
+            </div>
+          `;
+          return;
+        }
+
+        lessonList.innerHTML = filtered
+          .map((lesson) => {
+            const status = statusStyles.locked;
+            const ctaLabel = 'Locked';
+            const ctaHref = '#';
+            const ctaClasses = 'text-sm font-semibold text-slate-500 inline-flex items-center gap-2 opacity-60 cursor-not-allowed';
+            const ctaAttrs = 'aria-disabled="true" tabindex="-1"';
+            return `
+            <article class="lesson-card" data-status="${lesson.status}">
+              <header class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p class="text-xs uppercase tracking-wider text-slate-400">Lesson ${lesson.order.toString().padStart(2, '0')}</p>
+                  <h3 class="text-xl font-semibold text-slate-900">${lesson.title}</h3>
+                </div>
+                <span class="lesson-status ${status.class}">
+                  <i class='${status.icon}'></i>${status.label}
+                </span>
+              </header>
+              <p class="text-sm text-slate-600">${lesson.description}</p>
+              <div class="lesson-meta">
+                <span><i class='bx bx-time-five'></i> ${lesson.duration}</span>
+                <span><i class='bx bx-chip'></i> ${lesson.focus}</span>
+                <span><i class='bx bx-lock-alt'></i> ${lesson.requirement}</span>
+              </div>
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="lesson-tags flex flex-wrap gap-2">
+                  ${lesson.tags.map((tag) => `<span><i class='bx bx-shape-triangle'></i>${tag}</span>`).join('')}
+                </div>
+                <a href="${ctaHref}" class="${ctaClasses}" ${ctaAttrs}>
+                  ${ctaLabel}
+                  <i class='bx bx-right-arrow-alt'></i>
+                </a>
+              </div>
+            </article>
+          `;
+          })
+          .join('');
+      }
+
+      filterChips.forEach((chip) => {
+        chip.addEventListener('click', () => {
+          filterChips.forEach((c) => c.classList.remove('active'));
+          chip.classList.add('active');
+          activeStatus = chip.dataset.status || 'all';
+          renderMissions();
+        });
+      });
+
+      lessonSearchInput?.addEventListener('input', (event) => {
+        searchTerm = event.target.value.trim().toLowerCase();
+        renderMissions();
+      });
+
+      setResumeMissionLink();
+      renderMissions();
+    });
+  </script>
+  <footer class="app-footer" style="width:100%; text-align:center; padding:16px 12px; font-size:12px; color:#64748b;">
+    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
+  </footer></body>
+</html>

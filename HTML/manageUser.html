@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../Assets/logo4.png">
+
+  <title>Manage Users</title>
+
+  <link rel="stylesheet" href="../CSS/tailwind.build.css">
+
+  <link rel="stylesheet" href="../CSS/home.css">
+
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-gray-100">
+
+
+
+  <!-- Sidebar (matches Admin Center) -->
+
+  <nav class="sidebar close">
+      <header>
+        <div class="image-text">
+          <span class="image">
+            <img src="../Assets/logo4.png" alt="logo" />
+          </span>
+          <div class="text header-text">
+            <span class="name">Codefly</span>
+            <span class="profession">Admin Dashboard</span>
+          </div>
+        </div>
+        <i class="bx bx-chevron-right toggle"></i>
+      </header>
+
+      <div class="menu-bar">
+        <div class="menu">
+          <ul class="menu-links">
+            <li class="nav-link"><a href="../HTML/adminDashboard.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Admin Center</span></a></li>
+            <li class="nav-link"><a href="../HTML/AddModule.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
+            <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
+            <li class="nav-link"><a href="../HTML/manageUser.html"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
+            <li class="nav-link"><a href="../HTML/adminLeaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
+          </ul>
+      </div>
+      <div class="bottom-content">
+        <li>
+          <a href="../PHP/logout.php">
+              <i class="bx bx-log-out icon"></i>
+              <span class="text nav-text">Logout</span>
+            </a>
+          </li>
+        </div>
+      </div>
+    </nav>
+
+
+
+  <!-- MAIN SECTION -->
+
+  <section class="home min-h-screen">
+
+    <div class="p-6 flex flex-col gap-8">
+
+      <div class="max-w-6xl">
+
+        <!-- Hero header -->
+
+        <div class="rounded-3xl p-6 md:p-8 mb-6 text-white shadow-lg overflow-hidden" style="background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 60%, #7c3aed 100%); border-radius: 28px;">
+
+          <div class="flex flex-col gap-6">
+
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+              <div>
+
+                <p class="text-xs uppercase tracking-[0.35em] text-white/70">Users</p>
+
+                <h1 class="text-3xl md:text-4xl font-semibold">Manage users</h1>
+
+                <p class="text-sm md:text-base text-white/80 mt-2 max-w-2xl">Keep admins and learners organized in one place.</p>
+
+              </div>
+
+              <div class="flex gap-3">
+
+                <div class="bg-white/15 backdrop-blur rounded-2xl px-5 py-4 text-center min-w-[120px] border border-white/20">
+
+                  <p class="text-xs uppercase tracking-[0.2em] text-white/70">Total Users</p>
+
+                  <p id="hero-total-users" class="text-2xl font-semibold">--</p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="flex flex-col md:flex-row md:items-center md:gap-4">
+              <div class="relative flex-1">
+                <i class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-white/80 text-xl"></i>
+                <input
+                  id="user-search"
+                  type="search"
+                  placeholder="Search user handle or email..."
+                  class="w-full pl-12 pr-4 py-3 rounded-2xl border border-white/30 bg-white/10 text-white placeholder-white/80 focus:outline-none focus:ring-2 focus:ring-white/60"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="rounded-3xl bg-white shadow-lg border border-slate-100 overflow-hidden p-6">
+
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Directory</p>
+              <h2 class="text-2xl font-semibold text-slate-900">All Users</h2>
+            </div>
+            <a
+              href="../HTML/addUser.html"
+              class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold shadow focus:outline-none focus:ring-2 focus:ring-blue-200"
+              style="background: linear-gradient(130deg, #0ea5e9, #6366f1);"
+            >Add User</a>
+          </div>
+
+          <div class="overflow-x-auto">
+
+            <table class="min-w-full">
+
+              <thead class="bg-slate-50 border-b border-slate-200">
+
+                <tr class="text-center text-xs font-semibold text-slate-600">
+
+                  <th class="px-4 py-3"></th>
+
+                  <th class="px-4 py-3 w-12">ID</th>
+
+                  <th class="px-4 py-3">Username</th>
+
+                  <th class="px-4 py-3">Full Name</th>
+
+                  <th class="px-4 py-3">Age</th>
+
+                  <th class="px-4 py-3">Gender</th>
+
+                  <th class="px-4 py-3">Email</th>
+
+                  <th class="px-4 py-3">Action</th>
+
+                </tr>
+
+              </thead>
+
+              <tbody id="user-table-body" class="text-sm">
+
+                <tr>
+
+                  <td colspan="8" class="px-4 py-4 text-slate-500">Loading users...</td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+  <script src="../JS/home.js"></script>
+  <script>
+    const DEFAULT_AVATAR = "../Assets/StudentProfile.png";
+    const ENDPOINT = "../PHP/adminDashboard.php";
+    const DELETE_ENDPOINT = "../PHP/adminDeleteUser.php";
+    let allUsers = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadUsers();
+      wireSearch();
+      showAddToastIfNeeded();
+    });
+
+    async function loadUsers() {
+      try {
+        const res = await fetch(ENDPOINT, { credentials: "same-origin", cache: "no-store" });
+        const payload = await res.json();
+        if (payload?.status !== "success") {
+          throw new Error(payload?.message || "Unable to load users");
+        }
+        allUsers = payload.data?.recentUsers || [];
+        setHeroStats(payload.data?.totals);
+        renderTable(applyFilters());
+      } catch (error) {
+        console.error("Failed to fetch users", error);
+        renderTable([], "Unable to load users right now.");
+      }
+    }
+
+    function wireSearch() {
+      const input = document.getElementById("user-search");
+      if (!input) return;
+      input.addEventListener("input", () => renderTable(applyFilters()));
+    }
+
+    function applyFilters() {
+      const input = document.getElementById("user-search");
+      const term = (input?.value || "").trim().toLowerCase();
+      return allUsers.filter((user) => {
+        const matchesSearch =
+          !term ||
+          (user.username || "").toLowerCase().includes(term) ||
+          (user.email || "").toLowerCase().includes(term);
+        return matchesSearch;
+      });
+    }
+
+    function setHeroStats(totals = {}) {
+      const totalUsersEl = document.getElementById("hero-total-users");
+      const adminsEl = document.getElementById("hero-admins");
+      if (totalUsersEl) totalUsersEl.textContent = formatNumber(totals.users);
+      if (adminsEl) adminsEl.textContent = formatNumber(totals.admins);
+    }
+
+    function renderTable(users, errorMessage = null) {
+      const tbody = document.getElementById("user-table-body");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      if (errorMessage) {
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-4 text-slate-500">${errorMessage}</td></tr>`;
+        return;
+      }
+
+      if (!Array.isArray(users) || users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-4 text-slate-500">No users found.</td></tr>`;
+        return;
+      }
+
+      users.forEach((user, index) => {
+        const tr = document.createElement("tr");
+        const avatar = user.avatar || DEFAULT_AVATAR;
+        tr.className = "hover:bg-slate-50 cursor-pointer border-b border-slate-200 last:border-b-0";
+        const profileHref = buildProfileUrl(user.id, user.username);
+        tr.addEventListener("click", () => {
+          window.location.href = profileHref;
+        });
+        const rowId = formatId(user.id || index + 1);
+        tr.innerHTML = `
+          <td class="px-4 py-3 text-center">
+            <img src="${escapeHtml(avatar)}" alt="${escapeHtml(user.username || "User")} avatar" class="w-10 h-10 rounded-full object-cover border border-slate-200 mx-auto">
+          </td>
+          <td class="px-4 py-3 font-semibold text-slate-700 tabular-nums text-center">${rowId}</td>
+          <td class="px-4 py-3 text-center">
+            <p class="font-semibold text-slate-900">${escapeHtml(user.username || "Unknown")}</p>
+              <p class="text-xs text-slate-500">Joined ${escapeHtml(formatDate(user.joined))}</p>
+            </td>
+            <td class="px-4 py-3 text-slate-600 text-center">${escapeHtml(user.fullName || "-")}</td>
+            <td class="px-4 py-3 text-slate-600 text-center">${formatAge(user.age)}</td>
+            <td class="px-4 py-3 text-slate-600 capitalize text-center">${escapeHtml(formatGender(user.gender))}</td>
+            <td class="px-4 py-3 text-slate-600 text-center">${escapeHtml(user.email || "N/A")}</td>
+            <td class="px-4 py-3">
+              <div class="flex items-center justify-center gap-2">
+                <a href="${escapeHtml(buildEditUrl(user.id, user.username))}" onclick="event.stopPropagation();" class="action-icon text-blue-500 hover:text-blue-600" title="Edit">
+                  <i class="bx bx-edit-alt text-xl"></i>
+                </a>
+              <button type="button" data-action="delete" class="action-icon text-red-500 hover:text-red-600" title="Delete">
+                <i class="bx bx-trash text-xl"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        // Bound here rather than inline so a username containing quotes cannot break out of the handler.
+        tr.querySelector('[data-action="delete"]')?.addEventListener("click", (event) => {
+          event.stopPropagation();
+          handleDelete(user.id || "", user.username || "");
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function formatDate(value) {
+      if (!value) return "N/A";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatAge(value) {
+      if (value === null || value === undefined || value === "") return "-";
+      const num = Number(value);
+      return Number.isFinite(num) ? `${num}` : "-";
+    }
+
+    function formatId(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return "-";
+      return String(num).padStart(3, "0");
+    }
+
+    function formatGender(value) {
+      const normalized = (value || "").toLowerCase();
+      if (!normalized) return "�";
+      if (normalized === "prefer-not") return "Prefer not";
+      return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+    }
+
+    function formatNumber(value) {
+      if (typeof value !== "number" || Number.isNaN(value)) return "--";
+      return value.toLocaleString();
+    }
+
+    function buildProfileUrl(id = "", username = "") {
+      if (id) {
+        return `../HTML/adminViewProfile.html?id=${encodeURIComponent(id)}`;
+      }
+      return `../HTML/adminViewProfile.html?user=${encodeURIComponent(username || "")}`;
+    }
+
+    function buildEditUrl(id = "", username = "") {
+      const base = "../HTML/editUser.html";
+      if (id) return `${base}?id=${encodeURIComponent(id)}`;
+      if (username) return `${base}?user=${encodeURIComponent(username)}`;
+      return base;
+    }
+
+    async function handleDelete(id = "", username = "") {
+      const label = username || id;
+      if (!label) return;
+      const confirmed = window.confirm(`Delete user "${label}"? This cannot be undone.`);
+      if (!confirmed) return;
+      try {
+        const formData = new FormData();
+        formData.append("id", id);
+        const response = await fetch(DELETE_ENDPOINT, {
+          method: "POST",
+          credentials: "same-origin",
+          body: formData,
+        });
+        const payload = await response.json();
+        if (!response.ok || payload?.status !== "success") {
+          throw new Error(payload?.message || "Failed to delete user.");
+        }
+        allUsers = allUsers.filter((user) => String(user.id) !== String(id));
+        renderTable(applyFilters());
+        alert(payload.message || "User deleted.");
+      } catch (error) {
+        console.error("Delete failed", error);
+        alert(error.message || "Unable to delete user right now.");
+      }
+    }
+
+    function showAddToastIfNeeded() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("added") === "1") {
+        alert("User added successfully.");
+        params.delete("added");
+        const newUrl = `${window.location.pathname}${params.toString() ? "?" + params.toString() : ""}`;
+        window.history.replaceState({}, "", newUrl);
+      }
+    }
+  </script>
+  <footer class="app-footer" style="width:100%; text-align:center; padding:16px 12px; font-size:12px; color:#64748b;">
+    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
+  </footer></body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeFly | Block Lesson</title>
+  <link rel="stylesheet" href="../CSS/tailwind.build.css" />
+  <link rel="stylesheet" href="../CSS/home.css" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    body.modal-open { overflow: hidden; }
+    body {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .shell {
+      max-width: none;
+      width: 100%;
+      margin: 0;
+      padding: 16px 12px 32px;
+    }
+    .workspace-shell {
+      display: grid;
+      gap: 16px;
+    }
+    .hero {
+      background: linear-gradient(125deg, #7c3aed, #6366f1, #4f46e5);
+      color: #fff;
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(99, 102, 241, 0.28);
+    }
+    .hero-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.86);
+    }
+    .hero-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      align-items: center;
+      justify-items: center;
+      margin-top: 18px;
+      text-align: center;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.95rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .pill-light {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 0.82rem;
+      border: 1px solid #cbd5e1;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+    .action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #fff;
+      border-radius: 18px;
+      padding: 12px 14px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+      border: 1px solid #e2e8f0;
+    }
+    .action-hint {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #475569;
+    }
+    .btn-primary {
+      background: #fff;
+      color: #111827;
+      padding: 0.9rem 1.6rem;
+      border-radius: 999px;
+      font-weight: 800;
+      box-shadow: 0 20px 35px rgba(17, 24, 39, 0.2);
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 26px 50px rgba(17, 24, 39, 0.28); }
+    .btn-ghost {
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      padding: 0.9rem 1.6rem;
+      border-radius: 999px;
+      font-weight: 700;
+      background: transparent;
+      transition: transform 0.18s ease, background 0.18s ease;
+    }
+    .btn-ghost:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.1); }
+    .workspace-card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.15);
+      border: 1px solid #e2e8f0;
+      padding: 14px;
+    }
+    .code-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+      padding: 14px;
+    }
+    .code-card pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+      overflow: auto;
+      min-height: 120px;
+      max-height: 300px;
+      font-size: 0.9rem;
+    }
+    .helper-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .helper-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px 14px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+    .info-card {
+      background: #fff;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 1.25rem;
+      padding: 1.25rem;
+      box-shadow: 0 16px 30px rgba(2, 6, 23, 0.08);
+    }
+    iframe {
+      width: 100%;
+      height: calc(100vh - 220px);
+      min-height: 720px;
+      border: 0;
+      border-radius: 12px;
+      background: #0b1021;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen overflow-x-hidden">
+  <main class="shell space-y-6">
+    <section class="hero">
+      <div class="flex items-center justify-between gap-3">
+        <div class="hero-nav">
+          <a href="codeBlockModule.html" class="inline-flex items-center justify-center w-10 h-10 rounded-full border border-white/40 bg-white/10 hover:bg-white/20 transition" aria-label="Back to Block module">
+            <i class='bx bx-arrow-back text-xl text-white'></i>
+          </a>
+          <span>Block Module</span>
+          <span>/</span>
+          <span id="breadcrumbMissionLabel">Lesson</span>
+        </div>
+      </div>
+      <div class="hero-content">
+        <div class="space-y-3">
+          <h1 id="lessonTitle" class="text-3xl md:text-4xl font-extrabold leading-tight">Lesson</h1>
+          <p id="lessonSummary" class="text-base md:text-lg text-white/90"></p>
+          <div id="heroChips" class="chip-row"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 gap-6">
+      <section class="bg-white rounded-3xl shadow-lg p-6 space-y-6 no-scrollbar">
+        <div class="workspace-card">
+          <iframe id="lessonWorkspaceFrame" title="Block lesson workspace"></iframe>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const BLOCK_LESSONS = {
+      'block-01': {
+        title: 'Lesson 1 - Take Off & Land Basics',
+        summary: 'Use the green flag event to take off, then finish with a safe landing.',
+        duration: '10 min',
+        lesson: 'When green flag clicked -> Take Off -> Land.',
+        badges: ['Events', 'Takeoff', 'Landing'],
+        tips: [
+          'Start with the green flag event block.',
+          'Place Take Off under the event.',
+          'Add Land after Take Off to complete the run.'
+        ],
+      },
+      'block-02': {
+        title: 'Lesson 2 - Basic Drone Motion',
+        summary: 'Take off, land, and move in centimeters with clockwise/counterclockwise turns.',
+        duration: '18 min',
+        lesson: 'Take off -> forward 50cm -> turn right 90 deg -> land.',
+      },
+      'block-03': {
+        title: 'Lesson 3 - Timing & Wait Blocks',
+        summary: 'Use waits between movements for smooth sequences.',
+        duration: '15 min',
+        lesson: 'Take off -> wait 2s -> forward 40cm -> wait 1s -> land.',
+      },
+      'block-04': {
+        title: 'Lesson 4 - Control with Repeat Loops',
+        summary: 'Reduce repetition with repeat times/while for shapes and patterns.',
+        duration: '20 min',
+        lesson: 'Repeat 4 times -> forward 40cm + turn right 90 deg (square).',
+      },
+      'block-05': {
+        title: 'Lesson 5 - Logic & Operators',
+        summary: 'Use math and logic blocks to calculate and combine lesson rules.',
+        duration: '18 min',
+        lesson: 'Set distance = 80, fly forward distance, then turn 90 deg.',
+      },
+      'block-06': {
+        title: 'Lesson 6 - If Statements & Safety Rules',
+        summary: 'Add guardrails for low battery or height limits.',
+        duration: '18 min',
+        lesson: 'If battery < 20% -> land; else continue path.',
+      },
+      'block-07': {
+        title: 'Lesson 7 - Using Sensors (Telemetry)',
+        summary: 'Read live battery and height to react mid-flight.',
+        duration: '20 min',
+        lesson: 'Hover until height < 50cm, then land when battery < 30%.',
+      },
+      'block-08': {
+        title: 'Lesson 8 - Prebuilt Sequences & Tricks',
+        summary: 'Use flip blocks to design fun but safe routines.',
+        duration: '16 min',
+        lesson: 'Take off -> flip forward -> flip left -> land.',
+      },
+      'block-09': {
+        title: 'Lesson 9 - Variables & Memory',
+        summary: 'Store values like distance or speed and reuse them.',
+        duration: '18 min',
+        lesson: 'Set distance = 50 -> fly forward distance -> turn 90 deg -> repeat.',
+      },
+    };
+
+    function inferMissionKey() {
+      const urlMission = new URLSearchParams(window.location.search).get('lesson');
+      if (urlMission && BLOCK_LESSONS[urlMission]) return urlMission;
+      const match = window.location.pathname.match(/moduleCode-(\d+)/);
+      if (match) {
+        const num = match[1].padStart(2, '0');
+        const key = `block-${num}`;
+        if (BLOCK_LESSONS[key]) return key;
+      }
+      return 'block-01';
+    }
+
+    function renderMissionPage() {
+      const lessonKey = inferMissionKey();
+      const data = BLOCK_LESSONS[lessonKey] || BLOCK_LESSONS['block-01'];
+      document.title = `CodeFly | ${data.title}`;
+      const lessonTitle = document.getElementById('lessonTitle');
+      if (lessonTitle) lessonTitle.textContent = data.title;
+      const breadcrumb = document.getElementById('breadcrumbMissionLabel');
+      if (breadcrumb) {
+        const numberLabel = lessonKey.split('-')[1] ? `Lesson ${lessonKey.split('-')}[1]} : 'Lesson';
+        breadcrumb.textContent = numberLabel;
+      }
+      const summary = document.getElementById('lessonSummary');
+      if (summary) summary.textContent = data.summary;
+      const lesson = document.getElementById('lessonMission');
+      if (lesson) lesson.textContent = data.lesson || 'Follow the brief and press Run.';
+      const tipsList = document.getElementById('lessonTips');
+      if (tipsList) {
+        const tips = Array.isArray(data.tips) && data.tips.length
+          ? data.tips
+          : ['Drag blocks into the white area.', 'Press Run blocks to test.', 'Press Stop to reset.'];
+        tipsList.innerHTML = tips.map((tip, idx) => `<li>${idx + 1}`) ${tip}</li>`).join('');
+      }
+      const heroChips = document.getElementById('heroChips');
+      if (heroChips) {
+        const chips = [
+          { icon: 'bx bx-time-five', text: data.duration || 'Self-paced' },
+          { icon: 'bx bx-cube', text: 'Block-only workspace' },
+          { icon: 'bx bx-shield-quarter', text: 'Sandboxed blocks' },
+        ];
+        heroChips.innerHTML = chips.map((chip) => `<span class="pill"><i class='${chip.icon}'></i> ${chip.text}</span>`).join('');
+      }
+      const badgeWrap = document.getElementById('lessonBadges');
+      const frame = document.getElementById('lessonWorkspaceFrame
+  <footer class="app-footer" style="width:100%; text-align:center; padding:16px 12px; font-size:12px; color:#64748b;">
+    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
+  </footer></body>
+</html>

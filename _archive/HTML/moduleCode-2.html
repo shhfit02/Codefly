@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CodeFly Scratch Lab | Lesson 2</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+  <!-- Blockly (kalau workspace kau dah ada JS sendiri, boleh buang & guna file existing) -->
+  <script src="https://unpkg.com/blockly/blockly.min.js">
+
+  <style>
+    :root{
+      --ink:#0f172a;
+      --ink-2:#1e293b;
+      --sky:#5b8bff;
+      --sky-2:#8fb7ff;
+      --mint:#16d49b;
+      --warning:#f59e0b;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --bg:#eef2ff;
+      --card:#ffffff;
+      --shadow:0 16px 40px rgba(15,23,42,.12);
+    }
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;margin:0;
+      font-family:"Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(140% 120% at 20% 20%, rgba(91,139,255,.18), transparent 36%), var(--bg);
+      color:var(--ink);
+    }
+
+    /* TOP BAR */
+    .topbar{
+      padding:16px 18px;
+      background:linear-gradient(135deg,var(--ink),var(--ink-2));
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      box-shadow:var(--shadow);
+      position:sticky;
+      top:0;
+      z-index:50;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px;
+    }
+    .homeIcon{
+      width:40px;height:40px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.22);
+    }
+    .brandText{line-height:1.1}
+    .brandText small{display:block;font-weight:800;letter-spacing:.14em;opacity:.85;text-transform:uppercase;font-size:11px}
+    .brandText h1{margin:2px 0 0 0;font-size:22px;letter-spacing:.02em}
+    .topActions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .btnTop{
+      border:none;cursor:pointer;
+      padding:10px 16px;border-radius:999px;
+      font-weight:800;color:#fff;
+      display:inline-flex;align-items:center;gap:8px;
+      box-shadow:0 10px 22px rgba(0,0,0,.12);
+      transition:.15s ease;
+    }
+    .btnTop:hover{transform:translateY(-1px)}
+    .btnTop:focus-visible{outline:2px solid rgba(255,255,255,.5);outline-offset:2px}
+    .btnGreen{background:linear-gradient(135deg,var(--mint),#0fb97e)}
+    .btnRed{background:linear-gradient(135deg,#ef4444,#c53030)}
+    .profilePill{
+      padding:10px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.16);
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      white-space:nowrap;
+    }
+    .avatar{
+      width:28px;height:28px;border-radius:999px;
+      background:rgba(255,255,255,.16);
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:800;
+    }
+
+    /* LESSON META */
+    .lessonMeta{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding:14px 18px;
+      margin:16px 16px 0;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+    }
+    .lessonMeta .title{font-size:18px;font-weight:700;margin:0}
+    .lessonBadges{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(91,139,255,.12);
+      color:var(--ink);
+      font-weight:700;
+      border:1px solid rgba(91,139,255,.18);
+      font-size:13px;
+    }
+
+    /* MAIN LAYOUT */
+    .wrap{
+      display:grid;
+      grid-template-columns: 300px 1fr;
+      gap:16px;
+      padding:16px;
+      min-height:calc(100vh - 76px);
+    }
+
+    /* LEFT SIDEBAR */
+    .sidebar{
+      background:linear-gradient(180deg, #d7e6ff, #c3d3ff);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:var(--shadow);
+      border:1px solid rgba(91,139,255,.18);
+    }
+    .connCard{
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(255,255,255,.9);
+      border-radius:16px;
+      padding:14px;
+      display:flex;gap:10px;align-items:center;
+      margin-bottom:12px;
+    }
+    .connIcon{
+      width:40px;height:40px;border-radius:14px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.8);
+      border:1px solid rgba(226,232,240,.9);
+      color:#ef4444;
+      font-size:20px;
+    }
+    .connText small{color:var(--muted);font-weight:700}
+    .connText b{display:block;margin-top:2px}
+
+    .cat{
+      background:rgba(255,255,255,.86);
+      border:1px solid rgba(226,232,240,.9);
+      border-radius:16px;
+      padding:12px 12px;
+      display:flex;gap:10px;align-items:flex-start;
+      margin:10px 0;
+      cursor:pointer;
+      transition:.15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    .cat:hover{
+      transform:translateY(-1px);
+      border-color:rgba(91,139,255,.4);
+      box-shadow:0 12px 22px rgba(15,23,42,.08);
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      margin-top:6px;
+      background:#60a5fa;
+      box-shadow:0 8px 16px rgba(96,165,250,.35);
+    }
+    .catText b{display:block}
+    .catText small{color:var(--muted);font-weight:700}
+
+    /* MAIN CANVAS */
+    .main{
+      background:rgba(255,255,255,.55);
+      border:1px solid rgba(255,255,255,.6);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      min-height:680px;
+      position:relative;
+    }
+
+    /* Tabs like Blocks | Python */
+    .tabs{
+      display:flex;
+      gap:8px;
+      padding:6px;
+      background:rgba(255,255,255,.72);
+      border:1px solid rgba(226,232,240,.9);
+      border-radius:14px;
+      width:max-content;
+      margin:6px auto 10px auto;
+    }
+    .tab{
+      border:none;cursor:pointer;
+      padding:10px 18px;border-radius:12px;
+      font-weight:900;
+      background:transparent;
+      color:#334155;
+    }
+    .tab.active{
+      background:#ffffff;
+      box-shadow:0 10px 18px rgba(15,23,42,.08);
+    }
+
+    /* Workspace area */
+    .workspaceShell{
+      flex:1;
+      background:linear-gradient(180deg,#f8fbff,#ffffff);
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      overflow:hidden;
+      position:relative;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+    }
+    #blocklyDiv{height:100%;width:100%}
+    #pythonView{
+      height:100%;
+      width:100%;
+      padding:14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:13px;
+      white-space:pre;
+      display:none;
+      background:#0b1220;
+      color:#e2e8f0;
+      border-top:1px solid #111827;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    /* Bottom status bar */
+    .statusBar{
+      margin-top:16px;
+      background:linear-gradient(135deg,#0b1220,#0f172a);
+      color:#e2e8f0;
+      border-radius:14px;
+      padding:12px 14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border:1px solid rgba(148,163,184,.32);
+    }
+    .simPill{
+      display:inline-flex;align-items:center;gap:8px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.14);
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:800;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .wrap{
+        grid-template-columns: 1fr;
+      }
+      .sidebar{
+        order:2;
+      }
+      .main{
+        min-height:540px;
+      }
+    }
+    @media (max-width: 768px) {
+      .topbar{padding:14px 12px;flex-direction:column;align-items:flex-start;gap:10px}
+      .lessonMeta{flex-direction:column;align-items:flex-start;margin:12px}
+      .wrap{padding:12px}
+      .tabs{margin:6px 0 12px}
+      .main{padding:10px}
+      .profilePill{width:100%;justify-content:space-between}
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="homeIcon" onclick="history.back()" title="Back">
+        <i class='bx bx-home-alt'></i>
+      </div>
+      <div class="brandText">
+        <small>CODEFLY SCRATCH LAB</small>
+        <h1>Drone Blocks</h1>
+      </div>
+    </div>
+
+    <div class="topActions">
+      <button class="btnTop btnGreen" onclick="runBlocks()">
+        <i class='bx bx-flag'></i> Green Flag
+      </button>
+      <button class="btnTop btnRed" onclick="stopBlocks()">
+        <i class='bx bx-stop'></i> Stop
+      </button>
+
+      <div class="profilePill">
+        <span>Elite Pilot</span>
+        <span class="avatar">CF</span>
+        <i class='bx bx-chevron-down'></i>
+      </div>
+    </div>
+  </header>
+
+    <section class="lessonMeta">
+    <div>
+      <p class="title">Lesson 2 - Smooth flight path</p>
+      <small style="color:var(--muted);font-weight:600">Build a takeoff -> move -> land sequence, then preview the Python.</small>
+    </div>
+    <div class="lessonBadges">
+      <span class="pill"><i class='bx bx-time-five'></i> 10 min</span>
+      <span class="pill"><i class='bx bx-layer'></i> Beginner blocks</span>
+      <span class="pill"><i class='bx bx-chip'></i> Simulation only</span>
+    </div>
+  </section>
+
+  <!-- MAIN GRID -->
+  <main class="wrap">
+
+    <!-- LEFT PANEL -->
+    <aside class="sidebar">
+      <div class="connCard">
+        <div class="connIcon"><i class='bx bx-wifi-off'></i></div>
+        <div class="connText">
+          <b>Not Connected</b>
+          <small>Battery: Unknown</small>
+        </div>
+      </div>
+
+      <div class="cat">
+        <span class="dot" style="background:#60a5fa"></span>
+        <div class="catText">
+          <b>Motion</b>
+          <small>Takeoff, land, move</small>
+        </div>
+      </div>
+
+      <div class="cat">
+        <span class="dot" style="background:#f59e0b"></span>
+        <div class="catText">
+          <b>Events</b>
+          <small>Green flag hats</small>
+        </div>
+      </div>
+
+      <div class="cat">
+        <span class="dot" style="background:#f59e0b"></span>
+        <div class="catText">
+          <b>Control</b>
+          <small>Loops & waits</small>
+        </div>
+      </div>
+
+      <div class="cat">
+        <span class="dot" style="background:#a78bfa"></span>
+        <div class="catText">
+          <b>Operators</b>
+          <small>Math & logic</small>
+        </div>
+      </div>
+
+      <div class="cat">
+        <span class="dot" style="background:#38bdf8"></span>
+        <div class="catText">
+          <b>Sensing</b>
+          <small>Telemetry reads</small>
+        </div>
+      </div>
+
+      <div class="cat">
+        <span class="dot" style="background:#fb7185"></span>
+        <div class="catText">
+          <b>Sequences</b>
+          <small>Prebuilt tricks</small>
+        </div>
+      </div>
+
+      <div class="cat">
+        <span class="dot" style="background:#84cc16"></span>
+        <div class="catText">
+          <b>Variables</b>
+          <small>Store values</small>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT MAIN -->
+    <section class="main">
+
+      <div class="tabs">
+        <button class="tab active" id="tabBlocks" onclick="showTab('blocks')">Blocks</button>
+        <button class="tab" id="tabPython" onclick="showTab('python')">Python</button>
+      </div>
+
+      <div class="workspaceShell">
+        <div id="blocklyDiv"></div>
+        <pre id="pythonView"># Python code will appear here...</pre>
+      </div>
+
+      <div class="statusBar">
+        <div class="simPill"><i class='bx bx-joystick'></i> Drone sim</div>
+        <div style="font-weight:900">Ready</div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Toolbox (example, ikut block yang kau dah buat) -->
+  <xml id="toolbox" style="display:none">
+    <category name="Motion" colour="#4f7cff">
+      <block type="takeoff"></block>
+      <block type="land"></block>
+      <block type="move_forward"></block>
+      <block type="rotate_cw"></block>
+      <block type="wait_sec"></block>
+      <block type="emergency_stop"></block>
+    </category>
+  </xml>
+
+  <script>
+    // Blockly init (basic)
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: document.getElementById('toolbox'),
+      trashcan: true,
+      scrollbars: true
+    });
+
+    // Sample blocks (you can replace with your existing custom blocks)
+    Blockly.defineBlocksWithJsonArray([
+      {"type":"takeoff","message0":"take off","previousStatement":null,"nextStatement":null,"colour":210},
+      {"type":"land","message0":"land","previousStatement":null,"nextStatement":null,"colour":210},
+      {"type":"move_forward","message0":"fly forward %1 cm","args0":[{"type":"field_number","name":"DIST","value":50,"min":20,"max":500}],"previousStatement":null,"nextStatement":null,"colour":210},
+      {"type":"rotate_cw","message0":"turn clockwise %1 degrees","args0":[{"type":"field_angle","name":"ANGLE","angle":90}],"previousStatement":null,"nextStatement":null,"colour":210},
+      {"type":"wait_sec","message0":"wait %1 seconds","args0":[{"type":"field_number","name":"S","value":1,"min":0,"max":30}],"previousStatement":null,"nextStatement":null,"colour":40},
+      {"type":"emergency_stop","message0":"EMERGENCY STOP","previousStatement":null,"nextStatement":null,"colour":0}
+    ]);
+
+    function showTab(mode){
+      const blocks = document.getElementById('blocklyDiv');
+      const py = document.getElementById('pythonView');
+      const tB = document.getElementById('tabBlocks');
+      const tP = document.getElementById('tabPython');
+
+      if(mode === 'python'){
+        blocks.style.display = 'none';
+        py.style.display = 'block';
+        tB.classList.remove('active');
+        tP.classList.add('active');
+
+        // demo: show generated text (replace with your real python generator)
+        py.textContent = "# Generated code (demo)\n" + Blockly.JavaScript.workspaceToCode(workspace);
+      } else {
+        blocks.style.display = 'block';
+        py.style.display = 'none';
+        tP.classList.remove('active');
+        tB.classList.add('active');
+      }
+    }
+
+    function runBlocks(){
+      // TODO: connect to your tello_bridge / esp32 api
+      console.log("RUN", Blockly.JavaScript.workspaceToCode(workspace));
+      alert("Run (demo)");
+    }
+
+    function stopBlocks(){
+      alert("Stop (demo)");
+    }
+  </script>
+  <footer class="app-footer" style="width:100%; text-align:center; padding:16px 12px; font-size:12px; color:#64748b;">
+    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
+  </footer></body>
+</html>
+
+

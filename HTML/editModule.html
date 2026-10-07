@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../Assets/logo4.png">
+  <title>Edit Module</title>
+  <link rel="stylesheet" href="../CSS/tailwind.build.css">
+  <link rel="stylesheet" href="../CSS/home.css">
+  <link rel="stylesheet" href="../CSS/popup.css">
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <style>
+    .helper-text {
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 24px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    }
+    .pill {
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.03em;
+    }
+    .input-like {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 0.8rem 1rem;
+      font-size: 0.95rem;
+      color: #0f172a;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    .input-like:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+    }
+    .upload-group {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+    .upload-group .input-like {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .upload-group .upload-btn {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      margin-left: -1px;
+    }
+    .module-hero {
+      background: linear-gradient(125deg, #1da1f2, #5060f6, #4f46e5);
+      color: #fff;
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 25px 55px rgba(80, 96, 246, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .breadcrumb-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      background: transparent;
+      color: #fff;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .breadcrumb-chip:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-slate-900">
+  <div id="toastBox"></div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar close">
+      <header>
+        <div class="image-text">
+          <span class="image">
+            <img src="../Assets/logo4.png" alt="logo" />
+          </span>
+          <div class="text header-text">
+            <span class="name">Codefly</span>
+            <span class="profession">Admin Dashboard</span>
+          </div>
+        </div>
+        <i class="bx bx-chevron-right toggle"></i>
+      </header>
+
+      <div class="menu-bar">
+        <div class="menu">
+          <ul class="menu-links">
+            <li class="nav-link"><a href="../HTML/adminDashboard.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Admin Center</span></a></li>
+            <li class="nav-link"><a href="../HTML/AddModule.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
+            <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
+            <li class="nav-link"><a href="../HTML/manageUser.html"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
+            <li class="nav-link"><a href="../HTML/adminLeaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
+          </ul>
+      </div>
+      <div class="bottom-content">
+        <li>
+          <a href="../PHP/logout.php">
+              <i class="bx bx-log-out icon"></i>
+              <span class="text nav-text">Logout</span>
+            </a>
+          </li>
+        </div>
+      </div>
+    </nav>
+  <!-- Main content -->
+  <section class="home min-h-screen">
+    <div class="p-6 flex gap-6">
+      <div class="flex-1 flex flex-col gap-6">
+        <header class="space-y-4">
+          <div class="module-hero">
+            <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div class="space-y-3">
+                <div class="flex items-center gap-3 text-white">
+                  <button
+                    type="button"
+                    onclick="window.history.back()"
+                    aria-label="Go back"
+                    class="breadcrumb-chip"
+                  >
+                    <i class="bx bx-left-arrow-alt text-lg"></i>
+                  </button>
+                  <span class="text-white/80 text-lg">/</span>
+                  <span class="text-lg font-semibold uppercase tracking-[0.08em]"> Edit Modules</span>
+                </div>
+                <p class="uppercase tracking-[0.35em] text-xs text-white/75">Modules</p>
+                <h1 class="text-3xl font-semibold">Update module details</h1>
+                <p class="text-white/85 text-sm max-w-2xl">
+                  Fetch an existing module, tweak its lessons and quizzes, then publish your changes.
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="grid grid-cols-1 gap-6">
+          <!-- Form -->
+          <form id="moduleForm" class="space-y-4">
+            <section class="card p-6 space-y-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Module</p>
+                  <h2 class="text-xl font-semibold">Details</h2>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="flex flex-col gap-2 text-sm">
+                  Title
+                  <input required name="title" type="text" class="input-like" placeholder="e.g. What is Programming?">
+                </label>
+                <label class="flex flex-col gap-2 text-sm">
+                  Subtitle
+                  <input name="subtitle" type="text" class="input-like" placeholder="Short subheading">
+                </label>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <label class="flex flex-col gap-2 text-sm">
+                  Level
+                  <select name="level" class="input-like">
+                    <option value="basic">Basic</option>
+                    <option value="block">Block Code</option>
+                    <option value="advanced">Advanced</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </label>
+              <label class="flex flex-col gap-2 text-sm">
+                Cover image path / URL
+                <div class="upload-group">
+                  <input
+                    name="imagePath"
+                    type="text"
+                    class="input-like flex-1"
+                    placeholder="basicModule.png"
+                  >
+                  <button type="button" data-module-cover-upload class="px-4 py-2 upload-btn rounded-full text-white text-sm font-semibold shadow-sm" style="background: #695cfe;">Upload</button>
+                </div>
+                <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" data-module-cover-file style="display:none">
+                <span class="text-xs text-slate-500" data-module-cover-status>Provide a relative path/URL or upload from your device (PNG/JPG/WebP, max 5 MB).</span>
+              </label>
+            </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="flex flex-col gap-2 text-sm">
+                Syllabus PDF path / URL
+                <div class="upload-group">
+                  <input
+                    name="syllabusPath"
+                    type="text"
+                    class="input-like flex-1"
+                    placeholder="intro.pdf"
+                  >
+                  <button type="button" data-module-syllabus-upload class="px-4 py-2 upload-btn rounded-full text-white text-sm font-semibold shadow-sm" style="background: #695cfe;">Upload</button>
+                </div>
+                <input type="file" accept="application/pdf" data-module-syllabus-file style="display:none">
+                <span class="text-xs text-slate-500" data-module-syllabus-status>Link a PDF or upload directly (PDF, max 10 MB).</span>
+              </label>
+            </div>
+
+              <label class="flex flex-col gap-2 text-sm">
+                Description
+                <textarea name="description" rows="3" class="input-like" placeholder="What learners will achieve"></textarea>
+              </label>
+
+            </section>
+
+            <section class="card p-6 space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Lessons</p>
+                  <h3 class="text-lg font-semibold">Edit lesson rows</h3>
+                </div>
+                <button
+                  id="addMissionBtn"
+                  type="button"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-semibold shadow transition"
+                  style="background: linear-gradient(130deg, #0ea5e9, #6366f1);"
+                >
+                  <i class="bx bx-plus text-lg"></i>
+                  Add lesson
+                </button>
+              </div>
+
+              <div id="lessonsList" class="space-y-3"></div>
+              <p id="lessonHint" class="helper-text">Add at least one lesson so the module has content.</p>
+            </section>
+          </form>
+
+          <div class="card p-4 flex flex-col gap-2">
+            <button
+              id="saveModuleBtn"
+              type="submit"
+              form="moduleForm"
+              class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-white font-semibold shadow transition"
+              style="background: linear-gradient(130deg, #0ea5e9, #6366f1);"
+            >
+              <span data-btn-label>Update Module</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const moduleId = parseInt(urlParams.get('id') || '0', 10);
+      const form = document.getElementById('moduleForm');
+      const lessonsList = document.getElementById('lessonsList');
+      const addMissionBtn = document.getElementById('addMissionBtn');
+      const saveButton = document.getElementById('saveModuleBtn');
+      const saveStatus = document.getElementById('saveStatus');
+      const lessonHint = document.getElementById('lessonHint');
+
+      function setStatus(message, tone = 'muted') {
+        if (!saveStatus) return;
+        let dot = saveStatus.querySelector('.status-dot');
+        if (!dot) {
+          dot = document.createElement('span');
+          dot.className = 'status-dot';
+          saveStatus.prepend(dot);
+        }
+        dot.className = `status-dot ${tone}`;
+        const text = saveStatus.querySelector('span:last-child');
+        if (text) {
+          text.textContent = message;
+        }
+      }
+
+      function setSubmitting(isSubmitting) {
+        if (!saveButton) return;
+        const label = saveButton.querySelector('[data-btn-label]');
+        saveButton.disabled = isSubmitting;
+        saveButton.classList.toggle('opacity-70', isSubmitting);
+        if (label) {
+          label.textContent = isSubmitting ? 'Saving...' : 'Update module';
+        }
+      }
+
+      function setDisplayPath(input, fullPath) {
+        if (!input) return '';
+        const clean = (fullPath || '').trim();
+        input.dataset.fullpath = clean;
+        input.value = clean ? clean.split(/[\\/]/).pop() : '';
+        return clean;
+      }
+
+      function getFullPath(input) {
+        if (!input) return '';
+        return (input.dataset.fullpath || input.value || '').trim();
+      }
+
+      function slugify(text) {
+        return (text || '')
+          .toString()
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '') || `lesson-${Date.now()}`;
+      }
+
+      function buildMissionDescription(desc, duration) {
+        if (desc && duration) return `${desc} - Duration: ${duration}`;
+        if (duration) return `Duration: ${duration}`;
+        return desc || '';
+      }
+
+      function addMcqQuestion(container, initial = {}) {
+        const item = document.createElement('div');
+        item.className = 'border border-slate-200 rounded-lg bg-white p-3 space-y-2';
+        item.setAttribute('data-lesson-quiz-item', '');
+        item.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-[0.15em]">MCQ</span>
+            <button type="button" class="text-red-600 text-xs font-semibold" data-remove-quiz>Remove</button>
+          </div>
+          <label class="flex flex-col gap-1 text-sm">
+            Question
+            <input type="text" class="input-like" data-quiz-question placeholder="Enter question" value="${initial.question || ''}">
+          </label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            ${[0,1,2,3].map(i => `
+              <label class="flex flex-col gap-1 text-sm">
+                Choice ${i + 1}
+                <input type="text" class="input-like" data-quiz-choice="${i}" placeholder="Option ${i + 1}" value="${(initial.choices && initial.choices[i]) || ''}">
+              </label>
+            `).join('')}
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <label class="flex flex-col gap-1 text-sm">
+              Correct choice
+              <select class="input-like" data-quiz-correct>
+                ${[0,1,2,3].map(i => `<option value="${i}" ${initial.correct_index === i ? 'selected' : ''}>Choice ${i + 1}</option>`).join('')}
+              </select>
+            </label>
+          </div>
+        `;
+        container.appendChild(item);
+      }
+
+      function attachQuizHandlers(row) {
+        const list = row.querySelector('[data-lesson-quiz-list]');
+        const addBtn = row.querySelector('[data-add-quiz]');
+        if (!list || !addBtn) return;
+        addBtn.addEventListener('click', () => addMcqQuestion(list));
+        list.addEventListener('click', (e) => {
+          if (e.target.closest('[data-remove-quiz]')) {
+            e.preventDefault();
+            e.target.closest('[data-lesson-quiz-item]')?.remove();
+          }
+        });
+      }
+
+      function seedQuiz(row, initialQuiz = []) {
+        const list = row.querySelector('[data-lesson-quiz-list]');
+        if (!list || !Array.isArray(initialQuiz)) return;
+        initialQuiz.forEach(item => addMcqQuestion(list, item));
+      }
+
+      async function uploadModuleCover(file) {
+        const formData = new FormData();
+        formData.append('cover', file);
+        const response = await fetch('../PHP/uploadModuleCover.php', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json().catch(() => ({}));
+        return { ok: response.ok && data?.status === 'success', data };
+      }
+
+      async function uploadModuleSyllabus(file) {
+        const formData = new FormData();
+        formData.append('syllabus', file);
+        const response = await fetch('../PHP/uploadModuleSyllabus.php', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json().catch(() => ({}));
+        return { ok: response.ok && data?.status === 'success', data };
+      }
+
+      function attachCoverUpload() {
+        const fileInput = document.querySelector('[data-module-cover-file]');
+        const uploadBtn = document.querySelector('[data-module-cover-upload]');
+        const statusEl = document.querySelector('[data-module-cover-status]');
+        const urlInput = document.querySelector('input[name="imagePath"]');
+        if (!fileInput || !uploadBtn || !statusEl || !urlInput) return;
+
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        urlInput.addEventListener('input', () => setDisplayPath(urlInput, urlInput.value));
+        fileInput.addEventListener('change', async () => {
+          const file = fileInput.files?.[0];
+          if (!file) return;
+          statusEl.textContent = 'Uploading cover...';
+          uploadBtn.disabled = true;
+          try {
+            const result = await uploadModuleCover(file);
+            if (result.ok && result.data?.data?.path) {
+              setDisplayPath(urlInput, result.data.data.path);
+              statusEl.textContent = 'Cover uploaded and linked.';
+            } else {
+              statusEl.textContent = result.data?.message || 'Upload failed. Use PNG/JPG/WebP up to 5 MB.';
+            }
+          } catch (err) {
+            statusEl.textContent = 'Upload failed. Please try again.';
+          } finally {
+            uploadBtn.disabled = false;
+            fileInput.value = '';
+          }
+        });
+      }
+
+      function attachSyllabusUpload() {
+        const fileInput = document.querySelector('[data-module-syllabus-file]');
+        const uploadBtn = document.querySelector('[data-module-syllabus-upload]');
+        const statusEl = document.querySelector('[data-module-syllabus-status]');
+        const urlInput = document.querySelector('input[name="syllabusPath"]');
+        if (!fileInput || !uploadBtn || !statusEl || !urlInput) return;
+
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        urlInput.addEventListener('input', () => setDisplayPath(urlInput, urlInput.value));
+        fileInput.addEventListener('change', async () => {
+          const file = fileInput.files?.[0];
+          if (!file) return;
+          statusEl.textContent = 'Uploading syllabus...';
+          uploadBtn.disabled = true;
+          try {
+            const result = await uploadModuleSyllabus(file);
+            if (result.ok && result.data?.data?.path) {
+              setDisplayPath(urlInput, result.data.data.path);
+              statusEl.textContent = 'Syllabus uploaded and linked.';
+            } else {
+              statusEl.textContent = result.data?.message || 'Upload failed. Use PDF up to 10 MB.';
+            }
+          } catch (err) {
+            statusEl.textContent = 'Upload failed. Please try again.';
+          } finally {
+            uploadBtn.disabled = false;
+            fileInput.value = '';
+          }
+        });
+      }
+
+      async function uploadMissionVideo(file) {
+        const formData = new FormData();
+        formData.append('video', file);
+        const response = await fetch('../PHP/uploadLessonVideo.php', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json().catch(() => ({}));
+        return { ok: response.ok && data?.status === 'success', data };
+      }
+
+      function attachVideoUpload(row) {
+        const fileInput = row.querySelector('[data-lesson-video-file]');
+        const uploadBtn = row.querySelector('[data-lesson-upload-btn]');
+        const statusEl = row.querySelector('[data-lesson-upload-status]');
+        const urlInput = row.querySelector('input[name="lessonVideoUrl"]');
+        if (!fileInput || !uploadBtn || !statusEl || !urlInput) return;
+
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        urlInput.addEventListener('input', () => setDisplayPath(urlInput, urlInput.value));
+        fileInput.addEventListener('change', async () => {
+          const file = fileInput.files?.[0];
+          if (!file) return;
+          statusEl.textContent = 'Uploading...';
+          uploadBtn.disabled = true;
+          try {
+            const result = await uploadMissionVideo(file);
+            if (result.ok && result.data?.data?.path) {
+              urlInput.value = result.data.data.path;
+              statusEl.textContent = 'Uploaded and linked to this lesson.';
+            } else {
+              statusEl.textContent = result.data?.message || 'Upload failed. Try a smaller MP4/WebM.';
+            }
+          } catch (err) {
+            statusEl.textContent = 'Upload failed. Please try again.';
+          } finally {
+            uploadBtn.disabled = false;
+            fileInput.value = '';
+          }
+        });
+      }
+
+      function addMissionRow(initial = {}, providedOrder) {
+        const orderNumber = providedOrder || lessonsList.children.length + 1;
+        const row = document.createElement('div');
+        row.className = 'lesson-row card p-4 space-y-4';
+        if (initial.id) {
+          row.dataset.lessonId = String(initial.id);
+        }
+        const esc = (value) => String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+        row.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="text-xs uppercase tracking-[0.25em] text-slate-400">Lesson ${String(orderNumber).padStart(2, '0')}</div>
+            <button type="button" class="text-red-600 hover:text-red-700 text-sm font-semibold remove-lesson inline-flex items-center gap-1">
+              <i class="bx bx-trash"></i>
+              Remove
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <label class="flex flex-col gap-1 text-sm">
+              Lesson title *
+              <input type="text" name="lessonTitle" class="input-like" placeholder="Lesson title" value="${esc(initial.title)}">
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Focus (optional)
+              <input type="text" name="lessonFocus" class="input-like" placeholder="auto-generated from title" value="${esc(initial.focus)}">
+            </label>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <label class="flex flex-col gap-1 text-sm">
+              Short description
+              <textarea name="lessonDescription" rows="2" class="input-like" placeholder="What this lesson covers">${esc(initial.description)}</textarea>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Duration (optional)
+              <input type="text" name="lessonDuration" class="input-like" placeholder="e.g. 6 min" value="${esc(initial.duration)}">
+            </label>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <label class="flex flex-col gap-1 text-sm">
+              Video (YouTube link or uploaded file)
+              <div class="upload-group">
+                <input type="text" name="lessonVideoUrl" class="input-like flex-1" placeholder="https://www.youtube.com/..." value="${esc(initial.video_url)}">
+                <button type="button" data-lesson-upload-btn class="px-4 py-2 upload-btn rounded-full text-white text-sm font-semibold shadow-sm" style="background: #695cfe;">Upload</button>
+              </div>
+              <input type="file" accept="video/mp4,video/webm,video/ogg" data-lesson-video-file style="display:none">
+              <span class="text-xs text-slate-500" data-lesson-upload-status>Paste a link or upload MP4/WebM/Ogg (max 50 MB).</span>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              What you'll learn
+              <input type="text" name="lessonWhatYouLearn" class="input-like" placeholder="Key takeaway sentence" value="${esc(initial.what_you_learn)}">
+            </label>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <label class="flex flex-col gap-1 text-sm">
+              Learning outcomes
+              <textarea name="lessonOutcomes" rows="2" class="input-like" placeholder="Outcome 1; Outcome 2; Outcome 3">${esc(initial.learning_outcomes)}</textarea>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Availability
+              <select name="lessonStatus" class="input-like">
+                <option value="open" ${initial.status === 'locked' ? '' : 'selected'}>Open</option>
+                <option value="locked" ${initial.status === 'locked' ? 'selected' : ''}>Locked</option>
+              </select>
+            </label>
+          </div>
+          <div class="border border-slate-200 rounded-xl bg-white shadow-sm p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Quiz</p>
+                <h4 class="text-sm font-semibold text-slate-800">Multiple-choice questions</h4>
+              </div>
+              <button
+                type="button"
+                data-add-quiz
+                class="text-sm font-semibold text-white px-4 py-2 rounded-full shadow-sm"
+                style="background: linear-gradient(130deg, #0ea5e9, #6366f1);"
+              >
+                + Add MCQ
+              </button>
+            </div>
+            <div class="space-y-2" data-lesson-quiz-list></div>
+          </div>
+        `;
+        lessonsList.appendChild(row);
+        attachQuizHandlers(row);
+        attachVideoUpload(row);
+        const quiz = Array.isArray(initial.quiz) ? initial.quiz : (typeof initial.quiz_questions === 'string' ? JSON.parse(initial.quiz_questions || '[]') : initial.quiz_questions);
+        seedQuiz(row, Array.isArray(quiz) ? quiz : []);
+      }
+
+      function collectMissions() {
+        const rows = Array.from(lessonsList.querySelectorAll('.lesson-row'));
+        return rows
+          .map(row => {
+            const title = row.querySelector('input[name="lessonTitle"]')?.value.trim();
+            const focus = row.querySelector('input[name="lessonFocus"]')?.value.trim();
+            const description = row.querySelector('textarea[name="lessonDescription"]')?.value.trim();
+            const duration = row.querySelector('input[name="lessonDuration"]')?.value.trim();
+            const videoUrl = getFullPath(row.querySelector('input[name="lessonVideoUrl"]'));
+            const whatYouLearn = row.querySelector('input[name="lessonWhatYouLearn"]')?.value.trim();
+            const learningOutcomes = row.querySelector('textarea[name="lessonOutcomes"]')?.value.trim();
+            const status = row.querySelector('select[name="lessonStatus"]')?.value || 'open';
+            const quizItems = Array.from(row.querySelectorAll('[data-lesson-quiz-item]')).map(item => {
+              const question = item.querySelector('[data-quiz-question]')?.value.trim();
+              const choices = [0,1,2,3].map(i => item.querySelector(`[data-quiz-choice="${i}"]`)?.value.trim()).filter(Boolean);
+              const correctIndex = parseInt(item.querySelector('[data-quiz-correct]')?.value ?? '-1', 10);
+              if (!question || choices.length < 2 || correctIndex < 0 || correctIndex >= choices.length) {
+                return null;
+              }
+              return { question, choices, correct_index: correctIndex };
+            }).filter(Boolean);
+            if (!title) return null;
+            return {
+              id: Number(row.dataset.lessonId) || null,
+              title,
+              focus,
+              description,
+              duration: duration || '',
+              status,
+              videoUrl,
+              whatYouLearn,
+              learningOutcomes,
+              quizQuestions: quizItems.length ? JSON.stringify(quizItems) : ''
+            };
+          })
+          .filter(Boolean);
+      }
+
+      // Remove lesson row
+      lessonsList.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-lesson')) {
+          e.preventDefault();
+          e.target.closest('.lesson-row')?.remove();
+        }
+      });
+
+      addMissionBtn.addEventListener('click', () => addMissionRow());
+      attachCoverUpload();
+      attachSyllabusUpload();
+
+      async function postJSON(url, payload) {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        return { ok: response.ok, data };
+      }
+
+      async function loadModule() {
+        if (!moduleId) {
+          setStatus('Missing module id in URL.', 'error');
+          return;
+        }
+        setStatus('Loading module...', 'muted');
+        try {
+          const resp = await fetch(`../PHP/getModuleWithLessons.php?id=${moduleId}`);
+          const data = await resp.json();
+          if (!resp.ok || data?.status !== 'success') {
+            throw new Error(data?.message || 'Unable to load module.');
+          }
+          const mod = data.data?.module || {};
+          const lessons = data.data?.lessons || [];
+          form.querySelector('input[name="title"]').value = mod.title || '';
+          form.querySelector('input[name="subtitle"]').value = mod.subtitle || '';
+          form.querySelector('select[name="level"]').value = mod.level || 'custom';
+          form.querySelector('textarea[name="description"]').value = mod.description || '';
+          setDisplayPath(form.querySelector('input[name="imagePath"]'), mod.image_path || mod.image_url || '');
+          setDisplayPath(form.querySelector('input[name="syllabusPath"]'), mod.syllabus_path || '');
+          const lockedBox = form.querySelector('input[name="locked"]');
+          if (lockedBox) lockedBox.checked = !!mod.locked;
+
+          lessonsList.innerHTML = '';
+          if (lessons.length) {
+            lessons.forEach((lesson, idx) => addMissionRow(lesson, idx + 1));
+          } else {
+            addMissionRow();
+          }
+          setStatus('Module loaded. Edit and save.', 'success');
+        } catch (err) {
+          console.error(err);
+          setStatus(err.message || 'Unable to load module.', 'error');
+        }
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setSubmitting(true);
+        const formData = new FormData(form);
+        const imagePath = getFullPath(form.querySelector('input[name="imagePath"]')) || '';
+        const lessons = collectMissions();
+
+        if (!lessons.length) {
+          setSubmitting(false);
+          setStatus('Add at least one lesson before saving.', 'warn');
+          lessonHint?.classList.add('text-amber-600');
+          if (typeof showToast === 'function') {
+            showToast('<ion-icon name="alert-circle"></ion-icon>Add a lesson row first.', 'error');
+          }
+          return;
+        }
+
+        const moduleData = {
+          module_id: moduleId,
+          title: formData.get('title')?.toString().trim(),
+          subtitle: formData.get('subtitle')?.toString().trim(),
+          level: formData.get('level')?.toString() || 'custom',
+          description: formData.get('description')?.toString().trim(),
+          image: imagePath,
+          syllabus: formData.get('syllabusPath')?.toString().trim(),
+          locked: formData.get('locked') === 'on',
+          lessons
+        };
+
+        if (!moduleData.title) {
+          setSubmitting(false);
+          setStatus('Title is required to update module.', 'error');
+          if (typeof showToast === 'function') {
+            showToast('<ion-icon name="alert-circle"></ion-icon>Title is required.', 'error');
+          }
+          return;
+        }
+
+        try {
+          setStatus('Saving changes...', 'muted');
+          const updateResp = await postJSON('../PHP/updateModuleWithLessons.php', moduleData);
+          const ok = updateResp.ok && updateResp.data?.status === 'success';
+          if (!ok) {
+            throw new Error(updateResp.data?.message || 'Failed to save changes.');
+          }
+          setStatus(`Module #${moduleId} updated. Redirecting...`, 'success');
+          if (typeof showToast === 'function') {
+            showToast('<ion-icon name="checkmark-circle"></ion-icon>Module updated.', 'success');
+          }
+          window.location.href = 'AddModule.html';
+        } catch (error) {
+          console.error(error);
+          setStatus(error.message || 'Unable to save module.', 'error');
+          if (typeof showToast === 'function') {
+            showToast('<ion-icon name="alert-circle"></ion-icon>Unable to save module.', 'error');
+          }
+        }
+      });
+
+      loadModule();
+    });
+  </script>
+  <script src="../JS/home.js"></script>
+  <script src="../JS/popup.js"></script>
+  <footer class="app-footer" style="width:100%; text-align:center; padding:16px 12px; font-size:12px; color:#64748b;">
+    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
+  </footer></body>
+</html>
