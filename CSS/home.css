@@ -360,6 +360,49 @@ body.dark .switch::before{
     padding: 8px 40px;
 }
 
+/* Overflow guard: .home clips its overflow (overflow-x:hidden), so any wide child —
+   a chart, a table, or a long unbreakable name injected with real data — would force
+   the flex content column wider than .home and get silently cut off on the right.
+   Letting the growing flex columns shrink keeps everything inside the visible width.
+   Cards with an explicit min-width (e.g. the min-w-[240px] stat cards) are excluded so
+   they keep their intended size and scroll their own row instead. */
+.home .flex-1:not([class*="min-w-"]){
+    min-width: 0;
+}
+
+.home canvas,
+.home img,
+.home svg{
+    max-width: 100%;
+}
+
+.home table{
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Loading skeleton: dashboard numbers start as "--" with this class and render as a
+   pulsing grey bar until real data arrives, then adminDashboard.js removes the class.
+   Defined here (not via Tailwind) because the prebuilt tailwind.build.css has no
+   animate-pulse utility. */
+@keyframes cf-skeleton-pulse{
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+}
+
+.cf-skeleton{
+    color: transparent !important;
+    background: #e2e8f0;
+    border-radius: 8px;
+    animation: cf-skeleton-pulse 1.2s ease-in-out infinite;
+    user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce){
+    .cf-skeleton{ animation: none; }
+}
+
 .sidebar.close ~ .home{
       left: var(--sidebar-collapsed);
       width: calc(100% - var(--sidebar-collapsed));

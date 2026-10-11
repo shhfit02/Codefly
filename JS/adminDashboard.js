@@ -77,7 +77,7 @@ function hydrateAdminDashboard() {
     })
     .catch((err) => {
       console.error("Admin dashboard failed to load", err);
-      
+
       const moduleList = document.getElementById("module-progress-list");
       if (moduleList) {
         moduleList.innerHTML = `<div class="col-span-full text-center text-rose-500 py-8">Unable to load data.</div>`;
@@ -86,7 +86,13 @@ function hydrateAdminDashboard() {
       if (typeof showToast === "function") {
         showToast("<ion-icon name=\"alert-circle\"></ion-icon>Unable to load admin stats right now.", "error");
       }
-    });
+    })
+    .finally(clearSkeletons);
+}
+
+/** Stop the loading pulse on dashboard numbers once the fetch settles (success or error). */
+function clearSkeletons() {
+  document.querySelectorAll(".cf-skeleton").forEach((el) => el.classList.remove("cf-skeleton"));
 }
 
 function setText(id, value) {
@@ -540,6 +546,10 @@ function renderRankDistribution(items) {
     empty.classList.add("hidden");
   }
 
+  // Describe the chart for screen readers, since the SVG segments carry no text.
+  const summary = safeItems.map((item) => `${item.label}: ${item.count}`).join(", ");
+  svg.setAttribute("aria-label", `Rank distribution of ${totalCount} pilots. ${summary}.`);
+
   const radius = 50;
   const strokeWidth = 12;
   const circumference = 2 * Math.PI * radius;
@@ -607,6 +617,7 @@ function showRankSlide(index) {
   dots.forEach((dot, idx) => {
     dot.classList.toggle("bg-slate-400", idx === rankSlideIndex);
     dot.classList.toggle("bg-slate-200", idx !== rankSlideIndex);
+    dot.setAttribute("aria-selected", String(idx === rankSlideIndex));
   });
 }
 
@@ -875,7 +886,9 @@ function notifyPassword(message, type = "info") {
     const icon = type === "success" ? "checkmark-circle" : "alert-circle";
     showToast(`<ion-icon name="${icon}"></ion-icon>${message}`, type);
   } else {
-    alert(message);
+    // showToast is loaded via popup.js on this page, so this fallback should not run;
+    // log instead of a blocking native alert if it ever does.
+    console.warn("[password]", message);
   }
 }
 
