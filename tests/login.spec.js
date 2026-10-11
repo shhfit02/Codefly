@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { loadAccount } = require('./helpers/accounts');
 
 test.beforeEach(async ({ page }) => {
   await page.goto('index.html');
@@ -42,11 +43,12 @@ test('register link goes to the registration page', async ({ page }) => {
   await expect(page).toHaveURL(/register-profile\.html$/);
 });
 
-// Set CODEFLY_USER and CODEFLY_PASS to a real (non-admin) account to run this one.
+// Uses the student test account (php tests/accounts.php setup), or CODEFLY_STUDENT_USER/PASS.
 test('valid credentials log in to home', async ({ page }) => {
-  const user = process.env.CODEFLY_USER;
-  const pass = process.env.CODEFLY_PASS;
-  test.skip(!user || !pass, 'CODEFLY_USER / CODEFLY_PASS not set');
+  const account = loadAccount('student');
+  test.skip(!account, 'no student test account');
+  const user = account.username;
+  const pass = account.password;
 
   await page.locator('.btnLogin-primary').click();
   await page.locator('input[name="username"]').fill(user);
