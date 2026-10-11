@@ -365,7 +365,9 @@ body.dark .switch::before{
    the flex content column wider than .home and get silently cut off on the right.
    Letting the growing flex columns shrink keeps everything inside the visible width.
    Cards with an explicit min-width (e.g. the min-w-[240px] stat cards) are excluded so
-   they keep their intended size and scroll their own row instead. */
+   they keep their intended size and scroll their own row instead.
+   Wide tables are handled by wrapping them in an overflow-x-auto element in the page;
+   styling the table itself as display:block would shrink it to its content width. */
 .home .flex-1:not([class*="min-w-"]){
     min-width: 0;
 }
@@ -374,12 +376,6 @@ body.dark .switch::before{
 .home img,
 .home svg{
     max-width: 100%;
-}
-
-.home table{
-    display: block;
-    max-width: 100%;
-    overflow-x: auto;
 }
 
 /* Loading skeleton: dashboard numbers start as "--" with this class and render as a
