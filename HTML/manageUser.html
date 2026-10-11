@@ -100,11 +100,19 @@
 
                 </div>
 
+                <div class="bg-white/15 backdrop-blur rounded-2xl px-5 py-4 text-center min-w-[120px] border border-white/20">
+
+                  <p class="text-xs uppercase tracking-[0.2em] text-white/70">Admins</p>
+
+                  <p id="hero-admins" class="text-2xl font-semibold">--</p>
+
+                </div>
+
               </div>
 
             </div>
 
-            <div class="flex flex-col md:flex-row md:items-center md:gap-4">
+            <div class="flex flex-col md:flex-row md:items-center md:gap-4 gap-3">
               <div class="relative flex-1">
                 <i class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-white/80 text-xl"></i>
                 <input
@@ -114,6 +122,11 @@
                   class="w-full pl-12 pr-4 py-3 rounded-2xl border border-white/30 bg-white/10 text-white placeholder-white/80 focus:outline-none focus:ring-2 focus:ring-white/60"
                   autocomplete="off"
                 />
+              </div>
+              <div id="role-filter" class="flex gap-2 shrink-0" role="group" aria-label="Filter by role">
+                <button type="button" data-role="all" class="role-chip px-4 py-2 rounded-xl text-sm font-semibold border border-white/30 bg-white text-indigo-600 transition" aria-pressed="true">All</button>
+                <button type="button" data-role="admin" class="role-chip px-4 py-2 rounded-xl text-sm font-semibold border border-white/30 bg-white/10 text-white transition" aria-pressed="false">Admins</button>
+                <button type="button" data-role="user" class="role-chip px-4 py-2 rounded-xl text-sm font-semibold border border-white/30 bg-white/10 text-white transition" aria-pressed="false">Students</button>
               </div>
             </div>
 
@@ -159,6 +172,8 @@
 
                   <th class="px-4 py-3">Email</th>
 
+                  <th class="px-4 py-3">Role</th>
+
                   <th class="px-4 py-3">Action</th>
 
                 </tr>
@@ -169,7 +184,7 @@
 
                 <tr>
 
-                  <td colspan="8" class="px-4 py-4 text-slate-500">Loading users...</td>
+                  <td colspan="9" class="px-4 py-4 text-slate-500">Loading users...</td>
 
                 </tr>
 
@@ -194,9 +209,13 @@
     const DELETE_ENDPOINT = "../PHP/adminDeleteUser.php";
     let allUsers = [];
 
+    let currentRole = "all";
+
     document.addEventListener("DOMContentLoaded", () => {
+      renderSkeleton();
       loadUsers();
       wireSearch();
+      wireRoleFilter();
       showAddToastIfNeeded();
     });
 
@@ -222,6 +241,26 @@
       input.addEventListener("input", () => renderTable(applyFilters()));
     }
 
+    function wireRoleFilter() {
+      const group = document.getElementById("role-filter");
+      if (!group) return;
+      const chips = Array.from(group.querySelectorAll(".role-chip"));
+      group.addEventListener("click", (event) => {
+        const chip = event.target.closest(".role-chip");
+        if (!chip) return;
+        currentRole = chip.dataset.role || "all";
+        chips.forEach((c) => {
+          const active = c === chip;
+          c.setAttribute("aria-pressed", String(active));
+          c.classList.toggle("bg-white", active);
+          c.classList.toggle("text-indigo-600", active);
+          c.classList.toggle("bg-white/10", !active);
+          c.classList.toggle("text-white", !active);
+        });
+        renderTable(applyFilters());
+      });
+    }
+
     function applyFilters() {
       const input = document.getElementById("user-search");
       const term = (input?.value || "").trim().toLowerCase();
@@ -230,8 +269,38 @@
           !term ||
           (user.username || "").toLowerCase().includes(term) ||
           (user.email || "").toLowerCase().includes(term);
-        return matchesSearch;
+        const level = (user.level || "user").toLowerCase();
+        const matchesRole =
+          currentRole === "all" ||
+          (currentRole === "admin" ? level === "admin" : level !== "admin");
+        return matchesSearch && matchesRole;
       });
+    }
+
+    function roleBadge(level) {
+      const isAdmin = (level || "").toLowerCase() === "admin";
+      const cls = isAdmin
+        ? "bg-violet-100 text-violet-700"
+        : "bg-slate-100 text-slate-600";
+      return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${cls}">${isAdmin ? "Admin" : "Student"}</span>`;
+    }
+
+    function renderSkeleton(count = 5) {
+      const tbody = document.getElementById("user-table-body");
+      if (!tbody) return;
+      const bar = (w) => `<div class="cf-skeleton h-4 ${w} mx-auto rounded">&nbsp;</div>`;
+      tbody.innerHTML = Array.from({ length: count }, () => `
+        <tr class="border-b border-slate-200 last:border-b-0">
+          <td class="px-4 py-3"><div class="cf-skeleton w-10 h-10 rounded-full mx-auto">&nbsp;</div></td>
+          <td class="px-4 py-3">${bar("w-8")}</td>
+          <td class="px-4 py-3">${bar("w-24")}</td>
+          <td class="px-4 py-3">${bar("w-28")}</td>
+          <td class="px-4 py-3">${bar("w-8")}</td>
+          <td class="px-4 py-3">${bar("w-14")}</td>
+          <td class="px-4 py-3">${bar("w-32")}</td>
+          <td class="px-4 py-3">${bar("w-16")}</td>
+          <td class="px-4 py-3">${bar("w-12")}</td>
+        </tr>`).join("");
     }
 
     function setHeroStats(totals = {}) {
@@ -247,12 +316,12 @@
       tbody.innerHTML = "";
 
       if (errorMessage) {
-        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-4 text-slate-500">${errorMessage}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-4 text-slate-500">${errorMessage}</td></tr>`;
         return;
       }
 
       if (!Array.isArray(users) || users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-4 text-slate-500">No users found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-4 text-slate-500">No users found.</td></tr>`;
         return;
       }
 
@@ -278,6 +347,7 @@
             <td class="px-4 py-3 text-slate-600 text-center">${formatAge(user.age)}</td>
             <td class="px-4 py-3 text-slate-600 capitalize text-center">${escapeHtml(formatGender(user.gender))}</td>
             <td class="px-4 py-3 text-slate-600 text-center">${escapeHtml(user.email || "N/A")}</td>
+            <td class="px-4 py-3 text-center">${roleBadge(user.level)}</td>
             <td class="px-4 py-3">
               <div class="flex items-center justify-center gap-2">
                 <a href="${escapeHtml(buildEditUrl(user.id, user.username))}" onclick="event.stopPropagation();" class="action-icon text-blue-500 hover:text-blue-600" title="Edit">
@@ -328,7 +398,7 @@
 
     function formatGender(value) {
       const normalized = (value || "").toLowerCase();
-      if (!normalized) return "�";
+      if (!normalized) return "-";
       if (normalized === "prefer-not") return "Prefer not";
       return normalized.charAt(0).toUpperCase() + normalized.slice(1);
     }
