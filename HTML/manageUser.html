@@ -205,7 +205,7 @@
   <script src="../JS/home.js"></script>
   <script>
     const DEFAULT_AVATAR = "../Assets/StudentProfile.png";
-    const ENDPOINT = "../PHP/adminDashboard.php";
+    const ENDPOINT = "../PHP/listUsers.php";
     const DELETE_ENDPOINT = "../PHP/adminDeleteUser.php";
     let allUsers = [];
 
@@ -226,7 +226,7 @@
         if (payload?.status !== "success") {
           throw new Error(payload?.message || "Unable to load users");
         }
-        allUsers = payload.data?.recentUsers || [];
+        allUsers = payload.data?.users || payload.data?.recentUsers || [];
         setHeroStats(payload.data?.totals);
         renderTable(applyFilters());
       } catch (error) {
