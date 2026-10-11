@@ -29,10 +29,7 @@ if ($method === 'GET') {
                 'email' => $profileBundle['account']['email'],
                 'fullName' => $profileBundle['profile']['fullName'] ?? $profileBundle['account']['username'],
                 'avatar' => $profileBundle['profile']['avatar'] ?? PROFILE_DEFAULT_AVATAR,
-                'twoFactor' => $settings['twoFactor'],
-                'emailAlerts' => $settings['emailAlerts'],
                 'inAppNotifications' => $settings['inAppNotifications'],
-                'smsAlerts' => $settings['smsAlerts'],
                 'rank' => $rank,
                 'lessons' => $lessons,
                 'xp' => $rank['score'] ?? 0,
@@ -63,10 +60,7 @@ $values = [
     'email' => trim($input['email'] ?? ''),
     'password' => $input['password'] ?? '',
     'confirmPassword' => $input['confirmPassword'] ?? '',
-    'twoFactor' => !empty($input['twoFactor']),
-    'emailAlerts' => !empty($input['emailAlerts']),
     'inAppNotifications' => !empty($input['inAppNotifications']),
-    'smsAlerts' => !empty($input['smsAlerts']),
 ];
 
 $errors = [];
@@ -136,11 +130,9 @@ try {
         $pwdStmt->close();
     }
 
+    // Email, SMS and 2FA were never implemented, so only the in-app switch is offered.
     saveUserSettings($conn, $userId, [
-        'twoFactor' => $values['twoFactor'],
-        'emailAlerts' => $values['emailAlerts'],
         'inAppNotifications' => $values['inAppNotifications'],
-        'smsAlerts' => $values['smsAlerts'],
     ]);
 
     $conn->commit();

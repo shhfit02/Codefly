@@ -25,6 +25,7 @@ if (basename($_SERVER["SCRIPT_FILENAME"]) === basename(__FILE__)) { http_respons
             <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
             <li class="nav-link"><a href="../HTML/manageUser.php"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
             <li class="nav-link"><a href="../HTML/adminLeaderboard.php"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
+            <li class="nav-link"><a href="#" id="notif-btn" role="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="notif-panel"><i class='bx bx-bell icon'></i><span id="notif-badge" class="notif-badge hidden"></span><span class="text nav-text">Notifications</span></a></li>
           </ul>
       </div>
       <div class="bottom-content">
@@ -37,3 +38,4 @@ if (basename($_SERVER["SCRIPT_FILENAME"]) === basename(__FILE__)) { http_respons
         </div>
       </div>
     </nav>
+<?php include __DIR__ . '/notification_panel.php'; ?>

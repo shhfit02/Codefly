@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="../CSS/tailwind.build.css" />
     <link rel="stylesheet" href="../CSS/home.css" />
     <link rel="stylesheet" href="../CSS/popup.css" />
-    link
     <link
       href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
       rel="stylesheet"
@@ -33,19 +32,6 @@
                     <p class="text-xs uppercase tracking-[0.3em] text-white/70">Command Center</p>
                     <h1 id="hero-welcome" class="text-3xl font-bold text-white">Welcome back, Admin.</h1>
                     <p class="text-white/80 max-w-2xl">Monitor users and platform health in real time.</p>
-                  </div>
-                  <div class="flex items-center gap-3 lg:ml-auto">
-                    <div class="relative">
-                      <button id="notif-btn" class="relative" aria-haspopup="true" aria-expanded="false">
-                        <i class="bx bx-bell text-2xl text-white/80 hover:text-white"></i>
-                        <span id="notif-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 hidden"></span>
-                      </button>
-                      <div id="notif-panel" class="hidden absolute right-0 mt-3 w-[28rem] max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur border border-gray-200 rounded-2xl shadow-2xl p-3 z-20 flex flex-col ring-1 ring-slate-100 overflow-hidden">
-                        <ul id="notif-list" class="divide-y divide-slate-100 text-sm text-gray-700 pr-1 pb-1 pt-0 space-y-0 overflow-y-auto max-h-64">
-                          <li class="text-gray-400 text-xs text-center py-2">No notifications yet.</li>
-                        </ul>
-                      </div>
-                    </div>
                   </div>
                 </div>
                 <div class="relative">

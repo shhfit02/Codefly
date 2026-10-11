@@ -286,6 +286,44 @@ function rankTiers(): array
     ];
 }
 
+/** Names students see in the UI (same mapping as displayRankTitle() in JS/home.js). */
+const RANK_DISPLAY_NAMES = [
+    'bronze' => 'Rookie',
+    'silver' => 'Operator',
+    'gold' => 'Specialist',
+    'ace' => 'Elite Pilot',
+    'captain' => 'Commander',
+    'commander' => 'Grand Commander',
+];
+
+/** Notify a student that their rank changed (up or down), mentioning the Code Block unlock. */
+function notifyRankChange(mysqli $conn, int $userId, string $oldTitle, string $newTitle): void
+{
+    $oldKey = strtolower($oldTitle);
+    $newKey = strtolower($newTitle);
+    $oldIndex = array_search($oldKey, WORKSPACE_RANK_HIERARCHY, true);
+    $newIndex = array_search($newKey, WORKSPACE_RANK_HIERARCHY, true);
+    $name = RANK_DISPLAY_NAMES[$newKey] ?? $newTitle;
+    $minIndex = array_search(WORKSPACE_MIN_RANK, WORKSPACE_RANK_HIERARCHY, true);
+
+    if ($oldIndex !== false && $newIndex !== false && $newIndex < $oldIndex) {
+        $message = "Your rank is now {$name}.";
+        $url = '../HTML/leaderboard.php';
+    } elseif ($newIndex === $minIndex && ($oldIndex === false || $oldIndex < $minIndex)) {
+        $message = "Promoted to {$name}! The Code Block workspace is now unlocked.";
+        $url = '../HTML/workspace.php';
+    } else {
+        $message = "Promoted to {$name}! Keep flying.";
+        $url = '../HTML/leaderboard.php';
+    }
+
+    notifySafely(fn () => createNotification($conn, $userId, 'rank', $message, [
+        'oldRank' => $oldTitle,
+        'newRank' => $newTitle,
+        'url' => $url,
+    ]));
+}
+
 function resolveRankForScore(int $score): array
 {
     $tiers = rankTiers();
@@ -334,11 +372,7 @@ function syncRankToScore(mysqli $conn, int $userId, int $score, ?array $seedMeta
     }
 
     if ($rankChanged) {
-        $message = sprintf('Congratulations! You have advanced to %s rank.', $newRank['title']);
-        createNotification($conn, $userId, 'rank', $message, [
-            'oldRank' => $currentRank['title'],
-            'newRank' => $newRank['title'],
-        ]);
+        notifyRankChange($conn, $userId, $currentRank['title'], $newRank['title']);
     }
 
     return $newRank;
@@ -639,11 +673,9 @@ function updateUserRank(mysqli $conn, int $userId, array $rankData): bool
 
     saveRankRecord($conn, $userId, $newRank);
 
-    $message = sprintf('Congratulations! You have advanced to %s rank.', $newRank['title']);
-    createNotification($conn, $userId, 'rank', $message, [
-        'oldRank' => $currentRank['title'],
-        'newRank' => $newRank['title'],
-    ]);
+    if ($newRank['title'] !== $currentRank['title']) {
+        notifyRankChange($conn, $userId, $currentRank['title'], $newRank['title']);
+    }
 
     return true;
 }

@@ -36,14 +36,6 @@ if ($result->num_rows === 1) {
         $_SESSION['level'] = $user['level'] ?? 'user';
 
         try {
-            createNotification($conn, (int)$user['id'], 'login', 'Welcome back to Codefly', [
-                'loginAt' => date(DATE_ATOM),
-            ]);
-        } catch (Throwable $e) {
-            // Keep login flow resilient even if notification persistence fails.
-        }
-
-        try {
             ensureProfileMetaTable($conn);
             $meta = fetchProfileMeta($conn, (int)$user['id']);
 
@@ -64,6 +56,12 @@ if ($result->num_rows === 1) {
                 'last_login_date' => $today,
                 'login_streak' => $newStreak,
             ]);
+
+            // Once a day at most: only the first login of a day that extends a streak.
+            if ($lastLogin === $yesterday && $newStreak >= 2 && strtolower($user['level'] ?? 'user') !== 'admin') {
+                notifySafely(fn () => createNotification($conn, (int)$user['id'], 'streak',
+                    "{$newStreak}-day login streak! Keep it going.", ['url' => '../HTML/module.php']));
+            }
         } catch (Throwable $e) {
             // Ignore streak updates if meta storage fails.
         }

@@ -118,48 +118,24 @@
             <div class="rounded-3xl border border-gray-100 bg-gray-50/80 p-5 space-y-4">
               <div class="flex flex-col gap-1">
                 <p class="text-sm uppercase tracking-[0.3em] text-gray-400">Notifications</p>
-                <h2 class="text-xl font-semibold text-gray-900">Channel preferences</h2>
-                <p class="text-sm text-gray-500">Choose how you want to hear from us.</p>
+                <h2 class="text-xl font-semibold text-gray-900">Notification bell</h2>
+                <p class="text-sm text-gray-500">Updates appear under the bell in the sidebar.</p>
               </div>
               <div class="space-y-4">
-                <div class="flex items-center justify-between border border-gray-100 bg-white rounded-2xl px-4 py-3">
-                  <div>
-                    <p class="font-semibold text-gray-900">Email alerts</p>
-                    <p class="text-sm text-gray-500">Lesson reminders and announcements</p>
-                  </div>
-                  <label class="setting-toggle inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="prefEmailAlerts" name="emailAlerts" class="toggle-input sr-only">
-                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                  </label>
-                </div>
-                <div class="flex items-center justify-between border border-gray-100 bg-white rounded-2xl px-4 py-3">
+                <div class="flex items-center justify-between gap-4 border border-gray-100 bg-white rounded-2xl px-4 py-3">
                   <div>
                     <p class="font-semibold text-gray-900">In-app notifications</p>
-                    <p class="text-sm text-gray-500">Leaderboard changes, mentions</p>
+                    <p class="text-sm text-gray-500">New modules, quiz results, rank changes and login streaks</p>
                   </div>
-                  <label class="setting-toggle inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="prefInApp" name="inAppNotifications" class="toggle-input sr-only">
-                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                  </label>
-                </div>
-                <div class="flex items-center justify-between border border-gray-100 bg-white rounded-2xl px-4 py-3">
-                  <div>
-                    <p class="font-semibold text-gray-900">SMS failsafe</p>
-                    <p class="text-sm text-gray-500">Critical system alerts</p>
-                  </div>
-                  <label class="setting-toggle inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="prefSms" name="smsAlerts" class="toggle-input sr-only">
+                  <label class="setting-toggle inline-flex items-center cursor-pointer shrink-0">
+                    <input type="checkbox" id="prefInApp" name="inAppNotifications" class="toggle-input sr-only" aria-label="In-app notifications">
                     <span class="toggle-track"><span class="toggle-thumb"></span></span>
                   </label>
                 </div>
               </div>
             </div>
             <p id="accountSettingsStatus" class="text-sm font-semibold text-gray-600 hidden"></p>
-            <div class="flex flex-wrap gap-4 items-center justify-between">
-              <div class="flex items-center gap-3">
-                <input type="checkbox" id="twoFA" name="twoFactor" class="w-4 h-4 text-blue-600 rounded">
-                <label for="twoFA" class="text-sm text-gray-600">Enable two-factor authentication</label>
-              </div>
+            <div class="flex flex-wrap gap-4 items-center justify-end">
               <button type="submit" class="px-6 py-3 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700">Save changes</button>
             </div>
           </form>

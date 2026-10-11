@@ -3,6 +3,9 @@
 //
 //   php tests/accounts.php setup     create (or reset) one student and one admin test account
 //   php tests/accounts.php cleanup   delete them and their data
+//   php tests/accounts.php notify <student|admin> <message>
+//                                    send one notification to a test account (used by
+//                                    tests/notifications.spec.js; respects their settings)
 //
 // Passwords are random and written OUTSIDE the web root (your home folder), because this
 // project lives under htdocs and anything inside it can be downloaded through Apache.
@@ -130,7 +133,14 @@ if ($command === 'setup') {
     setup($conn);
 } elseif ($command === 'cleanup') {
     cleanup($conn);
+} elseif ($command === 'notify' && isset(TEST_ACCOUNTS[$argv[2] ?? ''], $argv[3])) {
+    $userId = findUserId($conn, TEST_ACCOUNTS[$argv[2]]['username']);
+    if ($userId === null) {
+        fwrite(STDERR, "Test account missing: run setup first.\n");
+        exit(1);
+    }
+    createNotification($conn, $userId, 'module', $argv[3], ['url' => '../HTML/module.php']);
 } else {
-    fwrite(STDERR, "Usage: php tests/accounts.php setup|cleanup\n");
+    fwrite(STDERR, "Usage: php tests/accounts.php setup|cleanup|notify <student|admin> <message>\n");
     exit(1);
 }

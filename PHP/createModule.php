@@ -12,6 +12,7 @@ header('Content-Type: application/json');
 require_once 'db.php';
 require_once 'auth_helpers.php';
 require_once 'lesson_schema_helpers.php';
+require_once 'notification_helpers.php';
 
 requireAdminJson($conn);
 
@@ -142,6 +143,14 @@ try {
     $stmt->execute();
     $newId = $stmt->insert_id;
     $stmt->close();
+
+    // Locked modules stay hidden from students, so they hear about it when it is unlocked.
+    if (!$locked) {
+        notifySafely(fn () => notifyRole($conn, 'student', 'module', "New module: {$title}", [
+            'moduleId' => $newId,
+            'url' => '../HTML/Student-ViewLesson.php?id=' . $newId,
+        ]));
+    }
 
     respond(200, [
         'status' => 'success',

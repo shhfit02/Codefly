@@ -34,7 +34,7 @@ try {
     }
 
     // Grade on the server against the stored quiz so the client cannot choose its own XP.
-    $stmt = $conn->prepare('SELECT module_id, quiz_questions FROM lessons WHERE id = ? LIMIT 1');
+    $stmt = $conn->prepare('SELECT module_id, title, quiz_questions FROM lessons WHERE id = ? LIMIT 1');
     $stmt->bind_param('i', $lessonId);
     $stmt->execute();
     $lesson = $stmt->get_result()->fetch_assoc();
@@ -82,6 +82,23 @@ try {
         'xp_total' => (string)$newXp,
     ];
     saveProfileMeta($conn, $userId, $metaToSave);
+
+    // Only first completions and new best scores, so retakes do not flood the bell.
+    if ($total > 0 && ($previousBestScore === null || $percentage > $previousBestScore)) {
+        $lessonTitle = $lesson['title'] ?: 'your lesson';
+        if ($percentage === 100) {
+            $message = "Perfect score on \"{$lessonTitle}\"! +{$xpAwarded} XP";
+        } elseif ($previousBestScore === null) {
+            $message = "Quiz done: \"{$lessonTitle}\" {$percentage}% (+{$xpAwarded} XP)";
+        } else {
+            $message = "New best on \"{$lessonTitle}\": {$percentage}% (+{$xpAwarded} XP)";
+        }
+        notifySafely(fn () => createNotification($conn, $userId, 'quiz', $message, [
+            'lessonId' => $lessonId,
+            'score' => $percentage,
+            'url' => '../HTML/Student-ViewLesson.php?id=' . (int)$lesson['module_id'],
+        ]));
+    }
 
     // Sync rank with XP thresholds
     syncRankToScore($conn, $userId, $newXp, array_merge($meta, $metaToSave));

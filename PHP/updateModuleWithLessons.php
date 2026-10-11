@@ -5,6 +5,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth_helpers.php';
 require_once __DIR__ . '/lesson_schema_helpers.php';
+require_once __DIR__ . '/notification_helpers.php';
 
 requireAdminJson($conn);
 
@@ -188,6 +189,13 @@ try {
         respond(404, ['status' => 'error', 'message' => 'Module not found.']);
     }
 
+    $wasLockedStmt = $conn->prepare('SELECT locked FROM modules WHERE id = ? LIMIT 1');
+    $wasLockedStmt->bind_param('i', $moduleId);
+    $wasLockedStmt->execute();
+    $wasLockedStmt->bind_result($wasLocked);
+    $wasLockedStmt->fetch();
+    $wasLockedStmt->close();
+
     $inTx = $conn->begin_transaction();
 
     $stmt = $conn->prepare('UPDATE modules SET title = ?, subtitle = ?, level = ?, description = ?, image_path = ?, syllabus_path = ?, locked = ? WHERE id = ?');
@@ -313,6 +321,13 @@ try {
 
     if ($inTx) {
         $conn->commit();
+    }
+
+    if ((int)$wasLocked === 1 && !$locked) {
+        notifySafely(fn () => notifyRole($conn, 'student', 'module', "Module unlocked: {$title}", [
+            'moduleId' => $moduleId,
+            'url' => '../HTML/Student-ViewLesson.php?id=' . $moduleId,
+        ]));
     }
 
     respond(200, ['status' => 'success', 'data' => ['module_id' => $moduleId]]);

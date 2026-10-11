@@ -102,49 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ---------------- NOTIFICATION DROPDOWN ----------------
-  const notifBtn = document.getElementById("notif-btn");
-  const notifPanel = document.getElementById("notif-panel");
-  const notifBadgeEl = document.getElementById("notif-badge");
-  const markNotifBtn = document.getElementById("markNotifRead");
-  if (notifBtn && notifPanel) {
-    const closeNotifPanel = () => {
-      notifPanel.classList.add("hidden");
-      notifBtn.setAttribute("aria-expanded", "false");
-    };
-    const openNotifPanel = () => {
-      hydrateNotifications({ silent: true });
-      notifPanel.classList.remove("hidden");
-      notifBtn.setAttribute("aria-expanded", "true");
-      if (notifBadgeEl) {
-        markNotificationsSeen();
-      }
-    };
-
-    notifBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (notifPanel.classList.contains("hidden")) {
-        openNotifPanel();
-      } else {
-        closeNotifPanel();
-      }
-    });
-    document.addEventListener("click", (e) => {
-      if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
-        closeNotifPanel();
-      }
-    });
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") {
-        closeNotifPanel();
-      }
-    });
-    markNotifBtn?.addEventListener("click", (e) => {
-      e.stopPropagation();
-      markNotificationsSeen();
-      closeNotifPanel();
-    });
-  }
+  initNotificationBell();
 
   // ---------------- PROFILE MENU ----------------
   const profileMenuBtn = document.getElementById("profile-menu-btn");
@@ -434,8 +392,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initWorkspaceAccessGate();
   handleWorkspaceRedirectNotice();
   hydrateProfileCard();
-  hydrateNotifications();
-  setInterval(() => hydrateNotifications({ silent: true }), 15000);
 });
 
 function hydrateProfileCard() {
@@ -874,145 +830,165 @@ function handleWorkspaceRedirectNotice() {
   }
 }
 
-let latestNotificationId = null;
-let hasUnreadNotifications = false;
-let unreadNotificationCount = 0;
+// ---------------- NOTIFICATION BELL (sidebar) ----------------
+const NOTIF_POLL_MS = 30000;
+const NOTIF_STYLES = {
+  module: { icon: "bx-book-open", classes: "bg-sky-50 text-sky-600" },
+  quiz: { icon: "bx-check-circle", classes: "bg-emerald-50 text-emerald-600" },
+  rank: { icon: "bx-medal", classes: "bg-violet-50 text-violet-600" },
+  streak: { icon: "bx-calendar-check", classes: "bg-amber-50 text-amber-600" },
+  user: { icon: "bx-user-plus", classes: "bg-sky-50 text-sky-600" },
+};
+let notificationItems = [];
 
-function hydrateNotifications(options = {}) {
-  const { silent = false } = options;
-  const listEl = document.getElementById("notif-list");
-  const badgeEl = document.getElementById("notif-badge");
-  const headerCountEl = document.getElementById("notif-count-label");
-  const headerSubEl = document.getElementById("notif-count-sub");
-  if (!listEl) return;
+function initNotificationBell() {
+  const btn = document.getElementById("notif-btn");
+  const panel = document.getElementById("notif-panel");
+  if (!btn || !panel) return;
 
-  fetch("../PHP/notifications.php", {
-    credentials: "same-origin",
-    cache: "no-store",
-  })
+  const isOpen = () => !panel.classList.contains("hidden");
+  const close = () => {
+    panel.classList.add("hidden");
+    btn.setAttribute("aria-expanded", "false");
+  };
+  const open = () => {
+    renderNotifications();
+    panel.classList.remove("hidden");
+    btn.setAttribute("aria-expanded", "true");
+    positionNotificationPanel(btn, panel);
+    // Opening counts as reading; the "New" highlight stays until the next refresh.
+    if (notificationItems.some((item) => !item.isRead)) markNotificationsRead();
+  };
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    isOpen() ? close() : open();
+  });
+  document.getElementById("notif-close")?.addEventListener("click", close);
+  document.addEventListener("click", (e) => {
+    if (isOpen() && !panel.contains(e.target) && !btn.contains(e.target)) close();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && isOpen()) {
+      close();
+      btn.focus();
+    }
+  });
+  window.addEventListener("resize", () => isOpen() && positionNotificationPanel(btn, panel));
+
+  loadNotifications();
+  setInterval(() => {
+    if (!document.hidden && !isOpen()) loadNotifications();
+  }, NOTIF_POLL_MS);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && !isOpen()) loadNotifications();
+  });
+}
+
+/** Next to the sidebar, level with the bell; full width on phones where that would be too narrow. */
+function positionNotificationPanel(btn, panel) {
+  const gap = 12;
+  const sidebarRight = document.querySelector(".sidebar")?.getBoundingClientRect().right || 0;
+  let left = sidebarRight + gap;
+  if (window.innerWidth - left - gap < 280) left = gap;
+  panel.style.left = `${left}px`;
+  panel.style.width = `${Math.min(384, window.innerWidth - left - gap)}px`;
+  const top = btn.getBoundingClientRect().top;
+  const maxTop = window.innerHeight - panel.offsetHeight - gap;
+  panel.style.top = `${Math.max(gap, Math.min(top, maxTop))}px`;
+}
+
+function loadNotifications() {
+  return fetch("../PHP/notifications.php", { credentials: "same-origin", cache: "no-store" })
     .then((res) => res.json())
     .then((payload) => {
       if (!payload || payload.status !== "success") return;
-      const items = Array.isArray(payload.data) ? payload.data.slice(-1).reverse() : [];
-
-      listEl.innerHTML = "";
-      if (items.length === 0) {
-        listEl.innerHTML = `<li class="text-gray-400 text-xs text-center py-2">No notifications yet.</li>`;
-        latestNotificationId = null;
-        hasUnreadNotifications = false;
-        unreadNotificationCount = 0;
-        if (headerCountEl) headerCountEl.textContent = "Notifications";
-        if (headerSubEl) headerSubEl.textContent = "You're all caught up";
-        if (badgeEl) badgeEl.classList.add("hidden");
-        return;
-      }
-
-      hasUnreadNotifications = items.some((item) => !item.isRead);
-      unreadNotificationCount = items.filter((item) => !item.isRead).length;
-
-      const iconMap = {
-        success: "bx bx-check-circle text-emerald-500",
-        warning: "bx bx-error-circle text-amber-500",
-        error: "bx bx-x-circle text-rose-500",
-        info: "bx bx-info-circle text-sky-500",
-      };
-
-      items.forEach((item) => {
-        const li = document.createElement("li");
-        const isUnread = !item.isRead;
-        li.className = "flex items-start gap-3 py-3 pr-1";
-
-        const textWrap = document.createElement("div");
-        textWrap.className = "flex-1 min-w-0 bg-white rounded-xl border border-slate-100 px-3 py-2 shadow-sm flex items-center gap-3";
-
-        const avatar = document.createElement("div");
-        avatar.className = "w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-lg shrink-0 border border-slate-200";
-        const initial = (item.message || "•").trim().charAt(0).toUpperCase() || "•";
-        avatar.textContent = initial;
-
-        const metaWrap = document.createElement("div");
-        metaWrap.className = "flex-1 min-w-0";
-
-        const message = document.createElement("p");
-        message.className = "leading-snug font-semibold text-slate-800";
-        message.textContent = item.message || "Notification";
-        metaWrap.appendChild(message);
-
-        if (item.timestamp) {
-          const meta = document.createElement("p");
-          meta.className = "text-xs text-slate-500";
-          meta.textContent = formatNotificationTime(item.timestamp, { includeRelative: true });
-          metaWrap.appendChild(meta);
-        }
-
-        const icon = document.createElement("i");
-        const mappedIcon = iconMap[item.type] || iconMap.info || "bx bx-bell text-rose-400";
-        icon.className = `${mappedIcon} text-base shrink-0`;
-
-        textWrap.appendChild(avatar);
-        textWrap.appendChild(metaWrap);
-        textWrap.appendChild(icon);
-
-        if (isUnread) {
-          const pill = document.createElement("span");
-          pill.className = "text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full shrink-0";
-          pill.textContent = "New";
-          textWrap.appendChild(pill);
-        }
-
-        li.appendChild(textWrap);
-        listEl.appendChild(li);
-      });
-
-      const totalCount = items.length;
-      if (headerCountEl) {
-        headerCountEl.textContent = `${totalCount} Notification${totalCount === 1 ? "" : "s"}`;
-      }
-      if (headerSubEl) {
-        headerSubEl.textContent = unreadNotificationCount > 0 ? `${unreadNotificationCount} new` : "Latest updates";
-      }
-
-      latestNotificationId = items[0]?.id || null;
-      updateBadgeState();
+      notificationItems = Array.isArray(payload.data) ? payload.data : [];
+      updateNotificationBadge();
+      const panel = document.getElementById("notif-panel");
+      if (panel && !panel.classList.contains("hidden")) renderNotifications();
     })
-    .catch((err) => console.error("Unable to load notifications", err));
+    .catch((err) => console.warn("Unable to load notifications", err));
 }
 
-function updateBadgeState() {
-  const badgeEl = document.getElementById("notif-badge");
-  if (!badgeEl) return;
-
-  const lastSeenId = sessionStorage.getItem("cf_last_seen_notif");
-  if (hasUnreadNotifications || (latestNotificationId && latestNotificationId !== lastSeenId)) {
-    const badgeValue = unreadNotificationCount > 9 ? "9+" : unreadNotificationCount || "1";
-    badgeEl.textContent = badgeValue;
-    badgeEl.classList.remove("hidden");
-  } else {
-    badgeEl.textContent = "";
-    badgeEl.classList.add("hidden");
+function updateNotificationBadge() {
+  const badge = document.getElementById("notif-badge");
+  const btn = document.getElementById("notif-btn");
+  const unread = notificationItems.filter((item) => !item.isRead).length;
+  if (badge) {
+    badge.textContent = unread > 9 ? "9+" : String(unread);
+    badge.classList.toggle("hidden", unread === 0);
   }
+  btn?.setAttribute("aria-label", unread ? `Notifications, ${unread} unread` : "Notifications");
 }
 
-function markNotificationsSeen() {
-  if (latestNotificationId) {
-    sessionStorage.setItem("cf_last_seen_notif", latestNotificationId);
+function renderNotifications() {
+  const list = document.getElementById("notif-list");
+  const sub = document.getElementById("notif-count-sub");
+  if (!list) return;
+
+  const unread = notificationItems.filter((item) => !item.isRead).length;
+  if (sub) sub.textContent = unread ? `${unread} new` : "You're all caught up";
+
+  list.innerHTML = "";
+  if (!notificationItems.length) {
+    list.innerHTML = `<li class="text-gray-400 text-xs text-center py-4">No notifications yet.</li>`;
+    return;
   }
-  fetch("../PHP/notifications.php", {
-    method: "POST",
-    credentials: "same-origin",
-    cache: "no-store",
-  })
-    .then(() => {
-      hasUnreadNotifications = false;
-      unreadNotificationCount = 0;
-      updateBadgeState();
+
+  notificationItems.forEach((item) => {
+    const li = document.createElement("li");
+    const url = item.meta?.url;
+    // Only our own pages: the server sets these, but never follow anything else.
+    const entry = document.createElement(typeof url === "string" && url.startsWith("../HTML/") ? "a" : "div");
+    if (entry.tagName === "A") entry.href = url;
+    entry.className = `notif-item${item.isRead ? "" : " notif-item--unread"}`;
+
+    const style = NOTIF_STYLES[item.type] || { icon: "bx-bell", classes: "bg-slate-100 text-slate-500" };
+    const icon = document.createElement("span");
+    icon.className = `notif-item__icon ${style.classes}`;
+    icon.innerHTML = `<i class="bx ${style.icon}" aria-hidden="true"></i>`;
+
+    const body = document.createElement("div");
+    body.className = "flex-1 min-w-0";
+    const message = document.createElement("p");
+    message.className = `leading-snug text-slate-800 ${item.isRead ? "" : "font-semibold"}`;
+    message.textContent = item.message || "Notification";
+    const time = document.createElement("p");
+    time.className = "text-xs text-slate-500 mt-0.5";
+    time.textContent = formatNotificationTime(item.timestamp, { includeRelative: true });
+    body.append(message, time);
+
+    entry.append(icon, body);
+    if (!item.isRead) {
+      const pill = document.createElement("span");
+      pill.className = "text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full shrink-0";
+      pill.textContent = "New";
+      entry.appendChild(pill);
+    }
+    li.appendChild(entry);
+    list.appendChild(li);
+  });
+}
+
+function markNotificationsRead() {
+  fetch("../PHP/notifications.php", { method: "POST", credentials: "same-origin", cache: "no-store" })
+    .then((res) => {
+      if (!res.ok) return;
+      // Clear the badge now but keep the rendered "New" highlights for this viewing.
+      const badge = document.getElementById("notif-badge");
+      badge?.classList.add("hidden");
+      document.getElementById("notif-btn")?.setAttribute("aria-label", "Notifications");
+      notificationItems = notificationItems.map((item) => ({ ...item, isRead: true }));
     })
-    .catch(() => updateBadgeState());
+    .catch(() => {});
 }
 
 function formatNotificationTime(timestamp, options = {}) {
   const { includeRelative = false } = options;
-  const date = new Date(timestamp);
+  // MySQL sends "YYYY-MM-DD HH:MM:SS"; the "T" form parses in every browser (Safari rejects the space).
+  const date = new Date(String(timestamp || "").replace(" ", "T"));
   if (Number.isNaN(date.getTime())) return "";
   if (includeRelative) {
     const diffMs = Date.now() - date.getTime();

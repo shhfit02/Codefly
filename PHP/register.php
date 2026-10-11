@@ -108,6 +108,10 @@ try {
 
     ensureRankRecord($conn, $userId);
     $conn->commit();
+
+    notifySafely(fn () => notifyRole($conn, 'admin', 'user', "New student registered: {$values['username']}", [
+        'url' => '../HTML/adminViewProfile.php?user=' . rawurlencode($values['username']),
+    ]));
     $conn->close();
 
     unset($_SESSION[$profileKey], $_SESSION[$valuesKey], $_SESSION[$errorsKey], $_SESSION[$agreeKey]);

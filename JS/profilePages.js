@@ -455,7 +455,7 @@
       form.elements.username.value = data.username || "";
     }
 
-    ["twoFactor", "emailAlerts", "inAppNotifications", "smsAlerts"].forEach((name) => {
+    ["inAppNotifications"].forEach((name) => {
       const input = form.elements.namedItem(name);
       if (input instanceof HTMLInputElement && input.type === "checkbox") {
         input.checked = Boolean(data[name]);
