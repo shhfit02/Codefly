@@ -814,3 +814,44 @@ aside.scratch-sidebar > * {
     gap: 8px;
   }
 }
+
+/* Small-screen notice: block dragging needs a wide screen, and below 900px the
+   category palette stacks under the canvas. Hidden on wider screens. */
+.small-screen-notice {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .small-screen-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 12px 16px 0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .small-screen-notice i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .small-screen-notice span {
+    flex: 1;
+  }
+
+  .small-screen-notice button {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+  }
+}

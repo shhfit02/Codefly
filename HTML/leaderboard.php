@@ -662,30 +662,20 @@
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const staticPilots = [
-        { username: 'capiora', score: 15000, xp: 15000, rank: 'Grand Commander', rankKey: 'commander', status: 'Eligible', lessons: 52, avatar: '../Assets/StudentProfile.png', badge: '../Assets/RankCommander.png', joined: 'Oct 2025' },
-        { username: 'shahrin11', score: 7000, xp: 7000, rank: 'Commander', rankKey: 'captain', status: 'Eligible', lessons: 38, avatar: '../Assets/StudentProfile.png', badge: '../Assets/RankCaptain.png', joined: 'Sep 2025' },
-        { username: 'firdaus245', score: 6000, xp: 6000, rank: 'Elite Pilot', rankKey: 'ace', status: 'Eligible', lessons: 33, avatar: '../Assets/StudentProfile.png', badge: '../Assets/RankAce.png', joined: 'Aug 2025' },
-        { username: 'mohamad1', score: 5000, xp: 5000, rank: 'Gold', rankKey: 'gold', status: 'Not Eligible', lessons: 29, avatar: '../Assets/StudentProfile.png', badge: '../Assets/RankGold.png', joined: 'Jul 2025' },
-        { username: 'shah02', score: 3200, xp: 3200, rank: 'Silver', rankKey: 'silver', status: 'Not Eligible', lessons: 18, avatar: '../Assets/StudentProfile.png', badge: '../Assets/RankSilver.png', joined: 'Jun 2025' },
-        { username: 'fitri245', score: 1500, xp: 1500, rank: 'Bronze', rankKey: 'bronze', status: 'Not Eligible', lessons: 9, avatar: '../Assets/StudentProfile.png', badge: '../Assets/RankBronze.png', joined: 'May 2025' }
-      ];
-
       wireRulesCta();
 
       const controller = initLeaderboard([]);
       const refreshButton = document.getElementById('refreshLeaderboard');
       const MIN_REFRESH_DURATION = 3000;
 
-      const restoreStaticSnapshot = () => {
-        if (controller.resetView) {
-          controller.resetView();
-        }
-        controller.setData(staticPilots);
+      // Real data only: when the API is empty or fails, say so instead of showing sample pilots.
+      const emptyStateEl = document.getElementById('emptyState');
+      const DEFAULT_EMPTY_MESSAGE = emptyStateEl ? emptyStateEl.textContent.trim() : '';
+      const setEmptyMessage = (message) => {
+        if (emptyStateEl) emptyStateEl.textContent = message || DEFAULT_EMPTY_MESSAGE;
       };
 
-      const hydrateLeaderboard = async (options = { allowFallback: true, minDuration: 0 }) => {
-        const allowFallback = options?.allowFallback !== false;
+      const hydrateLeaderboard = async (options = { minDuration: 0 }) => {
         const minDuration = Math.max(0, options?.minDuration || 0);
         const startTime = Date.now();
         if (refreshButton) {
@@ -699,18 +689,12 @@
         try {
           const dynamicPilots = await fetchDynamicPilots();
           const normalized = mergePilots([], filterOutAdmins(dynamicPilots));
-          if (normalized.length) {
-            controller.setData(normalized);
-          } else if (allowFallback) {
-            restoreStaticSnapshot();
-          } else {
-            controller.setData([]);
-          }
+          setEmptyMessage(normalized.length ? '' : 'No pilots on the leaderboard yet.');
+          controller.setData(normalized);
         } catch (error) {
           console.error('Unable to load dynamic leaderboard data', error);
-          if (allowFallback) {
-            restoreStaticSnapshot();
-          }
+          setEmptyMessage("Couldn't load the leaderboard right now. Press Refresh to try again.");
+          controller.setData([]);
         } finally {
           if (refreshButton) {
             const elapsed = Date.now() - startTime;
@@ -728,7 +712,7 @@
 
       if (refreshButton) {
         refreshButton.addEventListener('click', () => {
-          hydrateLeaderboard({ allowFallback: true, minDuration: MIN_REFRESH_DURATION });
+          hydrateLeaderboard({ minDuration: MIN_REFRESH_DURATION });
         });
       }
 
@@ -804,9 +788,9 @@
       };
     }
 
-    function mergePilots(staticPilots, dynamicPilots) {
+    function mergePilots(basePilots, dynamicPilots) {
       const pilotMap = new Map();
-      staticPilots.forEach((pilot) => {
+      basePilots.forEach((pilot) => {
         if (!pilot?.username) {
           return;
         }

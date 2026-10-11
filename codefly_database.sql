@@ -152,12 +152,9 @@ CREATE TABLE IF NOT EXISTS user_notifications (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Admin Account Setup
-INSERT INTO users (username, email, password, level) 
-VALUES ('admin', 'admin@codefly.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin') 
-ON DUPLICATE KEY UPDATE username=username;
--- Password is 'password'
-
-INSERT INTO user_profiles (user_id, full_name, age, gender)
-SELECT id, 'Admin User', 30, 'prefer-not' FROM users WHERE username = 'admin'
-ON DUPLICATE KEY UPDATE full_name=full_name;
+-- First admin account
+-- No admin is seeded here: a default account with a published password would let
+-- anyone into the admin pages of a fresh install. Instead, register normally through
+-- the app, then promote that account:
+--
+--   UPDATE users SET level = 'admin' WHERE username = 'your_username';

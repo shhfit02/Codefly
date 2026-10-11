@@ -139,6 +139,13 @@ $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
     </header>
   <?php endif; ?>
 
+  <!-- Shown only on narrow screens (see workspace.css): block dragging needs room. -->
+  <div class="small-screen-notice" id="small-screen-notice" role="note">
+    <i class='bx bx-laptop' aria-hidden="true"></i>
+    <span>The block workspace works best on a laptop or tablet. On a phone, the block categories are below the canvas.</span>
+    <button type="button" aria-label="Dismiss" onclick="this.parentElement.remove()">&times;</button>
+  </div>
+
   <div class="scratch-body">
     <aside class="scratch-sidebar">
       <?php if (!$isLite): ?>
