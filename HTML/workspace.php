@@ -273,6 +273,7 @@ $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
 
   <xml id="toolbox" style="display: none"></xml>
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
   <script src="../JS/workspace-blocks.js"></script>
   <script src="../JS/workspace.js"></script>
 

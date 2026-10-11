@@ -101,13 +101,14 @@
       </div>
     </div>
   </section>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
   <script>
     const ENDPOINT = "../PHP/editUser.php";
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
       const { id } = getIdentity();
       if (!id) {
-        alert("Missing user identifier.");
+        await Swal.fire({ icon: "error", title: "Missing user identifier." });
         window.location.href = "../HTML/manageUser.html";
         return;
       }
@@ -148,7 +149,7 @@
         setValue("level", data.level || "user");
       } catch (err) {
         console.error(err);
-        alert(err.message || "Unable to load user.");
+        await Swal.fire({ icon: "error", title: "Error", text: err.message || "Unable to load user." });
         window.location.href = "../HTML/manageUser.html";
       }
     }
@@ -169,11 +170,11 @@
           if (!res.ok || payload?.status !== "success") {
             throw new Error(payload?.message || "Unable to save user.");
           }
-          alert(payload?.message || "User updated.");
+          await Swal.fire({ icon: "success", title: payload?.message || "User updated." });
           window.location.href = "../HTML/manageUser.html";
         } catch (err) {
           console.error(err);
-          alert(err.message || "Unable to save user.");
+          Swal.fire({ icon: "error", title: "Error", text: err.message || "Unable to save user." });
         }
       });
     }

@@ -1128,7 +1128,7 @@ async function runCode() {
   ensureTelloPythonGenerators(); // guard against missing generators
 
   if (!commandReady && !IS_LESSON_SIM) {
-    alert('Connect to the drone first and wait for command mode.');
+    Swal.fire({ icon: 'warning', title: 'Drone not connected', text: 'Connect to the drone first and wait for command mode.' });
     setPythonStatus('Connect to Tello first.', 'error');
     setLaunchButtonIdle();
     return;
@@ -1373,8 +1373,16 @@ function redo() {
   workspace.undo(true);
 }
 
-function resetWorkspace() {
-  if (confirm('Are you sure you want to reset the workspace? All unsaved changes will be lost.')) {
+async function resetWorkspace() {
+  const { isConfirmed } = await Swal.fire({
+    icon: 'warning',
+    title: 'Reset workspace?',
+    text: 'All unsaved changes will be lost.',
+    showCancelButton: true,
+    confirmButtonText: 'Reset',
+    confirmButtonColor: '#dc2626',
+  });
+  if (isConfirmed) {
     workspace.clear();
   }
 }
@@ -1384,7 +1392,7 @@ function saveWorkspace() {
   const xmlText =
   Blockly.Xml.domToText(xml);
   localStorage.setItem('blocklyWorkspace', xmlText);
-  alert('Workspace saved!');
+  Swal.fire({ icon: 'success', title: 'Workspace saved!', timer: 1500, showConfirmButton: false });
 }
 
 function loadWorkspace() {
@@ -1393,9 +1401,9 @@ function loadWorkspace() {
     // Blockly.Xml.textToDom was removed in Blockly 11; the helper now lives in utils.xml.
     const xml = Blockly.utils.xml.textToDom(xmlText);
     Blockly.Xml.domToWorkspace(xml, workspace);
-    alert('Workspace loaded!');
+    Swal.fire({ icon: 'success', title: 'Workspace loaded!', timer: 1500, showConfirmButton: false });
   } else {
-    alert('No saved workspace found.');
+    Swal.fire({ icon: 'info', title: 'No saved workspace found.' });
   }
 }
 

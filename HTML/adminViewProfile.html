@@ -143,6 +143,7 @@
     </div>
   </section>
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
   <script src="../JS/home.js"></script>
   <script>
     let currentProfileId = "";
@@ -163,7 +164,7 @@
     async function loadProfile() {
       const { id, user } = getIdentity();
       if (!id && !user) {
-        alert("Missing profile identifier.");
+        await Swal.fire({ icon: "error", title: "Missing profile identifier." });
         window.location.href = "../HTML/manageUser.html";
         return;
       }
@@ -179,7 +180,7 @@
         populate(data);
       } catch (error) {
         console.error("Profile load failed", error);
-        alert(error.message || "Unable to load profile.");
+        await Swal.fire({ icon: "error", title: "Error", text: error.message || "Unable to load profile." });
         window.location.href = "../HTML/manageUser.html";
       }
     }

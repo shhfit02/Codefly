@@ -186,6 +186,7 @@
     </div>
 
   </section>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
   <script src="../JS/home.js"></script>
   <script>
     const DEFAULT_AVATAR = "../Assets/StudentProfile.png";
@@ -354,8 +355,15 @@
     async function handleDelete(id = "", username = "") {
       const label = username || id;
       if (!label) return;
-      const confirmed = window.confirm(`Delete user "${label}"? This cannot be undone.`);
-      if (!confirmed) return;
+      const { isConfirmed } = await Swal.fire({
+        icon: "warning",
+        title: "Delete user?",
+        text: `Delete user "${label}"? This cannot be undone.`,
+        showCancelButton: true,
+        confirmButtonText: "Delete",
+        confirmButtonColor: "#dc2626",
+      });
+      if (!isConfirmed) return;
       try {
         const formData = new FormData();
         formData.append("id", id);
@@ -370,17 +378,17 @@
         }
         allUsers = allUsers.filter((user) => String(user.id) !== String(id));
         renderTable(applyFilters());
-        alert(payload.message || "User deleted.");
+        Swal.fire({ icon: "success", title: payload.message || "User deleted." });
       } catch (error) {
         console.error("Delete failed", error);
-        alert(error.message || "Unable to delete user right now.");
+        Swal.fire({ icon: "error", title: "Error", text: error.message || "Unable to delete user right now." });
       }
     }
 
     function showAddToastIfNeeded() {
       const params = new URLSearchParams(window.location.search);
       if (params.get("added") === "1") {
-        alert("User added successfully.");
+        Swal.fire({ icon: "success", title: "User added successfully." });
         params.delete("added");
         const newUrl = `${window.location.pathname}${params.toString() ? "?" + params.toString() : ""}`;
         window.history.replaceState({}, "", newUrl);
