@@ -23,3 +23,7 @@ blockly-12.3.1.tgz
 temp.txt
 scratch.html
 __pycache__/
+
+# Playwright output
+test-results/
+playwright-report/
