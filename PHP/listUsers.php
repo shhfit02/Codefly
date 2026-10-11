@@ -6,13 +6,7 @@ session_start();
 header('Content-Type: application/json');
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth_helpers.php';
-require_once __DIR__ . '/profile_helpers.php';
-
-function respondJson(int $code, array $payload): void {
-    http_response_code($code);
-    echo json_encode($payload);
-    exit;
-}
+require_once __DIR__ . '/profile_helpers.php'; // provides respondJson()
 
 // Admins only; the guard reads the level from the database and exits with JSON otherwise.
 requireAdminJson($conn);
@@ -37,6 +31,7 @@ $sql = "
 $result = $conn->query($sql);
 if (!$result) {
     respondJson(500, ['status' => 'error', 'message' => 'Unable to load users.']);
+    exit;
 }
 
 $users = [];
@@ -69,3 +64,4 @@ respondJson(200, [
         'users' => $users,
     ],
 ]);
+exit;
