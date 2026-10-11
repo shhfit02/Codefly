@@ -557,8 +557,9 @@ input[type=number]::-webkit-outer-spin-button {
   right: 30px;
 }
 
-/* ---------- Phones / small tablets ---------- */
-@media (max-width: 600px){
+/* ---------- Phones / tablets: below ~1000px the desktop logo, nav and
+   fixed footer overlap the centred card, so stack everything instead ---------- */
+@media (max-width: 1000px){
   header{
     padding: 16px 16px;
   }
@@ -608,7 +609,10 @@ input[type=number]::-webkit-outer-spin-button {
   .wrapper{
     min-height: 0;
   }
+}
 
+/* ---------- Phones ---------- */
+@media (max-width: 600px){
   .wrapper .form-box{
     padding: 28px 22px;
   }
