@@ -9,7 +9,7 @@
 //  - what_you_learn (optional)
 //  - learning_outcomes (optional)
 //  - quiz_questions (optional)
-//    Expected format from NewModule.html: JSON array of
+//    Expected format from NewModule.php: JSON array of
 //      { question: string, choices: [choice1..choice4], correct_index: 0-3 }
 
 header('Content-Type: application/json');

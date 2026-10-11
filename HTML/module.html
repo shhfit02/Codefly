@@ -149,7 +149,7 @@
             <h2 class="text-xl font-semibold">Modules</h2>
             <a
               id="addModuleTopBtn"
-              href="../HTML/NewModule.html"
+              href="../HTML/NewModule.php"
               class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-slate-700 text-sm font-semibold border border-slate-200 bg-white shadow-sm hover:bg-slate-50 transition"
             >
               <i class="bx bx-plus text-lg"></i>
@@ -535,7 +535,7 @@
         moduleGrid.querySelectorAll('[data-edit-module]').forEach(btn => {
           btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-edit-module');
-            if (id) window.location.href = `editModule.html?id=${id}`;
+            if (id) window.location.href = `editModule.php?id=${id}`;
           });
         });
         moduleGrid.querySelectorAll('[data-delete-module]').forEach(btn => {

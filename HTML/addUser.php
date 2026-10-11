@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireAdminPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,34 +12,7 @@
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
-  <nav class="sidebar close">
-    <header>
-      <div class="image-text">
-        <span class="image"><img src="../Assets/logo4.png" alt="logo"></span>
-        <div class="text header-text">
-          <span class="name">Codefly</span>
-          <span class="profession">Admin Dashboard</span>
-        </div>
-      </div>
-      <i class='bx bx-chevron-right toggle'></i>
-    </header>
-    <div class="menu-bar">
-      <div class="menu">
-        <ul class="menu-links">
-          <li class="nav-link"><a href="../HTML/adminDashboard.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Admin Center</span></a></li>
-          <li class="nav-link"><a href="../HTML/AddModule.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-          <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-          <li class="nav-link"><a href="../HTML/manageUser.html"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
-          <li class="nav-link"><a href="../HTML/adminLeaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-        </ul>
-      </div>
-      <div class="bottom-content">
-        <ul class="menu-links">
-          <li><a href="../PHP/logout.php"><i class='bx bx-log-out icon'></i><span class="text nav-text">Logout</span></a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <?php include __DIR__ . '/partials/admin_sidebar.php'; ?>
 
   <section class="home min-h-screen">
     <div class="p-6 flex flex-col gap-6">
@@ -93,7 +67,7 @@
             </select>
           </label>
           <div class="md:col-span-2 flex gap-3 mt-2">
-            <a href="../HTML/manageUser.html" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50">Cancel</a>
+            <a href="../HTML/manageUser.php" class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50">Cancel</a>
             <button type="submit" class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-white text-sm font-semibold shadow focus:outline-none focus:ring-2 focus:ring-blue-200" style="background: linear-gradient(130deg, #0ea5e9, #6366f1);">Create User</button>
           </div>
         </form>

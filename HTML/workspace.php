@@ -26,7 +26,7 @@ if (!workspaceAccess($rank, $isAdmin, 0)['allowed']) {
     header('Location: ../HTML/home.html?workspace=denied');
     exit;
 }
-$homeUrl = $isAdmin ? '../HTML/adminDashboard.html' : '../HTML/home.html';
+$homeUrl = $isAdmin ? '../HTML/adminDashboard.php' : '../HTML/home.html';
 
 $displayRankMap = [
     'bronze' => 'Rookie',

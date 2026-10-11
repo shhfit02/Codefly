@@ -47,7 +47,7 @@ if (!$target) {
 
 $targetId = (int)$target['id'];
 $isOwner = isset($_SESSION['user_id']) && ((int)$_SESSION['user_id'] === $targetId);
-// Email is private: only the owner and admins (adminViewProfile.html) may see it.
+// Email is private: only the owner and admins (adminViewProfile.php) may see it.
 $canSeeEmail = $isOwner || isAdminSession($conn);
 
 try {

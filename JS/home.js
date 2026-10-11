@@ -78,14 +78,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const navLinks = document.querySelectorAll(".sidebar .menu-links .nav-link a");
   // Sub-pages highlight the menu item of the section they belong to.
   const NAV_PARENT = {
-    "NewModule.html": "AddModule.html",
-    "editModule.html": "AddModule.html",
-    "ViewLesson.html": "AddModule.html",
-    "ViewLesson-Detail.html": "AddModule.html",
-    "quiz.html": "AddModule.html",
-    "addUser.html": "manageUser.html",
-    "editUser.html": "manageUser.html",
-    "adminViewProfile.html": "manageUser.html",
+    "NewModule.php": "AddModule.php",
+    "editModule.php": "AddModule.php",
+    "ViewLesson.php": "AddModule.php",
+    "ViewLesson-Detail.php": "AddModule.php",
+    "quiz.php": "AddModule.php",
+    "addUser.php": "manageUser.php",
+    "editUser.php": "manageUser.php",
+    "adminViewProfile.php": "manageUser.php",
     "Student-ViewLesson.html": "module.html",
     "Student-ViewLesson-Detail.html": "module.html",
     "Student-Quiz.html": "module.html",

@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireAdminPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,40 +19,7 @@
   <body class="bg-gray-100">
     <div id="toastBox"></div>
     <!-- Sidebar -->
-    <nav class="sidebar close">
-      <header>
-        <div class="image-text">
-          <span class="image">
-            <img src="../Assets/logo4.png" alt="logo" />
-          </span>
-          <div class="text header-text">
-            <span class="name">Codefly</span>
-            <span class="profession">Admin Dashboard</span>
-          </div>
-        </div>
-        <i class="bx bx-chevron-right toggle"></i>
-      </header>
-
-      <div class="menu-bar">
-        <div class="menu">
-          <ul class="menu-links">
-            <li class="nav-link"><a href="../HTML/adminDashboard.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Admin Center</span></a></li>
-            <li class="nav-link"><a href="../HTML/AddModule.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-            <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-            <li class="nav-link"><a href="../HTML/manageUser.html"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
-            <li class="nav-link"><a href="../HTML/adminLeaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-          </ul>
-      </div>
-      <div class="bottom-content">
-        <li>
-          <a href="../PHP/logout.php">
-              <i class="bx bx-log-out icon"></i>
-              <span class="text nav-text">Logout</span>
-            </a>
-          </li>
-        </div>
-      </div>
-    </nav>
+    <?php include __DIR__ . '/partials/admin_sidebar.php'; ?>
     <!-- MAIN SECTION -->
     <section class="home min-h-screen">
       <div class="p-6 flex gap-6">
@@ -129,7 +97,7 @@
                     <p class="text-sm text-slate-500">Live from your database (last 30 days)</p>
                   </div>
                   <a
-                    href="../HTML/manageUser.html"
+                    href="../HTML/manageUser.php"
                     class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors"
                   >Manage Users <i class='bx bx-right-arrow-alt'></i></a>
                 </div>
@@ -169,7 +137,7 @@
                   <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Ranks</p>
                   <h3 class="text-xl font-semibold text-slate-900">Distribution</h3>
                 </div>
-                <a href="adminLeaderboard.html" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+                <a href="adminLeaderboard.php" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
                   View Ladder <i class='bx bx-right-arrow-alt'></i>
                 </a>
               </div>
@@ -225,7 +193,7 @@
                   <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Learning</p>
                   <h3 class="text-xl font-semibold text-slate-900">Module Progress</h3>
                 </div>
-                <a href="../HTML/AddModule.html" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
+                <a href="../HTML/AddModule.php" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors">
                   Manage Modules <i class='bx bx-right-arrow-alt'></i>
                 </a>
               </div>

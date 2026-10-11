@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireAdminPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,40 +72,7 @@
   <div id="toastBox"></div>
 
   <!-- SIDEBAR -->
-  <nav class="sidebar close">
-      <header>
-        <div class="image-text">
-          <span class="image">
-            <img src="../Assets/logo4.png" alt="logo" />
-          </span>
-          <div class="text header-text">
-            <span class="name">Codefly</span>
-            <span class="profession">Admin Dashboard</span>
-          </div>
-        </div>
-        <i class="bx bx-chevron-right toggle"></i>
-      </header>
-
-      <div class="menu-bar">
-        <div class="menu">
-          <ul class="menu-links">
-            <li class="nav-link"><a href="../HTML/adminDashboard.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Admin Center</span></a></li>
-            <li class="nav-link"><a href="../HTML/AddModule.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-            <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-            <li class="nav-link"><a href="../HTML/manageUser.html"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
-            <li class="nav-link"><a href="../HTML/adminLeaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-          </ul>
-      </div>
-      <div class="bottom-content">
-        <li>
-          <a href="../PHP/logout.php">
-              <i class="bx bx-log-out icon"></i>
-              <span class="text nav-text">Logout</span>
-            </a>
-          </li>
-        </div>
-      </div>
-    </nav>
+  <?php include __DIR__ . '/partials/admin_sidebar.php'; ?>
 
   <!-- MAIN CONTENT -->
   <section class="home h-screen">
@@ -154,7 +122,7 @@
             <h2 class="text-xl font-semibold">Modules</h2>
             <a
               id="addModuleTopBtn"
-              href="../HTML/NewModule.html"
+              href="../HTML/NewModule.php"
               class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-slate-700 text-sm font-semibold border border-slate-200 bg-white shadow-sm hover:bg-slate-50 transition"
             >
               <i class="bx bx-plus text-lg"></i>
@@ -327,7 +295,7 @@
           const gradient = 'linear-gradient(130deg, #0ea5e9, #6366f1)';
           const cover = module.image_path || module.image || '../Assets/basicModule.png';
           const levelLabel = module.level ? module.level.charAt(0).toUpperCase() + module.level.slice(1) : 'Module';
-            const viewHref = `ViewLesson.html?id=${encodeURIComponent(module.id)}`;
+            const viewHref = `ViewLesson.php?id=${encodeURIComponent(module.id)}`;
           return `
           <article class="module-card group bg-white rounded-3xl shadow-md overflow-hidden hover:shadow-2xl transition-transform hover:-translate-y-1" data-level="${escapeHtml(module.level || 'custom')}" data-id="${escapeHtml(module.id)}">
             <div class="relative">
@@ -371,7 +339,7 @@
         `}).join('');
 
         const addModuleCardHTML = `
-          <a href="../HTML/NewModule.html" class="module-card group bg-white rounded-3xl shadow-md overflow-hidden hover:shadow-2xl transition-transform hover:-translate-y-1 flex flex-col border-2 border-dashed border-slate-200 hover:border-sky-400">
+          <a href="../HTML/NewModule.php" class="module-card group bg-white rounded-3xl shadow-md overflow-hidden hover:shadow-2xl transition-transform hover:-translate-y-1 flex flex-col border-2 border-dashed border-slate-200 hover:border-sky-400">
             <div class="relative w-full h-44 bg-slate-50 flex items-center justify-center">
                 <i class='bx bx-plus-circle text-5xl text-slate-300 group-hover:text-sky-500 transition-colors'></i>
             </div>
@@ -570,7 +538,7 @@
         moduleGrid.querySelectorAll('[data-edit-module]').forEach(btn => {
           btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-edit-module');
-            if (id) window.location.href = `editModule.html?id=${id}`;
+            if (id) window.location.href = `editModule.php?id=${id}`;
           });
         });
         moduleGrid.querySelectorAll('[data-delete-module]').forEach(btn => {

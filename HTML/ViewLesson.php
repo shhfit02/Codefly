@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireAdminPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -394,40 +395,7 @@
     </div>
   </div>
 
-  <nav class="sidebar close">
-      <header>
-        <div class="image-text">
-          <span class="image">
-            <img src="../Assets/logo4.png" alt="logo" />
-          </span>
-          <div class="text header-text">
-            <span class="name">Codefly</span>
-            <span class="profession">Admin Dashboard</span>
-          </div>
-        </div>
-        <i class="bx bx-chevron-right toggle"></i>
-      </header>
-
-      <div class="menu-bar">
-        <div class="menu">
-          <ul class="menu-links">
-            <li class="nav-link"><a href="../HTML/adminDashboard.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Admin Center</span></a></li>
-            <li class="nav-link"><a href="../HTML/AddModule.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-            <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-            <li class="nav-link"><a href="../HTML/manageUser.html"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
-            <li class="nav-link"><a href="../HTML/adminLeaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-          </ul>
-      </div>
-      <div class="bottom-content">
-        <li>
-          <a href="../PHP/logout.php">
-              <i class="bx bx-log-out icon"></i>
-              <span class="text nav-text">Logout</span>
-            </a>
-          </li>
-        </div>
-      </div>
-    </nav>
+  <?php include __DIR__ . '/partials/admin_sidebar.php'; ?>
 
   <section class="home min-h-screen">
     <div class="p-6 flex gap-6">
@@ -436,7 +404,7 @@
           <section class="module-hero">
             <div class="space-y-4">
               <nav class="flex items-center gap-2 text-sm text-white/80 uppercase tracking-wide" aria-label="Breadcrumb">
-                <a id="breadcrumbBack" href="../HTML/AddModule.html" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/40 hover:bg-white/15 transition" aria-label="Back to modules">
+                <a id="breadcrumbBack" href="../HTML/AddModule.php" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/40 hover:bg-white/15 transition" aria-label="Back to modules">
                   <i class='bx bx-arrow-back text-base text-white'></i>
                 </a>
                 <span class="text-white/60">/</span>
@@ -676,14 +644,14 @@
               : baseStatus === "completed"
               ? "ReView mission"
               : "View mission";
-            const detailHref = `ViewLesson-Detail.html?module_id=${moduleId}&lesson_id=${lesson.id || ""}`;
+            const detailHref = `ViewLesson-Detail.php?module_id=${moduleId}&lesson_id=${lesson.id || ""}`;
             const ctaHref = lockedForViewer ? "#" : detailHref;
             const ctaClasses = `lesson-cta ${lockedForViewer ? "locked" : ""}`;
             const requirement = lesson.requirement || "None - start here";
             const durationText = duration || "Duration not set";
             const lessonKey = lesson.id || `idx-${idx}`;
             const lessonAnchor = lesson.id ? `lesson-${lesson.id}` : `lesson-${idx + 1}`;
-            const editHref = `editModule.html?id=${moduleId}&lesson_id=${lesson.id || ""}#${lessonAnchor}`;
+            const editHref = `editModule.php?id=${moduleId}&lesson_id=${lesson.id || ""}#${lessonAnchor}`;
             const lessonNumber = String(idx + 1).padStart(2, "0");
             return `
             <article class="lesson-card" id="${lessonAnchor}" data-lesson-card="${lessonKey}">
@@ -721,7 +689,7 @@
           .join("");
 
         if (isAdmin) {
-          const addHref = `editModule.html?id=${moduleId}`;
+          const addHref = `editModule.php?id=${moduleId}`;
           const addCard = `
             <article class="lesson-card add-card" tabindex="0" role="button" onclick="window.location.href='${addHref}'">
               <span class="add-icon"><i class='bx bx-plus'></i></span>
@@ -770,7 +738,7 @@
           if (visitKey && resumeLesson.id) {
             localStorage.setItem(visitKey, String(resumeLesson.id));
           }
-          window.location.href = `ViewLesson-Detail.html?module_id=${moduleId}&lesson_id=${resumeLesson.id || ""}`;
+          window.location.href = `ViewLesson-Detail.php?module_id=${moduleId}&lesson_id=${resumeLesson.id || ""}`;
         };
       }
 

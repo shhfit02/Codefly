@@ -686,7 +686,7 @@
             const durationText = duration || 'Duration not set';
             const lessonKey = lesson.id || `idx-${idx}`;
             const lessonAnchor = lesson.id ? `lesson-${lesson.id}` : `lesson-${idx + 1}`;
-            const editHref = `editModule.html?id=${moduleId}&lesson_id=${lesson.id || ''}#${lessonAnchor}`;
+            const editHref = `editModule.php?id=${moduleId}&lesson_id=${lesson.id || ''}#${lessonAnchor}`;
             const lessonNumber = String(idx + 1).padStart(2, '0');
             return `
             <article class="lesson-card" id="${lessonAnchor}" data-lesson-card="${lessonKey}">
@@ -724,7 +724,7 @@
           .join('');
 
         if (isAdmin) {
-          const addHref = `editModule.html?id=${moduleId}`;
+          const addHref = `editModule.php?id=${moduleId}`;
           const addCard = `
             <article class="lesson-card add-card" tabindex="0" role="button" onclick="window.location.href='${addHref}'">
               <span class="add-icon"><i class='bx bx-plus'></i></span>

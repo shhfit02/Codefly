@@ -27,7 +27,7 @@ if (strtolower($requestingLevel ?? 'user') !== 'admin') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../HTML/addUser.html');
+    header('Location: ../HTML/addUser.php');
     exit;
 }
 
@@ -115,7 +115,7 @@ try {
     $conn->commit();
     $conn->close();
 
-    header('Location: ../HTML/manageUser.html?added=1');
+    header('Location: ../HTML/manageUser.php?added=1');
     exit;
 } catch (Throwable $e) {
     if (isset($insertUser) && $insertUser instanceof mysqli_stmt) {

@@ -933,7 +933,7 @@ function formatGender(value) {
 
 function buildProfileUrl(id = "", username = "") {
   if (id) {
-    return `../HTML/adminViewProfile.html?id=${encodeURIComponent(id)}`;
+    return `../HTML/adminViewProfile.php?id=${encodeURIComponent(id)}`;
   }
-  return `../HTML/adminViewProfile.html?user=${encodeURIComponent(username || "")}`;
+  return `../HTML/adminViewProfile.php?user=${encodeURIComponent(username || "")}`;
 }

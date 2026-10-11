@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireAdminPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,42 +133,7 @@
   <div id="toastBox"></div>
 
   <!-- SIDEBAR -->
-  <nav class="sidebar close">
-      <header>
-        <div class="image-text">
-          <span class="image">
-            <img src="../Assets/logo4.png" alt="logo" />
-          </span>
-          <div class="text header-text">
-            <span class="name">Codefly</span>
-            <span class="profession">Admin Dashboard</span>
-          </div>
-        </div>
-        <i class="bx bx-chevron-right toggle"></i>
-      </header>
-
-      <div class="menu-bar">
-        <div class="menu">
-          <ul class="menu-links">
-            <li class="nav-link"><a href="../HTML/adminDashboard.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Admin Center</span></a></li>
-            <li class="nav-link"><a href="../HTML/AddModule.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-            <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-            <li class="nav-link"><a href="../HTML/manageUser.html"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
-            <li class="nav-link"><a href="../HTML/adminLeaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-          </ul>
-        </div>
-        <div class="bottom-content">
-          <ul>
-            <li>
-              <a href="../PHP/logout.php">
-                  <i class="bx bx-log-out icon"></i>
-                  <span class="text nav-text">Logout</span>
-                </a>
-              </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+  <?php include __DIR__ . '/partials/admin_sidebar.php'; ?>
 
   <section class="home min-h-screen">
     <div class="p-6 flex gap-6">
@@ -178,10 +144,10 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div class="space-y-4 max-w-2xl">
                 <nav class="flex items-center gap-2 text-sm text-white/80 uppercase tracking-wide" aria-label="Breadcrumb">
-                  <a href="ViewLesson.html" id="breadcrumbModuleLink" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/40 hover:bg-white/15 transition" aria-label="Back to module overview">
+                  <a href="ViewLesson.php" id="breadcrumbModuleLink" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/40 hover:bg-white/15 transition" aria-label="Back to module overview">
                     <i class='bx bx-arrow-back text-base text-white'></i>
                   </a>
-                  <a href="ViewLesson.html" id="breadcrumbModuleLabel" class="hover:text-white">Module</a>
+                  <a href="ViewLesson.php" id="breadcrumbModuleLabel" class="hover:text-white">Module</a>
                   <span class="text-white/60">/</span>
                   <span id="breadcrumbMissionLabel" class="font-semibold text-white">Lesson</span>
                 </nav>
@@ -321,8 +287,8 @@
         }
         if (breadcrumbModuleLink) {
           const targetHref = moduleId
-            ? `ViewLesson.html?id=${encodeURIComponent(moduleId)}`
-            : "ViewLesson.html";
+            ? `ViewLesson.php?id=${encodeURIComponent(moduleId)}`
+            : "ViewLesson.php";
           breadcrumbModuleLink.setAttribute("href", targetHref);
           breadcrumbModuleLabel?.setAttribute("href", targetHref);
         }
@@ -438,7 +404,7 @@
             lesson_id: lesson?.id || "",
           }).toString();
           startQuizBtn.onclick = () => {
-            window.location.href = `../HTML/quiz.html?${query}`;
+            window.location.href = `../HTML/quiz.php?${query}`;
           };
         }
         adjustLearnHeight();
