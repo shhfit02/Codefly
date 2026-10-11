@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireLoginPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,34 +73,7 @@
 <body class="bg-gray-100" data-page="edit-profile">
   <div id="toastBox"></div>
 
-  <nav class="sidebar close">
-    <header>
-      <div class="image-text">
-        <span class="image">
-          <img src="../Assets/logo4.png" alt="logo">
-        </span>
-        <div class="text header-text">
-          <span class="name">Codefly</span>
-          <span class="profession">Dashboard</span>
-        </div>
-      </div>
-      <i class='bx bx-chevron-right toggle'></i>
-    </header>
-    <div class="menu-bar">
-      <div class="menu">
-        <ul class="menu-links">
-          <li class="nav-link"><a href="../HTML/home.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Home</span></a></li>
-          <li class="nav-link"><a href="../HTML/module.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-          <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-          <li class="nav-link"><a href="../HTML/leaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-          <li class="nav-link"><a href="../HTML/account-setting.html"><i class='bx bx-cog icon'></i><span class="text nav-text">Settings</span></a></li>
-        </ul>
-      </div>
-      <div class="bottom-content">
-        <li><a href="../PHP/logout.php"><i class='bx bx-log-out icon'></i><span class="text nav-text">Logout</span></a></li>
-      </div>
-    </div>
-  </nav>
+  <?php include __DIR__ . '/partials/student_sidebar.php'; ?>
 
   <section class="home min-h-screen">
     <div class="p-6 flex flex-col lg:flex-row gap-6">
@@ -118,8 +92,8 @@
             <p id="editProfileHandle" class="text-sm text-gray-500">@pilot</p>
           </div>
           <div class="space-y-3">
-            <button onclick="location.href='../HTML/view-profile.html'" class="w-full px-4 py-2 rounded-xl border border-white/50 text-sm font-semibold text-white/90 hover:bg-white/10">View Profile</button>
-            <button onclick="location.href='../HTML/account-setting.html'" class="w-full px-4 py-2 rounded-xl border border-white/50 text-sm font-semibold text-white/90 hover:bg-white/10">Account Settings</button>
+            <button onclick="location.href='../HTML/view-profile.php'" class="w-full px-4 py-2 rounded-xl border border-white/50 text-sm font-semibold text-white/90 hover:bg-white/10">View Profile</button>
+            <button onclick="location.href='../HTML/account-setting.php'" class="w-full px-4 py-2 rounded-xl border border-white/50 text-sm font-semibold text-white/90 hover:bg-white/10">Account Settings</button>
             <button type="button" data-delete-account-trigger class="w-full px-4 py-2 rounded-xl bg-red-500/80 text-white text-sm font-semibold hover:bg-red-500/90">Delete Account</button>
           </div>
         </div>

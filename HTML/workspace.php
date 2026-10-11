@@ -23,10 +23,10 @@ try {
 $conn->close();
 
 if (!workspaceAccess($rank, $isAdmin, 0)['allowed']) {
-    header('Location: ../HTML/home.html?workspace=denied');
+    header('Location: ../HTML/home.php?workspace=denied');
     exit;
 }
-$homeUrl = $isAdmin ? '../HTML/adminDashboard.php' : '../HTML/home.html';
+$homeUrl = $isAdmin ? '../HTML/adminDashboard.php' : '../HTML/home.php';
 
 $displayRankMap = [
     'bronze' => 'Rookie',

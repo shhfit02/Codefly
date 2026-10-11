@@ -86,12 +86,12 @@ document.addEventListener("DOMContentLoaded", () => {
     "addUser.php": "manageUser.php",
     "editUser.php": "manageUser.php",
     "adminViewProfile.php": "manageUser.php",
-    "Student-ViewLesson.html": "module.html",
-    "Student-ViewLesson-Detail.html": "module.html",
-    "Student-Quiz.html": "module.html",
-    "view-profile.html": "leaderboard.html",
-    "profile.html": "account-setting.html",
-    "edit-profile.html": "account-setting.html",
+    "Student-ViewLesson.php": "module.php",
+    "Student-ViewLesson-Detail.php": "module.php",
+    "Student-Quiz.php": "module.php",
+    "view-profile.php": "leaderboard.php",
+    "profile.php": "account-setting.php",
+    "edit-profile.php": "account-setting.php",
   };
   const pageName = window.location.pathname.split("/").pop();
   const currentPage = NAV_PARENT[pageName] || pageName;
@@ -1078,7 +1078,7 @@ function hydrateHomeModules() {
                   : "new";
           const badge = HOME_MODULE_BADGES[status];
           const lessonTitles = Array.isArray(mod.lessons) ? mod.lessons.map((l, i) => l?.title || `Lesson ${i + 1}`) : [];
-          const href = `../HTML/Student-ViewLesson.html?id=${encodeURIComponent(mod.id)}`;
+          const href = `../HTML/Student-ViewLesson.php?id=${encodeURIComponent(mod.id)}`;
           const tag = locked ? "div" : "a";
           const linkAttrs = locked ? 'aria-disabled="true"' : `href="${href}"`;
           return `
@@ -1159,13 +1159,13 @@ function renderContinueCard(modules) {
   }
 
   if (target) {
-    card.href = `../HTML/Student-ViewLesson.html?id=${encodeURIComponent(target.mod.id)}`;
+    card.href = `../HTML/Student-ViewLesson.php?id=${encodeURIComponent(target.mod.id)}`;
     eyebrowEl.textContent = target.started ? "Continue learning" : "Start learning";
     titleEl.textContent = target.lesson.title || `Lesson ${target.index + 1}`;
     subEl.textContent = `${target.mod.title || "Module"} · Lesson ${target.index + 1} of ${target.total}`;
     if (ctaEl) ctaEl.innerHTML = `${target.started ? "Resume" : "Start"} <i class="bx bx-right-arrow-alt"></i>`;
   } else if (modules.length) {
-    card.href = "../HTML/module.html";
+    card.href = "../HTML/module.php";
     eyebrowEl.textContent = "All missions complete";
     titleEl.textContent = "Great flying, pilot!";
     subEl.textContent = "Review any module or check your ranking.";
@@ -1183,7 +1183,7 @@ let homeSearchIndex = [];
 function buildHomeSearchIndex(modules) {
   const items = [];
   modules.forEach((mod) => {
-    const href = `../HTML/Student-ViewLesson.html?id=${encodeURIComponent(mod.id)}`;
+    const href = `../HTML/Student-ViewLesson.php?id=${encodeURIComponent(mod.id)}`;
     const locked = isModuleLocked(mod);
     items.push({ type: "module", title: mod.title || "Module", sub: mod.subtitle || `${(mod.lessons || []).length} lessons`, text: `${mod.title} ${mod.subtitle} ${mod.description}`, href, locked });
     (mod.lessons || []).forEach((lesson, i) => {
@@ -1202,11 +1202,11 @@ function buildHomeSearchIndex(modules) {
 
 /** Pages reachable by keyword, kept from the old search ("leaderboard", "settings", ...). */
 const HOME_SEARCH_PAGES = [
-  { words: ["leaderboard", "rank", "ranking"], title: "Leaderboard", href: "../HTML/leaderboard.html", icon: "bx-trophy" },
+  { words: ["leaderboard", "rank", "ranking"], title: "Leaderboard", href: "../HTML/leaderboard.php", icon: "bx-trophy" },
   { words: ["workspace", "code", "block", "drone"], title: "Workspace (Code Block)", href: "../HTML/workspace.php", icon: "bx-code-block" },
-  { words: ["setting", "settings", "account"], title: "Account settings", href: "../HTML/account-setting.html", icon: "bx-cog" },
-  { words: ["profile"], title: "My profile", href: "../HTML/view-profile.html", icon: "bx-user-circle" },
-  { words: ["module", "modules"], title: "All modules", href: "../HTML/module.html", icon: "bx-layer" },
+  { words: ["setting", "settings", "account"], title: "Account settings", href: "../HTML/account-setting.php", icon: "bx-cog" },
+  { words: ["profile"], title: "My profile", href: "../HTML/view-profile.php", icon: "bx-user-circle" },
+  { words: ["module", "modules"], title: "All modules", href: "../HTML/module.php", icon: "bx-layer" },
 ];
 
 function searchHome(query) {
@@ -1349,7 +1349,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const levelSelectedText = document.getElementById("level-selected");
 
   // This 'if' check is important!
-  // It stops this code from running on other pages (like home.html)
+  // It stops this code from running on other pages (like home.php)
   if (searchInput && filterMenu && moduleGrid) {
     
     // Store the current filter states

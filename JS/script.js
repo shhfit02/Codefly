@@ -61,7 +61,7 @@ const Toasts = (() => {
 
         const loginPanel = document.getElementById("login-panel");
         if (data.authenticated && loginPanel) {
-          window.location.href = "HTML/home.html";
+          window.location.href = "HTML/home.php";
         }
       })
       .catch((err) => console.error("Failed to load toast messages", err));

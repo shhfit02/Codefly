@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireLoginPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,41 +14,7 @@
 <body class="bg-gray-100" data-page="view-profile">
 
   <!-- SIDEBAR -->
-  <nav class="sidebar close">
-    <header>
-      <div class="image-text">
-        <span class="image">
-          <img src="../Assets/logo4.png" alt="logo">
-        </span>
-        <div class="text header-text">
-          <span class="name">Codefly</span>
-          <span class="profession">Dashboard</span>
-        </div>
-      </div>
-      <i class='bx bx-chevron-right toggle'></i>
-    </header>
-
-    <div class="menu-bar">
-      <div class="menu">
-        <ul class="menu-links">
-          <li class="nav-link"><a href="../HTML/home.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Home</span></a></li>
-          <li class="nav-link"><a href="../HTML/module.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-          <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-          <li class="nav-link"><a href="../HTML/leaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-          <li class="nav-link"><a href="../HTML/account-setting.html"><i class='bx bx-cog icon'></i><span class="text nav-text">Settings</span></a></li>
-        </ul>
-      </div>
-
-      <div class="bottom-content">
-        <li>
-          <a href="../PHP/logout.php">
-            <i class='bx bx-log-out icon'></i>
-            <span class="text nav-text">Logout</span>
-          </a>
-        </li>
-      </div>
-    </div>
-  </nav>
+  <?php include __DIR__ . '/partials/student_sidebar.php'; ?>
 
   <!-- MAIN SECTION -->
   <section class="home min-h-screen">
@@ -71,7 +38,7 @@
             </div>
           </div>
           <div class="flex flex-wrap gap-3">
-            <button onclick="window.location.href='../HTML/edit-profile.html'" class="px-5 py-2 rounded-full bg-white text-slate-900 font-semibold shadow-md flex items-center gap-2">
+            <button onclick="window.location.href='../HTML/edit-profile.php'" class="px-5 py-2 rounded-full bg-white text-slate-900 font-semibold shadow-md flex items-center gap-2">
               <i class='bx bx-edit-alt'></i>Edit Profile
             </button>
             <button id="uploadCoverBtn" class="px-5 py-2 rounded-full bg-white/20 text-white backdrop-blur-lg border border-white/40 flex items-center gap-2">
@@ -99,7 +66,7 @@
         <div class="rounded-2xl bg-white shadow p-6">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Flight dossier</h3>
-            <a href="../HTML/edit-profile.html" class="text-sm font-semibold text-blue-600 hover:text-blue-700">Update Info</a>
+            <a href="../HTML/edit-profile.php" class="text-sm font-semibold text-blue-600 hover:text-blue-700">Update Info</a>
           </div>
           <dl class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
             <div>

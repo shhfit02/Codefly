@@ -75,7 +75,7 @@ if ($result->num_rows === 1) {
         }
 
         $level = strtolower($user['level'] ?? 'user');
-        $redirect = $level === 'admin' ? '../HTML/adminDashboard.php' : '../HTML/home.html';
+        $redirect = $level === 'admin' ? '../HTML/adminDashboard.php' : '../HTML/home.php';
 
         header("Location: $redirect");
         exit;

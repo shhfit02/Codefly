@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireLoginPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -48,34 +49,7 @@
 </head>
 <body class="bg-gray-100" data-page="account-settings">
 
-  <nav class="sidebar close">
-    <header>
-      <div class="image-text">
-        <span class="image">
-          <img src="../Assets/logo4.png" alt="logo">
-        </span>
-        <div class="text header-text">
-          <span class="name">Codefly</span>
-          <span class="profession">Dashboard</span>
-        </div>
-      </div>
-      <i class='bx bx-chevron-right toggle'></i>
-    </header>
-    <div class="menu-bar">
-      <div class="menu">
-        <ul class="menu-links">
-          <li class="nav-link"><a href="../HTML/home.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Home</span></a></li>
-          <li class="nav-link"><a href="../HTML/module.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-          <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-          <li class="nav-link"><a href="../HTML/leaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-          <li class="nav-link"><a href="../HTML/account-setting.html"><i class='bx bx-cog icon'></i><span class="text nav-text">Settings</span></a></li>
-        </ul>
-      </div>
-      <div class="bottom-content">
-        <li><a href="../PHP/logout.php"><i class='bx bx-log-out icon'></i><span class="text nav-text">Logout</span></a></li>
-      </div>
-    </div>
-  </nav>
+  <?php include __DIR__ . '/partials/student_sidebar.php'; ?>
 
   <section class="home min-h-screen">
     <div class="p-6 flex flex-col lg:flex-row gap-6">
@@ -110,8 +84,8 @@
               </div>
           </div>
           <div class="space-y-2">
-            <button onclick="location.href='../HTML/view-profile.html'" class="w-full px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50">View Profile</button>
-            <button onclick="location.href='../HTML/edit-profile.html'" class="w-full px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50">Edit Profile</button>
+            <button onclick="location.href='../HTML/view-profile.php'" class="w-full px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50">View Profile</button>
+            <button onclick="location.href='../HTML/edit-profile.php'" class="w-full px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50">Edit Profile</button>
             <button type="button" data-delete-account-trigger class="w-full px-4 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100">Delete Account</button>
           </div>
         </div>

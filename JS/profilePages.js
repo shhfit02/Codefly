@@ -181,7 +181,7 @@
   }
 
   function toggleOwnerControls(isOwner) {
-    const editBtn = document.querySelector("button[onclick*='edit-profile.html']");
+    const editBtn = document.querySelector("button[onclick*='edit-profile.php']");
     if (editBtn) {
       editBtn.classList.toggle("hidden", !isOwner);
     }

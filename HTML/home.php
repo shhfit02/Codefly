@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireLoginPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -17,40 +18,7 @@
   <body class="bg-gray-100">
     <div id="toastBox"></div>
     <!-- Sidebar -->
-    <nav class="sidebar close">
-      <header>
-        <div class="image-text">
-          <span class="image">
-            <img src="../Assets/logo4.png" alt="logo" />
-          </span>
-          <div class="text header-text">
-            <span class="name">Codefly</span>
-            <span class="profession">Dashboard</span>
-          </div>
-        </div>
-        <i class="bx bx-chevron-right toggle"></i>
-      </header>
-
-      <div class="menu-bar">
-        <div class="menu">
-          <ul class="menu-links">
-            <li class="nav-link"><a href="../HTML/home.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Home</span></a></li>
-            <li class="nav-link"><a href="../HTML/module.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-            <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-            <li class="nav-link"><a href="../HTML/leaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-            <li class="nav-link"><a href="../HTML/account-setting.html"><i class='bx bx-cog icon'></i><span class="text nav-text">Settings</span></a></li>
-          </ul>
-        </div>
-        <div class="bottom-content">
-          <li>
-            <a href="../PHP/logout.php">
-              <i class="bx bx-log-out icon"></i>
-              <span class="text nav-text">Logout</span>
-            </a>
-          </li>
-        </div>
-      </div>
-    </nav>
+    <?php include __DIR__ . '/partials/student_sidebar.php'; ?>
 
     <!-- MAIN SECTION -->
     <section class="home min-h-screen">
@@ -82,7 +50,7 @@
                   </div>
                 </div>
                 <!-- Next lesson to continue (filled by home.js from the user's progress) -->
-                <a id="continue-card" href="../HTML/module.html" class="hidden group flex items-center gap-4 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 hover:border-sky-300 transition-colors">
+                <a id="continue-card" href="../HTML/module.php" class="hidden group flex items-center gap-4 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 hover:border-sky-300 transition-colors">
                   <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-500 text-white text-2xl"><i class="bx bx-play"></i></span>
                   <span class="min-w-0 flex-1">
                     <span id="continue-eyebrow" class="block text-xs font-semibold uppercase tracking-[0.15em] text-sky-600">Continue learning</span>
@@ -107,7 +75,7 @@
                 </div>
                 <div class="flex flex-wrap gap-3">
                   <a href="../HTML/workspace.php" id="home-workspace-btn" class="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-100 text-purple-700 text-sm font-semibold"><i class="bx bx-code-alt" id="home-workspace-icon"></i><span id="home-workspace-label">Open Workspace</span></a>
-                  <a href="../HTML/leaderboard.html" class="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold"><i class="bx bx-trophy"></i>View Ranking</a>
+                  <a href="../HTML/leaderboard.php" class="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold"><i class="bx bx-trophy"></i>View Ranking</a>
                 </div>
               </div>
               <div class="w-full xl:w-72 shrink-0">
@@ -175,14 +143,14 @@
                 <ul class="py-2 text-sm">
                   <li>
                     <a
-                      href="../HTML/view-profile.html"
+                      href="../HTML/view-profile.php"
                       class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                       ><i class="bx bx-user-circle text-lg"></i>View Profile</a
                     >
                   </li>
                   <li>
                     <a
-                      href="../HTML/edit-profile.html"
+                      href="../HTML/edit-profile.php"
                       class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
                       ><i class="bx bx-edit-alt text-lg"></i>Edit Profile</a
                     >
@@ -237,7 +205,7 @@
 
               <div
                 class="profile-card__rank"
-                onclick="location.href='../HTML/leaderboard.html'"
+                onclick="location.href='../HTML/leaderboard.php'"
               >
                 <div class="profile-card__rank-badge">
                   <img

@@ -53,5 +53,5 @@ test('valid credentials log in to home', async ({ page }) => {
   await page.locator('input[name="password"]').fill(pass);
   await page.locator('#login-panel').getByRole('button', { name: 'Login' }).click();
 
-  await expect(page).toHaveURL(/HTML\/home\.html$/);
+  await expect(page).toHaveURL(/HTML\/home\.php$/);
 });

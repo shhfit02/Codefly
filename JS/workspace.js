@@ -1409,7 +1409,7 @@ function loadWorkspace() {
 
 function goHome() {
   // workspace.php sets data-home: admin dashboard for admins, home for students.
-  window.location.href = document.body.dataset.home || "../HTML/home.html";
+  window.location.href = document.body.dataset.home || "../HTML/home.php";
 }
 
 function setPythonStatus(message, state = 'idle') {

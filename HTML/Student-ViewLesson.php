@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireLoginPage(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -394,35 +395,7 @@
     </div>
   </div>
 
-  <nav class="sidebar close">
-    <header>
-      <div class="image-text">
-        <span class="image"><img src="../Assets/logo4.png" alt="logo"></span>
-        <div class="text header-text">
-          <span class="name">Codefly</span>
-          <span class="profession">Dashboard</span>
-        </div>
-      </div>
-      <i class='bx bx-chevron-right toggle'></i>
-    </header>
-
-    <div class="menu-bar">
-      <div class="menu">
-        <ul class="menu-links">
-          <li class="nav-link"><a href="../HTML/home.html"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Home</span></a></li>
-          <li class="nav-link"><a href="../HTML/module.html"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-          <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-          <li class="nav-link"><a href="../HTML/leaderboard.html"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-          <li class="nav-link"><a href="../HTML/account-setting.html"><i class='bx bx-cog icon'></i><span class="text nav-text">Settings</span></a></li>
-        </ul>
-      </div>
-      <div class="bottom-content">
-        <ul class="menu-links">
-          <li><a href="../PHP/logout.php"><i class='bx bx-log-out icon'></i><span class="text nav-text">Logout</span></a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <?php include __DIR__ . '/partials/student_sidebar.php'; ?>
 
   <section class="home min-h-screen">
     <div class="p-6 flex gap-6">
@@ -431,7 +404,7 @@
           <section class="module-hero">
             <div class="space-y-4">
               <nav class="flex items-center gap-2 text-sm text-white/80 uppercase tracking-wide" aria-label="Breadcrumb">
-                <a id="breadcrumbBack" href="../HTML/module.html" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/40 hover:bg-white/15 transition" aria-label="Back to modules">
+                <a id="breadcrumbBack" href="../HTML/module.php" class="inline-flex items-center justify-center w-8 h-8 rounded-full border border-white/40 hover:bg-white/15 transition" aria-label="Back to modules">
                   <i class='bx bx-arrow-back text-base text-white'></i>
                 </a>
                 <span class="text-white/60">/</span>
@@ -675,7 +648,7 @@
               : statusClass === 'completed'
               ? 'Review lesson'
               : 'View mission';
-            const detailHref = `Student-ViewLesson-Detail.html?module_id=${moduleId}&lesson_id=${lesson.id || ''}`;
+            const detailHref = `Student-ViewLesson-Detail.php?module_id=${moduleId}&lesson_id=${lesson.id || ''}`;
             const ctaHref = lockedForViewer ? '#' : detailHref;
             const ctaClasses = `lesson-cta ${lockedForViewer ? 'locked' : ''}`;
             const scoreKey = lesson.id ? `quiz_score_${quizKeyPrefix}_${lesson.id}` : '';
@@ -780,7 +753,7 @@
           if (visitKey && resumeLesson.id) {
             localStorage.setItem(visitKey, String(resumeLesson.id));
           }
-          window.location.href = `Student-ViewLesson-Detail.html?module_id=${moduleId}&lesson_id=${resumeLesson.id || ''}`;
+          window.location.href = `Student-ViewLesson-Detail.php?module_id=${moduleId}&lesson_id=${resumeLesson.id || ''}`;
         };
       }
 

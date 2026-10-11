@@ -46,7 +46,7 @@ function hydrateAdminDashboard() {
         return null;
       }
       if (res.status === 403) {
-        window.location.href = "../HTML/home.html";
+        window.location.href = "../HTML/home.php";
         return null;
       }
       return res.json();

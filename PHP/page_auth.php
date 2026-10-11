@@ -26,7 +26,7 @@ function requireAdminPage(): void
     // The level is read from the database, so a demoted admin loses access immediately.
     if (!isAdminSession($conn)) {
         queueToast('error', 'That page is for admins only.');
-        header('Location: ../HTML/home.html');
+        header('Location: ../HTML/home.php');
         exit;
     }
 }
