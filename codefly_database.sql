@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS password_resets (
     token_hash VARCHAR(255) NOT NULL,
     expires_at DATETIME NOT NULL,
     used_at DATETIME NULL DEFAULT NULL,
+    attempts INT NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

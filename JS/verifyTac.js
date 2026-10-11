@@ -15,6 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (resendLink && email) {
-    resendLink.href = `../HTML/forgotPass.html?email=${encodeURIComponent(email)}}`;
+    resendLink.href = `../HTML/forgotPass.html?email=${encodeURIComponent(email)}`;
   }
 });

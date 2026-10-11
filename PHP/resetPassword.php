@@ -73,6 +73,12 @@ try {
     $updateUser->execute();
     $updateUser->close();
 
+    // Sign out every "remember me" device: whoever triggered a reset may not be the owner.
+    $revokeTokens = $conn->prepare('DELETE FROM user_tokens WHERE user_id = ?');
+    $revokeTokens->bind_param('i', $sessionUserId);
+    $revokeTokens->execute();
+    $revokeTokens->close();
+
     $markUsed = $conn->prepare('UPDATE password_resets SET used_at = NOW() WHERE id = ?');
     $markUsed->bind_param('i', $resetRow['id']);
     $markUsed->execute();

@@ -3,6 +3,7 @@
 session_start();
 require_once 'db.php';
 require_once 'profile_helpers.php';
+require_once 'remember_helpers.php';
 
 header('Content-Type: application/json');
 
@@ -80,6 +81,14 @@ try {
     $update->bind_param('si', $newHash, $userId);
     $update->execute();
     $update->close();
+
+    // Revoke "remember me" on other devices. If this browser was remembered, give it a
+    // fresh token (rememberUser deletes all of the user's tokens first).
+    if (getRememberCookieParts()) {
+        rememberUser($conn, $userId);
+    } else {
+        forgetRememberedUser($conn, null, $userId);
+    }
 
     respondJson(200, [
         'status' => 'success',

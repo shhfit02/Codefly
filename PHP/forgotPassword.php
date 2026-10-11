@@ -35,6 +35,20 @@ if (!$user) {
     exit;
 }
 
+// One TAC per minute per account: stops email spam and cycling fresh codes for more
+// guesses. Codes live 15 minutes, so a code issued under a minute ago expires in >14.
+$recentStmt = $conn->prepare("SELECT expires_at FROM password_resets WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+$recentStmt->bind_param("i", $user['id']);
+$recentStmt->execute();
+$recentStmt->bind_result($latestExpiry);
+$hasRecent = $recentStmt->fetch();
+$recentStmt->close();
+if ($hasRecent && strtotime($latestExpiry) - time() > 14 * 60) {
+    queueToast('warning', 'A TAC was just sent. Please wait a minute before requesting another.');
+    header("Location: ../HTML/verifyTAC.html?email=" . urlencode($email));
+    exit;
+}
+
 $deleteStmt = $conn->prepare("DELETE FROM password_resets WHERE user_id = ?");
 $deleteStmt->bind_param("i", $user['id']);
 $deleteStmt->execute();

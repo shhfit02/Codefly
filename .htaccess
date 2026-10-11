@@ -1,0 +1,24 @@
+# Security settings for CodeFly. Apache reads this because XAMPP sets
+# "AllowOverride All" for htdocs; it only applies to this project.
+
+# No automatic folder listings (Assets/uploads/ would list every uploaded photo).
+Options -Indexes
+
+# Never serve git metadata or tool folders: .git would let anyone download the repo.
+<IfModule alias_module>
+    RedirectMatch 404 "/\.(git|codex|vscode)(/|$)"
+</IfModule>
+
+# Database dumps hold emails and password hashes.
+<FilesMatch "\.sql$">
+    Require all denied
+</FilesMatch>
+
+# Session cookie: hidden from JavaScript (limits damage from any XSS) and not sent on
+# cross-site form posts (blocks CSRF against admin actions in every browser, not only
+# Chrome). Strict mode refuses session ids the server never issued.
+<IfModule php_module>
+    php_flag session.cookie_httponly On
+    php_value session.cookie_samesite Lax
+    php_flag session.use_strict_mode On
+</IfModule>
