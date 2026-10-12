@@ -1,4 +1,12 @@
-<?php require_once __DIR__ . '/../PHP/page_auth.php'; requireLoginPage(); ?>
+<?php
+require_once __DIR__ . '/../PHP/page_auth.php';
+requireLoginPage();
+// Admins have their own Settings page with the admin sidebar and no student stats.
+if (isAdminSession($conn)) {
+    header('Location: adminSettings.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

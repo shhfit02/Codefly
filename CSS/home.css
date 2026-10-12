@@ -1110,6 +1110,53 @@ body.dark .switch::before{
   }
 }
 
+/* ---------- "Signed in as" row above Logout (admin sidebar) ---------- */
+.sidebar .sidebar-user {
+  height: 56px;
+}
+
+.sidebar .sidebar-user__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  object-fit: cover;
+  box-shadow: 0 0 0 2px var(--primary-color-light), 0 0 0 3px var(--primary-color);
+}
+
+.sidebar .sidebar-user__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.sidebar .sidebar-user__name,
+.sidebar .sidebar-user__role {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140px;
+}
+
+.sidebar .sidebar-user__name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sidebar .sidebar-user__role {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* Not the red Logout hover: this row opens Settings. */
+.bottom-content .sidebar-user a:hover {
+  background: var(--primary-color-light);
+}
+
+.bottom-content .sidebar-user a:hover .text {
+  color: var(--text-color);
+}
+
 /* ---------- Notification bell (sidebar) and its panel ---------- */
 .sidebar #notif-btn {
   position: relative;

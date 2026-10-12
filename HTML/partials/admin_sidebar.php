@@ -2,6 +2,7 @@
 // Shared admin sidebar. Included by every admin page so the menu stays identical
 // everywhere; the active item is highlighted at runtime by JS/home.js.
 if (basename($_SERVER["SCRIPT_FILENAME"]) === basename(__FILE__)) { http_response_code(404); exit; }
+$sidebarUser = currentUserCard();
 ?>
     <nav class="sidebar close">
       <header>
@@ -11,7 +12,7 @@ if (basename($_SERVER["SCRIPT_FILENAME"]) === basename(__FILE__)) { http_respons
           </span>
           <div class="text header-text">
             <span class="name">Codefly</span>
-            <span class="profession">Admin Dashboard</span>
+            <span class="profession">Admin</span>
           </div>
         </div>
         <i class="bx bx-chevron-right toggle"></i>
@@ -25,10 +26,20 @@ if (basename($_SERVER["SCRIPT_FILENAME"]) === basename(__FILE__)) { http_respons
             <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
             <li class="nav-link"><a href="../HTML/manageUser.php"><i class='bx bx-user icon'></i><span class="text nav-text">Manage Users</span></a></li>
             <li class="nav-link"><a href="../HTML/adminLeaderboard.php"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
+            <li class="nav-link"><a href="../HTML/adminSettings.php"><i class='bx bx-cog icon'></i><span class="text nav-text">Settings</span></a></li>
             <li class="nav-link"><a href="#" id="notif-btn" role="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="notif-panel"><i class='bx bx-bell icon'></i><span id="notif-badge" class="notif-badge hidden"></span><span class="text nav-text">Notifications</span></a></li>
           </ul>
       </div>
       <div class="bottom-content">
+        <li class="sidebar-user">
+          <a href="../HTML/adminSettings.php" title="Signed in as <?= htmlspecialchars($sidebarUser['username']) ?> (Admin)">
+            <span class="icon"><img src="<?= htmlspecialchars($sidebarUser['avatar']) ?>" alt="" class="sidebar-user__avatar"></span>
+            <span class="text sidebar-user__text">
+              <span class="sidebar-user__name"><?= htmlspecialchars($sidebarUser['name']) ?></span>
+              <span class="sidebar-user__role">Admin · @<?= htmlspecialchars($sidebarUser['username']) ?></span>
+            </span>
+          </a>
+        </li>
         <li>
           <a href="../PHP/logout.php">
               <i class="bx bx-log-out icon"></i>

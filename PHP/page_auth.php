@@ -19,6 +19,47 @@ function requireLoginPage(): void
     }
 }
 
+/**
+ * Name and photo of the signed-in user for the sidebar's "signed in as" row.
+ * Falls back to the session username and the default avatar if the lookup fails.
+ */
+function currentUserCard(): array
+{
+    global $conn;
+    $card = [
+        'username' => $_SESSION['username'] ?? 'user',
+        'name' => $_SESSION['username'] ?? 'User',
+        'avatar' => '../Assets/StudentProfile.png',
+    ];
+    if (!isset($_SESSION['user_id'])) {
+        return $card;
+    }
+    try {
+        $userId = (int)$_SESSION['user_id'];
+        $stmt = $conn->prepare("
+            SELECT u.username, p.full_name,
+                   (SELECT meta_value FROM user_profile_meta m
+                    WHERE m.user_id = u.id AND m.meta_key = 'avatar_path' LIMIT 1) AS avatar
+            FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id
+            WHERE u.id = ? LIMIT 1
+        ");
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        if ($row) {
+            $card['username'] = $row['username'];
+            $card['name'] = trim((string)$row['full_name']) !== '' ? $row['full_name'] : $row['username'];
+            if (!empty($row['avatar'])) {
+                $card['avatar'] = $row['avatar'];
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('Sidebar user card failed: ' . $e->getMessage());
+    }
+    return $card;
+}
+
 function requireAdminPage(): void
 {
     global $conn;

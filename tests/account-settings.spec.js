@@ -9,7 +9,9 @@ const account = loadAccount('admin');
 const ORIGINAL_EMAIL = 'zz_test_admin@example.invalid';
 
 async function openSettings(page) {
+  // Admins are sent on to their own Settings page (same form and API).
   await page.goto('HTML/account-setting.php');
+  await expect(page).toHaveURL(/adminSettings\.php$/);
   await expect(page.locator('#accountSettingsStatus')).toContainText('synced');
 }
 
