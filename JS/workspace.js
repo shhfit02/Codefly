@@ -327,6 +327,13 @@ function resizeBlockly() {
 // Call on load and resize
 window.addEventListener('load', resizeBlockly);
 window.addEventListener('resize', resizeBlockly);
+// The canvas shrinks and grows with the console (it fills the panel), so follow its size.
+if (typeof ResizeObserver !== 'undefined') {
+  window.addEventListener('load', () => {
+    const stage = document.getElementById('blocklyDiv');
+    if (stage) new ResizeObserver(() => resizeBlockly()).observe(stage);
+  });
+}
 
 // Category click handlers
 document.addEventListener('DOMContentLoaded', function() {
@@ -513,7 +520,7 @@ document.addEventListener('DOMContentLoaded', function() {
         view.dataset.view === target ||
         view.id === `${target}-view`;
       view.classList.toggle('active', isMatch);
-      view.style.display = isMatch ? 'block' : 'none';
+      view.style.display = isMatch ? '' : 'none'; // .active lays it out (flex)
     });
 
     if (target === 'blocks') {
@@ -1246,6 +1253,9 @@ async function runCode() {
 
   if (simMode) {
     logToConsole('--- [SIM] Running on the simulator (no drone) ---');
+    const footer = document.getElementById('consoleFooter');
+    const box = footer?.getBoundingClientRect();
+    if (box && box.bottom > window.innerHeight) footer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     setPythonStatus('Simulating blocks...', 'running');
     const outcome = await runDroneSimulation(pythonCode, logToConsole);
     if (outcome === 'stopped') {

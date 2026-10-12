@@ -1299,3 +1299,41 @@ body.sim-mode .console-footer {
   font-size: 0.8rem;
   color: #64748b;
 }
+
+/* ---------- One-screen layout: the panel fills the window under the header ----------
+   The canvas takes whatever height the console leaves, so opening the console (and the
+   simulator in it) shrinks the canvas instead of pushing the console below the fold. */
+@media (min-width: 901px) {
+  .workspace-panel {
+    height: calc(100vh - 140px);
+    min-height: 560px;
+  }
+
+  .workspace-view.active {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .workspace-view.active .blockly-stage {
+    flex: 1;
+    height: auto;
+    min-height: 220px;
+  }
+
+  #python-view.active pre {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    overflow: auto;
+  }
+
+  #python-view.active #pythonPreview {
+    min-height: 100%;
+  }
+
+  .console-footer {
+    flex-shrink: 0;
+  }
+}
