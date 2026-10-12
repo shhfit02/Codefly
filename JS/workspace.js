@@ -2158,10 +2158,11 @@ async function showConnectHelp(problem, detail) {
   const steps = problem === 'bridge'
     ? `<p>The drone bridge is not running on this computer.</p>
        <ol class="connect-steps">
-         <li>Open a terminal in the CodeFly folder.</li>
-         <li>Run <code>py tello_bridge.py</code> and leave it open.</li>
+         <li>In the CodeFly folder (<code>C:\\xampp\\htdocs\\codefly</code>), double-click <strong>start-bridge.bat</strong>.</li>
+         <li>Leave the black window open while you fly.</li>
          <li>Press <strong>Try again</strong>.</li>
-       </ol>`
+       </ol>
+       <p class="connect-detail">Or in a terminal in that folder: <code>py tello_bridge.py</code></p>`
     : `<p>The bridge is running but cannot reach the Tello.</p>
        <ol class="connect-steps">
          <li>Turn the drone on and wait for the light to blink.</li>
