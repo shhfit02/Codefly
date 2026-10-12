@@ -14,6 +14,14 @@ Options -Indexes
     Require all denied
 </FilesMatch>
 
+# Scripts and styles: always check for a newer version (a cheap 304 when unchanged).
+# Without this, Chrome kept running an old workspace.js after an update.
+<IfModule headers_module>
+    <FilesMatch "\.(js|css)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>
+
 # Session cookie: hidden from JavaScript (limits damage from any XSS) and not sent on
 # cross-site form posts (blocks CSRF against admin actions in every browser, not only
 # Chrome). Strict mode refuses session ids the server never issued.

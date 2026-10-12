@@ -11,6 +11,13 @@ test('session cookie is HttpOnly and SameSite', async ({ request }) => {
   expect(cookie).toMatch(/SameSite=Lax/i);
 });
 
+test('scripts and styles are revalidated, so updates reach the browser', async ({ request }) => {
+  for (const path of ['JS/workspace.js', 'CSS/home.css']) {
+    const res = await request.get(path);
+    expect(res.headers()['cache-control'], path).toContain('no-cache');
+  }
+});
+
 test('private files are not served', async ({ request }) => {
   const blocked = {
     '.git/HEAD': 404,           // repository metadata
