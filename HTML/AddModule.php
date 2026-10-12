@@ -297,12 +297,12 @@
           const levelLabel = module.level ? module.level.charAt(0).toUpperCase() + module.level.slice(1) : 'Module';
             const viewHref = `ViewLesson.php?id=${encodeURIComponent(module.id)}`;
           return `
-          <article class="module-card group bg-white rounded-3xl shadow-md overflow-hidden hover:shadow-2xl transition-transform hover:-translate-y-1" data-level="${escapeHtml(module.level || 'custom')}" data-id="${escapeHtml(module.id)}">
+          <article class="module-card group bg-white rounded-3xl shadow-md overflow-hidden hover:shadow-2xl transition-transform hover:-translate-y-1 flex flex-col h-full" data-level="${escapeHtml(module.level || 'custom')}" data-id="${escapeHtml(module.id)}">
             <div class="relative">
               <img src="${escapeHtml(cover)}" alt="${escapeHtml(module.title)}" class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-500">
               <span class="level-pill ${LEVEL_PILL[module.level] || LEVEL_PILL.custom}">${escapeHtml(levelLabel)}</span>
             </div>
-            <div class="p-5 space-y-4">
+            <div class="p-5 flex flex-col gap-4 flex-1">
               <div class="flex items-start justify-between gap-3">
                 <div>
                   <h3 class="text-lg font-semibold text-slate-900">${escapeHtml(module.title)}</h3>
@@ -310,7 +310,8 @@
                 </div>
               </div>
               <p class="module-description text-gray-600 text-sm">${escapeHtml(module.description || '')}</p>
-              <div class="pt-4 flex items-center gap-2">
+              <!-- mt-auto keeps the button on the card's bottom edge, level across the row. -->
+              <div class="mt-auto pt-2 flex items-center gap-2">
                 <a href="${viewHref}" class="${linkClasses} flex-1" style="background: ${isLockedModule ? '' : gradient};" data-locked-module="${isLockedModule}" data-module-title="${escapeHtml(module.title)}" data-module-href="${viewHref}">
                   Go to module
                   <i class='bx bx-right-arrow-alt text-lg'></i>
