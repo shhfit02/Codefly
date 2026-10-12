@@ -256,6 +256,7 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
             <dl class="sim-readout">
               <dt>Height</dt><dd id="simAltitude">0 cm</dd>
               <dt>Heading</dt><dd id="simHeading">0&deg;</dd>
+              <dt>Photos</dt><dd id="simPhotos">0</dd>
               <dt class="sim-hint">Forward is up &middot; 1 square = 50 cm</dt>
             </dl>
             <!-- workspace.js writes each step, errors and bridge results here; it is moved into the
@@ -271,6 +272,11 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
 
       <div class="workspace-view" data-view="log" id="log-view">
         <div class="flight-log-slot" id="flightLogSlot"></div>
+        <!-- Photos the drone took in this run, loaded from the bridge on this computer. -->
+        <section class="flight-photos hidden" id="flightPhotos" aria-label="Photos from this flight">
+          <p class="flight-photos__title"><i class='bx bx-camera'></i> Photos this flight <span id="flightPhotoCount"></span></p>
+          <div class="flight-photos__strip" id="flightPhotoStrip"></div>
+        </section>
       </div>
 
     </section>

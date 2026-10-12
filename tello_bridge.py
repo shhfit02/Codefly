@@ -1,7 +1,8 @@
 import os
 import threading
 import time
-from flask import Flask, jsonify, request
+import re
+from flask import Flask, abort, jsonify, request, send_from_directory
 from flask_cors import CORS
 from djitellopy import Tello
 
@@ -376,6 +377,20 @@ def run_script():
 def get_script_status():
     """Lets the workspace show whether the last script finished, failed or was stopped."""
     return jsonify(script_state)
+
+
+PHOTO_NAME = re.compile(r"^photo_[0-9_]+\.jpg$")
+
+
+@app.route('/photos/<name>')
+def get_photo(name):
+    """
+    A saved drone photo, for the thumbnails in the workspace Flight log. The photos folder is
+    blocked in Apache (.htaccess), so they are only reachable here, on this computer.
+    """
+    if not PHOTO_NAME.match(name):
+        abort(404)
+    return send_from_directory(PHOTO_DIR, name, mimetype="image/jpeg", max_age=3600)
 
 
 # ===============================

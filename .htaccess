@@ -7,6 +7,9 @@ Options -Indexes
 # Never serve git metadata or tool folders: .git would let anyone download the repo.
 <IfModule alias_module>
     RedirectMatch 404 "/\.(git|codex|vscode)(/|$)"
+    # Drone photos (tello_bridge.py saves them here): students' pictures, shown in the
+    # workspace through the bridge on this computer only, never to the network.
+    RedirectMatch 404 "/photos(/|$)"
 </IfModule>
 
 # Database dumps hold emails and password hashes.

@@ -18,6 +18,24 @@ test('scripts and styles are revalidated, so updates reach the browser', async (
   }
 });
 
+test('drone photos are not served to the network', async ({ request }) => {
+  // tello_bridge.py saves photos here; only the bridge (this computer) may show them.
+  const fs = require('fs');
+  const path = require('path');
+  const dir = path.join(__dirname, '..', 'photos');
+  const file = path.join(dir, 'photo_19990101_000000_000.jpg');
+  const madeDir = !fs.existsSync(dir);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(file, 'not really a jpeg');
+  try {
+    const res = await request.get('photos/photo_19990101_000000_000.jpg', { maxRedirects: 0 });
+    expect(res.status()).toBe(404);
+  } finally {
+    fs.unlinkSync(file);
+    if (madeDir) fs.rmdirSync(dir);
+  }
+});
+
 test('private files are not served', async ({ request }) => {
   const blocked = {
     '.git/HEAD': 404,           // repository metadata

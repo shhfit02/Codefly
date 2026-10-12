@@ -78,6 +78,17 @@ test.describe('workspace', () => {
     await expect(page.locator('.tab-btn.active')).toHaveText('Blocks');
   });
 
+  test('the simulator counts photos taken by camera blocks', async ({ page }) => {
+    await openWorkspace(page);
+    await page.evaluate(() => Blockly.serialization.workspaces.load({ blocks: { languageVersion: 0, blocks: [{
+      type: 'tello_takeoff', x: 40, y: 40,
+      next: { block: { type: 'tello_take_photo', next: { block: { type: 'tello_take_photo', next: { block: { type: 'tello_land' } } } } } },
+    }] } }, workspace));
+    await page.locator('#header-flag-btn').click();
+    await expect(page.locator('#header-flag-label')).toHaveText('Launch', { timeout: 15000 });
+    await expect(page.locator('#simPhotos')).toHaveText('2');
+  });
+
   test('launching an empty canvas explains what to do', async ({ page }) => {
     await openWorkspace(page);
     await page.evaluate(() => workspace.clear());

@@ -567,6 +567,49 @@ tello.send_rc_control(0, 0, 0, 0)
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// --- Drone photos: thumbnails under the Flight log, served by the bridge (/photos/<name>) ---
+function clearFlightPhotos() {
+  document.getElementById('flightPhotoStrip')?.replaceChildren();
+  document.getElementById('flightPhotos')?.classList.add('hidden');
+  const count = document.getElementById('flightPhotoCount');
+  if (count) count.textContent = '';
+}
+
+function addFlightPhoto(savedPath) {
+  const strip = document.getElementById('flightPhotoStrip');
+  const name = String(savedPath || '').split(/[\\/]/).pop();
+  if (!strip || !name) return;
+  const url = `${TELLO_BRIDGE_URL}/photos/${encodeURIComponent(name)}`;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'flight-photo';
+  btn.title = name;
+  const img = document.createElement('img');
+  img.src = url;
+  img.alt = `Drone photo ${strip.children.length + 1}`;
+  img.loading = 'lazy';
+  img.addEventListener('error', () => {
+    btn.classList.add('is-missing');
+    btn.textContent = 'Saved (no preview)';
+  });
+  btn.appendChild(img);
+  btn.addEventListener('click', () => {
+    Swal.fire({
+      title: img.alt,
+      imageUrl: url,
+      imageAlt: img.alt,
+      html: `<p class="connect-detail">Saved as <code></code> in the <strong>photos</strong> folder next to tello_bridge.py.</p>`,
+      didOpen: (popup) => { popup.querySelector('code').textContent = name; },
+      width: 720,
+      confirmButtonText: 'Close',
+    });
+  });
+  strip.appendChild(btn);
+  document.getElementById('flightPhotos')?.classList.remove('hidden');
+  const count = document.getElementById('flightPhotoCount');
+  if (count) count.textContent = `(${strip.children.length})`;
+}
+
 async function sendDroneCommand(op) {
   const response = await fetch(`${TELLO_BRIDGE_URL}/command`, {
     method: 'POST',
@@ -600,6 +643,7 @@ async function executeOpsSequentially(ops, logToConsole) {
         return 'emergency';
       }
       logToConsole?.(`--- [OK] ${op.type} done${result?.photo ? ` (saved ${result.photo})` : ''}`);
+      if (result?.photo) addFlightPhoto(result.photo);
     } catch (err) {
       logToConsole?.(`--- [ERROR] ${op.type} failed: ${err.message}`);
       return false;
@@ -640,7 +684,10 @@ async function waitForScriptResult(logToConsole) {
       return { state: 'error', error: 'Lost contact with the bridge while the script was running.' };
     }
     if (data.state !== 'running') {
-      (data.photos || []).forEach((path) => logToConsole?.(`--- [PHOTO] saved ${path}`));
+      (data.photos || []).forEach((path) => {
+        logToConsole?.(`--- [PHOTO] saved ${path}`);
+        addFlightPhoto(path);
+      });
       return data;
     }
   }
@@ -787,6 +834,8 @@ function resetSimState() {
   simState.altitude = 0;
   simState.flying = false;
   simState.trail = [{ x: simState.x, y: simState.y }];
+  simState.flash = 0;
+  simState.photos = 0;
   setSimStatus('Ready');
   drawSim();
 }
@@ -798,6 +847,8 @@ function setSimStatus(text) {
   const altEl = document.getElementById('simAltitude');
   const headEl = document.getElementById('simHeading');
   if (altEl) altEl.textContent = `${Math.round(simState.altitude)} cm`;
+  const photosEl = document.getElementById('simPhotos');
+  if (photosEl) photosEl.textContent = String(simState.photos || 0);
   if (headEl) headEl.textContent = `${((Math.round(simState.heading) % 360) + 360) % 360}°`;
 }
 
@@ -987,7 +1038,31 @@ function drawSim() {
   simCtx.rotate(rad);
   drawQuadcopter(scale);
   simCtx.restore();
+
+  // Camera: viewfinder brackets in front of the drone, then a white flash that fades out.
+  if (simState.flash > 0) {
+    const ahead = 46 * scale;
+    const fx = simState.x + Math.sin(rad) * ahead;
+    const fy = simState.y - Math.cos(rad) * ahead;
+    const half = 22;
+    const arm = 8;
+    simCtx.strokeStyle = `rgba(255, 255, 255, ${Math.min(1, simState.flash * 1.6)})`;
+    simCtx.lineWidth = 2;
+    simCtx.beginPath();
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([sx, sy]) => {
+      const cx = fx + sx * half;
+      const cy = fy + sy * half;
+      simCtx.moveTo(cx, cy - sy * arm);
+      simCtx.lineTo(cx, cy);
+      simCtx.lineTo(cx - sx * arm, cy);
+    });
+    simCtx.stroke();
+  }
   simCtx.restore();
+  if (simState.flash > 0) {
+    simCtx.fillStyle = `rgba(255, 255, 255, ${simState.flash * 0.55})`;
+    simCtx.fillRect(0, 0, width, height);
+  }
 }
 
 // Evaluates a plain numeric expression such as "90", "(2)*100" or "1.5"; NaN for anything else
@@ -1219,8 +1294,11 @@ async function playSimOp(op) {
       break;
     }
     case 'photo':
-      setSimStatus('Photo taken');
-      await sleep(400);
+      // The simulator has no camera: show a viewfinder and a flash so the photo is visible.
+      simState.photos = (simState.photos || 0) + 1;
+      setSimStatus(`Photo ${simState.photos} taken`);
+      simState.flash = 1;
+      await animateSim({ flash: 0 }, 650);
       break;
     case 'bounce':
       setSimStatus('Bounce');
@@ -1320,6 +1398,7 @@ async function runCode() {
   // 1. Get the console element and clear it
   const consoleOutput = document.getElementById('consoleOutput');
   // Show the log once when a run starts, not on every line (the user may go back to Blocks).
+  clearFlightPhotos();
   if (consoleOutput) {
     openConsole();
     consoleOutput.textContent = ''; // Clear console
