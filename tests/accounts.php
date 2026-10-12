@@ -92,7 +92,7 @@ function cleanup(mysqli $conn): void
 {
     // Same per-user tables as PHP/deleteAccount.php, plus activity tables.
     $tables = ['user_tokens', 'user_ranks', 'user_profile_meta', 'user_settings', 'user_profiles',
-               'user_notifications', 'user_lesson_scores', 'module_visits', 'password_resets'];
+               'user_notifications', 'user_lesson_scores', 'module_visits', 'password_resets', 'user_programs'];
     foreach (TEST_ACCOUNTS as $role => $account) {
         $userId = findUserId($conn, $account['username']);
         if ($userId === null) {

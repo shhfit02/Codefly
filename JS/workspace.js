@@ -6,8 +6,10 @@ const LESSON_ID = urlParams.get('lesson') || '';
 const IS_LESSON_SIM = urlParams.get('sim') === '1' || urlParams.get('mode') === 'lesson';
 let lessonToolboxContents = null;
 let lessonDefaultCategory = null;
-// In lesson/sim mode we should still allow the Launch button to run (even without the Tello bridge)
-let commandReady = IS_LESSON_SIM;
+// simMode: run on the on-screen simulator instead of the Tello. Lessons always simulate;
+// the normal workspace has a Simulator / Drone switch (see initRunMode).
+let simMode = IS_LESSON_SIM;
+let commandReady = false;
 let stopRequested = false;
 
 // Harden Blockly Python codegen once Blockly loads.
@@ -328,8 +330,7 @@ window.addEventListener('resize', resizeBlockly);
 
 // Category click handlers
 document.addEventListener('DOMContentLoaded', function() {
-  // Keep the Launch button active in sim/lesson mode; otherwise gate by connection status
-  setRunEnabled(IS_LESSON_SIM);
+  initRunMode();
   const footer = document.getElementById("consoleFooter");
   if (footer) {
     updateConsoleIcon(footer.classList.contains("collapsed"));
@@ -400,12 +401,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const launchTimerEl = document.getElementById('launch-timer');
   const runButton = headerFlagBtn;
   
-  const undoBtn = document.getElementById('undo-btn');
-  const redoBtn = document.getElementById('redo-btn');
-  const resetBtn = document.getElementById('reset-btn');
-  const saveBtn = document.getElementById('save-btn');
-  const loadBtn = document.getElementById('load-btn');
-
   function attachBounceHandler(button, handler) {
     if (!button) return;
     button.addEventListener('click', (event) => {
@@ -467,6 +462,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   window.updateLaunchButton = updateLaunchButton;
+  window.isProgramRunning = () => isRunning;
+
+  // Esc = stop and land. Capture phase, so Blockly field editors cannot swallow it.
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && isRunning) {
+      event.preventDefault();
+      stopCode();
+      updateLaunchButton(false);
+    }
+  }, true);
 
 
   attachBounceHandler(headerFlagBtn, () => {
@@ -474,57 +479,25 @@ document.addEventListener('DOMContentLoaded', function() {
       stopCode();
       updateLaunchButton(false);
     } else {
-      runCode();
+      // Mark running first: runCode resets the button itself when it stops early
+      // (not connected, no blocks), which used to be overwritten back to "Stop".
       updateLaunchButton(true);
+      runCode();
     }
   });
 
-  if (undoBtn) undoBtn.addEventListener('click', undo);
-  if (redoBtn) redoBtn.addEventListener('click', redo);
-  if (resetBtn) resetBtn.addEventListener('click', resetWorkspace);
-  if (saveBtn) saveBtn.addEventListener('click', saveWorkspace);
-  if (loadBtn) loadBtn.addEventListener('click', loadWorkspace);
-
-  // Pilot chip dropdown actions
-  const chipTrigger = document.getElementById('pilot-chip-trigger');
-  const chipMenu = document.getElementById('pilot-chip-menu');
-
-  if (chipTrigger && chipMenu) {
-    const closeMenu = () => {
-      chipMenu.classList.remove('open');
-      chipTrigger.setAttribute('aria-expanded', 'false');
-    };
-
-    chipTrigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isOpen = chipMenu.classList.toggle('open');
-      chipTrigger.setAttribute('aria-expanded', isOpen.toString());
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!chipMenu.contains(e.target) && !chipTrigger.contains(e.target)) {
-        closeMenu();
-      }
-    });
-
-    const actionMap = {
-      undo,
-      redo,
-      reset: resetWorkspace,
-      save: saveWorkspace,
-      load: loadWorkspace,
-    };
-
-    chipMenu.querySelectorAll('.chip-option').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const action = btn.dataset.action;
-        if (action && actionMap[action]) {
-          actionMap[action]();
-        }
-        closeMenu();
-      });
-    });
-  }
+  // Canvas toolbar (Undo, Redo, Clear, Save, My programs)
+  const toolActions = {
+    undo,
+    redo,
+    reset: resetWorkspace,
+    save: saveProgram,
+    load: openProgramsDialog,
+  };
+  document.querySelectorAll('.canvas-toolbar .tool-btn[data-action]').forEach((btn) => {
+    btn.addEventListener('click', () => toolActions[btn.dataset.action]?.());
+  });
+  restoreDraft();
 
   // --- Workspace view tabs ---
   const viewButtons = document.querySelectorAll('.tab-btn[data-view]');
@@ -810,15 +783,22 @@ ensureTelloPythonGenerators();
 // Run once on load in case Blockly events fire before DOMContentLoaded
 ensureTelloPythonGenerators();
 
-// --- Lesson simulation helpers ---
+// --- Simulator (top view) ---
+// Heading 0 = facing up the screen; turning clockwise increases it. Height is shown beside
+// the canvas, since a top view cannot show up/down.
 let simCanvas, simCtx, simStatusEl;
 const simState = {
   x: 0,
   y: 0,
   heading: 0,
-  flying: false
+  altitude: 0,
+  flying: false,
+  trail: [],
 };
-const SIM_SCALE = 2; // pixels per cm
+const SIM_SCALE = 0.6; // pixels per cm: 1 grid square (30 px) = 50 cm
+const SIM_GRID_PX = 30;
+const SIM_TAKEOFF_CM = 80; // the Tello hovers at roughly this height after takeoff
+const SIM_MOVE_ANGLE = { forward: 0, right: 90, back: 180, left: -90 };
 
 function initDroneSim() {
   simCanvas = document.getElementById('droneSimCanvas');
@@ -833,39 +813,76 @@ function resetSimState() {
   simState.x = simCanvas.width / 2;
   simState.y = simCanvas.height / 2;
   simState.heading = 0;
+  simState.altitude = 0;
   simState.flying = false;
-  drawSim('Ready');
+  simState.trail = [{ x: simState.x, y: simState.y }];
+  setSimStatus('Ready');
+  drawSim();
 }
 
 function setSimStatus(text) {
   if (simStatusEl) {
     simStatusEl.textContent = text;
   }
+  const altEl = document.getElementById('simAltitude');
+  const headEl = document.getElementById('simHeading');
+  if (altEl) altEl.textContent = `${Math.round(simState.altitude)} cm`;
+  if (headEl) headEl.textContent = `${((Math.round(simState.heading) % 360) + 360) % 360}°`;
 }
 
-function drawSim(statusText) {
+function drawSim() {
   if (!simCanvas || !simCtx) return;
-  simCtx.clearRect(0, 0, simCanvas.width, simCanvas.height);
+  const { width, height } = simCanvas;
+  simCtx.clearRect(0, 0, width, height);
   simCtx.fillStyle = '#0f172a';
-  simCtx.fillRect(0, 0, simCanvas.width, simCanvas.height);
-  // Trail placeholder could be added later
-  simCtx.fillStyle = '#a855f7';
-  simCtx.beginPath();
-  simCtx.arc(simState.x, simState.y, 8, 0, Math.PI * 2);
-  simCtx.fill();
+  simCtx.fillRect(0, 0, width, height);
 
-  const headingRad = (simState.heading * Math.PI) / 180;
-  simCtx.strokeStyle = '#22d3ee';
+  // Grid: one square = 50 cm.
+  simCtx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
+  simCtx.lineWidth = 1;
+  for (let gx = (width / 2) % SIM_GRID_PX; gx < width; gx += SIM_GRID_PX) {
+    simCtx.beginPath();
+    simCtx.moveTo(gx + 0.5, 0);
+    simCtx.lineTo(gx + 0.5, height);
+    simCtx.stroke();
+  }
+  for (let gy = (height / 2) % SIM_GRID_PX; gy < height; gy += SIM_GRID_PX) {
+    simCtx.beginPath();
+    simCtx.moveTo(0, gy + 0.5);
+    simCtx.lineTo(width, gy + 0.5);
+    simCtx.stroke();
+  }
+
+  // Take-off pad.
+  simCtx.strokeStyle = 'rgba(250, 204, 21, 0.6)';
   simCtx.beginPath();
-  simCtx.moveTo(simState.x, simState.y);
-  simCtx.lineTo(simState.x + Math.cos(headingRad) * 18, simState.y + Math.sin(headingRad) * 18);
+  simCtx.arc(width / 2, height / 2, 12, 0, Math.PI * 2);
   simCtx.stroke();
 
-  if (statusText) {
-    simCtx.fillStyle = '#e2e8f0';
-    simCtx.font = '12px Inter, sans-serif';
-    simCtx.fillText(statusText, 12, 18);
+  // Flight path.
+  if (simState.trail.length > 1) {
+    simCtx.strokeStyle = 'rgba(34, 211, 238, 0.7)';
+    simCtx.lineWidth = 2;
+    simCtx.beginPath();
+    simState.trail.forEach((p, i) => (i ? simCtx.lineTo(p.x, p.y) : simCtx.moveTo(p.x, p.y)));
+    simCtx.stroke();
   }
+
+  // Drone: filled while flying, outlined on the ground; the line shows where it faces.
+  const rad = (simState.heading * Math.PI) / 180;
+  const size = simState.flying ? 10 : 8;
+  simCtx.lineWidth = 2;
+  simCtx.strokeStyle = '#a855f7';
+  simCtx.fillStyle = simState.flying ? '#a855f7' : 'transparent';
+  simCtx.beginPath();
+  simCtx.arc(simState.x, simState.y, size, 0, Math.PI * 2);
+  simCtx.fill();
+  simCtx.stroke();
+  simCtx.strokeStyle = '#facc15';
+  simCtx.beginPath();
+  simCtx.moveTo(simState.x, simState.y);
+  simCtx.lineTo(simState.x + Math.sin(rad) * 20, simState.y - Math.cos(rad) * 20);
+  simCtx.stroke();
 }
 
 // Evaluates a plain numeric expression such as "90", "(2)*100" or "1.5"; NaN for anything else
@@ -1046,35 +1063,42 @@ function applySimOp(op) {
   switch (op.type) {
     case 'takeoff':
       simState.flying = true;
+      simState.altitude = SIM_TAKEOFF_CM;
       setSimStatus('Takeoff');
       break;
     case 'land':
-      simState.flying = false;
-      setSimStatus('Land');
-      break;
     case 'emergency':
       simState.flying = false;
-      setSimStatus('Emergency stop: landed');
+      simState.altitude = 0;
+      setSimStatus(op.type === 'land' ? 'Landed' : 'Emergency stop: landed');
       break;
     case 'turn':
       simState.heading += op.dir === 'cw' ? op.value : -op.value;
-      setSimStatus(`Turn ${op.dir} ${op.value} deg`);
+      setSimStatus(`Turn ${op.dir === 'cw' ? 'right' : 'left'} ${op.value}°`);
       break;
     case 'move': {
-      const radians = (simState.heading * Math.PI) / 180;
+      if (!simState.flying) {
+        setSimStatus(`Move ${op.dir} skipped: take off first`);
+        break;
+      }
+      if (op.dir === 'up' || op.dir === 'down') {
+        simState.altitude = Math.max(0, simState.altitude + (op.dir === 'up' ? op.value : -op.value));
+        setSimStatus(`Move ${op.dir} ${op.value} cm`);
+        break;
+      }
+      const rad = ((simState.heading + (SIM_MOVE_ANGLE[op.dir] ?? 0)) * Math.PI) / 180;
       const distancePx = (op.value || 0) * SIM_SCALE;
-      const dx = Math.cos(radians) * distancePx;
-      const dy = Math.sin(radians) * distancePx;
-      simState.x = Math.max(8, Math.min(simCanvas.width - 8, simState.x + dx));
-      simState.y = Math.max(8, Math.min(simCanvas.height - 8, simState.y + dy));
-      setSimStatus(`Move ${op.dir} ${op.value}cm`);
+      simState.x = Math.max(8, Math.min(simCanvas.width - 8, simState.x + Math.sin(rad) * distancePx));
+      simState.y = Math.max(8, Math.min(simCanvas.height - 8, simState.y - Math.cos(rad) * distancePx));
+      simState.trail.push({ x: simState.x, y: simState.y });
+      setSimStatus(`Move ${op.dir} ${op.value} cm`);
       break;
     }
     case 'wait':
       setSimStatus(`Wait ${op.value}s`);
       break;
     case 'flip':
-      setSimStatus(`Flip ${op.dir}`);
+      setSimStatus(`Flip ${{ f: 'forward', b: 'back', l: 'left', r: 'right' }[op.dir] || op.dir}`);
       break;
     case 'photo':
       setSimStatus('Photo taken');
@@ -1091,33 +1115,39 @@ function applySimOp(op) {
   drawSim();
 }
 
-function runDroneSimulation(pythonCode, logToConsole) {
+// Plays the program step by step on the canvas. Resolves 'complete' or 'stopped'.
+async function runDroneSimulation(pythonCode, logToConsole) {
   if (!simCanvas || !simCtx) {
-    if (logToConsole) logToConsole('[SIM] No sim canvas found.');
-    return;
+    logToConsole?.('[SIM] No sim canvas found.');
+    return 'complete';
   }
   const skipped = [];
   const ops = parsePythonToOps(pythonCode, skipped);
-  if (skipped.length && logToConsole) {
+  if (skipped.length) {
     // The simulator cannot evaluate conditions or variables; say so instead of guessing.
-    logToConsole(`[SIM] Not simulated (needs the real drone/Python): ${skipped.join(' | ')}`);
+    logToConsole?.(`[SIM] Not simulated (needs the real drone/Python): ${skipped.join(' | ')}`);
   }
-  if (!ops.length) {
-    resetSimState();
-    if (logToConsole) logToConsole('[SIM] No flight ops detected.');
-    return;
-  }
+  // Same limits the real drone enforces: warn here so the program works when it flies for real.
+  findOutOfRangeOps(ops).forEach((problem) => logToConsole?.(`[SIM] The real drone would reject: ${problem}`));
   resetSimState();
-  let elapsed = 0;
-  ops.forEach((op) => {
-    const opDuration = op.type === 'wait' ? Math.max(400, op.value * 400) : 500;
-    setTimeout(() => {
-      applySimOp(op);
-      if (logToConsole) logToConsole(`[SIM] ${op.type} ${op.value ?? ''}`.trim());
-    }, elapsed);
-    elapsed += opDuration;
-  });
-  setTimeout(() => setSimStatus('Complete'), elapsed + 200);
+  if (!ops.length) {
+    logToConsole?.('[SIM] No flight ops detected.');
+    return 'complete';
+  }
+  for (const op of ops) {
+    if (stopRequested) {
+      setSimStatus('Stopped');
+      logToConsole?.('[SIM] Stopped');
+      return 'stopped';
+    }
+    applySimOp(op);
+    logToConsole?.(`[SIM] ${op.type} ${op.dir ?? ''} ${op.value ?? ''}`.replace(/\s+/g, ' ').trim());
+    if (op.type === 'emergency') break;
+    // Waits play at 40% speed (capped) so long programs stay watchable.
+    await sleep(op.type === 'wait' ? Math.min(3000, Math.max(400, (op.value || 0) * 400)) : 600);
+  }
+  setSimStatus(simState.flying ? 'Complete (still flying: add a Land block)' : 'Complete');
+  return 'complete';
 }
 
 // In workspace.js, REPLACE the old 'runCode' function:
@@ -1127,10 +1157,27 @@ async function runCode() {
   stopRequested = false;
   ensureTelloPythonGenerators(); // guard against missing generators
 
-  if (!commandReady && !IS_LESSON_SIM) {
-    Swal.fire({ icon: 'warning', title: 'Drone not connected', text: 'Connect to the drone first and wait for command mode.' });
-    setPythonStatus('Connect to Tello first.', 'error');
+  if (!commandReady && !simMode) {
     setLaunchButtonIdle();
+    setPythonStatus('Connect to Tello first.', 'error');
+    const locked = document.body.dataset.simLocked === '1';
+    const choice = await Swal.fire({
+      icon: 'warning',
+      title: 'Drone not connected',
+      text: locked
+        ? 'Connect the drone first.'
+        : 'Connect the drone first, or test your program on the simulator.',
+      showDenyButton: !locked,
+      showCancelButton: true,
+      confirmButtonText: 'Connect drone',
+      denyButtonText: 'Use simulator',
+      denyButtonColor: '#6366f1',
+    });
+    if (choice.isConfirmed) {
+      connectDrone();
+    } else if (choice.isDenied) {
+      setRunMode(true);
+    }
     return;
   }
 
@@ -1197,14 +1244,37 @@ async function runCode() {
   logToConsole(pythonCode.trim());
   sendCodeToParent('running');
 
-  if (IS_LESSON_SIM) {
-    logToConsole('--- [SIM] Running lesson sandbox (no drone) ---');
+  if (simMode) {
+    logToConsole('--- [SIM] Running on the simulator (no drone) ---');
     setPythonStatus('Simulating blocks...', 'running');
-    runDroneSimulation(pythonCode, logToConsole);
-    setPythonStatus('Simulation complete.', 'idle');
-    sendCodeToParent('complete');
+    const outcome = await runDroneSimulation(pythonCode, logToConsole);
+    if (outcome === 'stopped') {
+      setPythonStatus('Simulation stopped.', 'idle');
+      sendCodeToParent('stopped');
+    } else {
+      setPythonStatus('Simulation complete.', 'idle');
+      sendCodeToParent('complete');
+    }
     setLaunchButtonIdle();
     return;
+  }
+
+  // A low battery can make the Tello refuse to take off or land early mid-program.
+  if (telloConnection.battery !== null && telloConnection.battery < LOW_BATTERY) {
+    const { isConfirmed } = await Swal.fire({
+      icon: 'warning',
+      title: `Battery is low (${telloConnection.battery}%)`,
+      text: 'The drone may refuse to take off or land early. Charge the battery first if you can.',
+      showCancelButton: true,
+      confirmButtonText: 'Fly anyway',
+      cancelButtonText: 'Cancel',
+    });
+    if (!isConfirmed) {
+      logToConsole('--- [STOP] Cancelled: battery low ---');
+      setPythonStatus('Cancelled: battery low.', 'error');
+      setLaunchButtonIdle();
+      return;
+    }
   }
 
   // 2. Make sure the bridge sees an active Tello connection before sending anything
@@ -1334,10 +1404,9 @@ async function stopCode() {
     console.log('--- [CMD] Sending STOP (Land) to drone ---');
   }
   console.log('Stop execution');
-  if (IS_LESSON_SIM) {
-    resetSimState();
+  if (simMode) {
+    // runDroneSimulation sees stopRequested and ends between steps.
     setPythonStatus('Simulation stopped.', 'idle');
-    sendCodeToParent('stopped');
     return;
   }
   setPythonStatus('Terminate requested. Landing drone...', 'error');
@@ -1376,35 +1445,258 @@ function redo() {
 async function resetWorkspace() {
   const { isConfirmed } = await Swal.fire({
     icon: 'warning',
-    title: 'Reset workspace?',
-    text: 'All unsaved changes will be lost.',
+    title: 'Clear all blocks?',
+    text: 'This removes every block from the canvas. Saved programs are kept.',
     showCancelButton: true,
-    confirmButtonText: 'Reset',
+    confirmButtonText: 'Clear',
     confirmButtonColor: '#dc2626',
   });
   if (isConfirmed) {
     workspace.clear();
+    setProgramName('');
   }
 }
 
-function saveWorkspace() {
-  const xml = Blockly.Xml.workspaceToDom(workspace);
-  const xmlText =
-  Blockly.Xml.domToText(xml);
-  localStorage.setItem('blocklyWorkspace', xmlText);
-  Swal.fire({ icon: 'success', title: 'Workspace saved!', timer: 1500, showConfirmButton: false });
+// --- Saved programs (per account, PHP/programs.php) and the unsaved-work draft ---
+const PROGRAMS_URL = '../PHP/programs.php';
+// The old Save button kept one program per browser, shared by everyone on that computer.
+const LEGACY_PROGRAM_KEY = 'blocklyWorkspace';
+let currentProgramName = '';
+let draftTimer = null;
+let restoringDraft = false;
+
+// Drafts are per user and only for the full workspace (lessons start from their own blocks).
+function draftKey() {
+  const userId = document.body.dataset.user;
+  const embedded = document.body.dataset.simLocked === '1';
+  return userId && !embedded ? `codefly:draft:${userId}` : null;
 }
 
-function loadWorkspace() {
-  const xmlText = localStorage.getItem('blocklyWorkspace');
-  if (xmlText) {
-    // Blockly.Xml.textToDom was removed in Blockly 11; the helper now lives in utils.xml.
-    const xml = Blockly.utils.xml.textToDom(xmlText);
-    Blockly.Xml.domToWorkspace(xml, workspace);
-    Swal.fire({ icon: 'success', title: 'Workspace loaded!', timer: 1500, showConfirmButton: false });
-  } else {
-    Swal.fire({ icon: 'info', title: 'No saved workspace found.' });
+function setProgramName(name) {
+  currentProgramName = name || '';
+  const label = document.getElementById('program-name');
+  if (label) label.textContent = currentProgramName || 'Untitled';
+}
+
+function workspaceHasBlocks() {
+  return workspace.getAllBlocks(false).length > 0;
+}
+
+function scheduleDraftSave() {
+  const key = draftKey();
+  if (!key || restoringDraft) return;
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    try {
+      const program = Blockly.serialization.workspaces.save(workspace);
+      localStorage.setItem(key, JSON.stringify({ name: currentProgramName, program }));
+    } catch (err) {
+      console.warn('Draft not saved', err);
+    }
+  }, 800);
+}
+
+function restoreDraft() {
+  const key = draftKey();
+  if (!key || workspaceHasBlocks()) return;
+  let draft = null;
+  try {
+    draft = JSON.parse(localStorage.getItem(key) || 'null');
+  } catch (err) {
+    draft = null;
   }
+  if (!draft?.program?.blocks) return;
+  restoringDraft = true;
+  try {
+    Blockly.serialization.workspaces.load(draft.program, workspace);
+    setProgramName(draft.name);
+    Swal.fire({
+      toast: true,
+      position: 'bottom-end',
+      icon: 'info',
+      title: 'Restored your unsaved blocks from last time',
+      timer: 3000,
+      showConfirmButton: false,
+    });
+  } catch (err) {
+    console.warn('Draft could not be restored', err);
+  } finally {
+    restoringDraft = false;
+  }
+}
+
+async function programsRequest(options = {}, query = '') {
+  const response = await fetch(`${PROGRAMS_URL}${query}`, { credentials: 'same-origin', cache: 'no-store', ...options });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload.status !== 'success') {
+    throw new Error(payload.message || 'Saved programs are unavailable right now.');
+  }
+  return payload;
+}
+
+async function saveProgram() {
+  if (!workspaceHasBlocks()) {
+    Swal.fire({ icon: 'info', title: 'Nothing to save yet', text: 'Drag some blocks onto the canvas first.' });
+    return;
+  }
+  const { value: name } = await Swal.fire({
+    title: 'Save program',
+    input: 'text',
+    inputLabel: 'Program name',
+    inputValue: currentProgramName || '',
+    inputPlaceholder: 'e.g. Square flight',
+    inputAttributes: { maxlength: '60', autocapitalize: 'off' },
+    showCancelButton: true,
+    confirmButtonText: 'Save',
+    inputValidator: (value) => (!value || !value.trim() ? 'Give your program a name.' : undefined),
+  });
+  if (!name) return;
+  try {
+    const payload = await programsRequest({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim(), program: Blockly.serialization.workspaces.save(workspace) }),
+    });
+    setProgramName(payload.data.name);
+    scheduleDraftSave();
+    Swal.fire({
+      icon: 'success',
+      title: payload.data.overwritten ? 'Program updated' : 'Program saved',
+      text: `"${payload.data.name}" is in My programs.`,
+      timer: 1600,
+      showConfirmButton: false,
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Not saved', text: err.message });
+  }
+}
+
+async function confirmReplaceCanvas() {
+  if (!workspaceHasBlocks()) return true;
+  const { isConfirmed } = await Swal.fire({
+    icon: 'question',
+    title: 'Replace the blocks on the canvas?',
+    text: 'Save your current program first if you want to keep it.',
+    showCancelButton: true,
+    confirmButtonText: 'Replace',
+  });
+  return isConfirmed;
+}
+
+async function openProgram(id) {
+  try {
+    const { data } = await programsRequest({}, `?id=${encodeURIComponent(id)}`);
+    if (!(await confirmReplaceCanvas())) return;
+    Blockly.serialization.workspaces.load(data.program || {}, workspace);
+    setProgramName(data.name);
+    Swal.fire({ icon: 'success', title: `Opened "${data.name}"`, timer: 1200, showConfirmButton: false });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'Could not open program', text: err.message });
+  }
+}
+
+async function openLegacyProgram() {
+  let xmlText = null;
+  try {
+    xmlText = localStorage.getItem(LEGACY_PROGRAM_KEY);
+  } catch (err) {
+    xmlText = null;
+  }
+  if (!xmlText || !(await confirmReplaceCanvas())) return;
+  workspace.clear();
+  // Blockly.Xml.textToDom was removed in Blockly 11; the helper now lives in utils.xml.
+  Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(xmlText), workspace);
+  setProgramName('');
+  Swal.fire({ icon: 'info', title: 'Opened', text: 'Press Save to keep it in your account.' });
+}
+
+function formatProgramDate(value) {
+  const date = new Date(String(value).replace(' ', 'T'));
+  return Number.isNaN(date.getTime())
+    ? ''
+    : date.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+async function openProgramsDialog() {
+  let programs;
+  try {
+    programs = (await programsRequest()).data || [];
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'My programs', text: err.message });
+    return;
+  }
+  let hasLegacy = false;
+  try {
+    hasLegacy = !!localStorage.getItem(LEGACY_PROGRAM_KEY);
+  } catch (err) {
+    hasLegacy = false;
+  }
+
+  const list = document.createElement('ul');
+  list.className = 'programs-list';
+  programs.forEach((program) => {
+    const li = document.createElement('li');
+    const info = document.createElement('div');
+    const name = document.createElement('strong');
+    name.textContent = program.name;
+    const when = document.createElement('span');
+    when.textContent = `Saved ${formatProgramDate(program.updatedAt)}`;
+    info.append(name, when);
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'programs-open';
+    open.textContent = 'Open';
+    open.addEventListener('click', () => openProgram(program.id));
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'programs-delete';
+    del.setAttribute('aria-label', `Delete ${program.name}`);
+    del.innerHTML = "<i class='bx bx-trash'></i>";
+    del.addEventListener('click', async () => {
+      const { isConfirmed } = await Swal.fire({
+        icon: 'warning',
+        title: `Delete "${program.name}"?`,
+        text: 'This cannot be undone.',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        confirmButtonColor: '#dc2626',
+      });
+      if (!isConfirmed) return;
+      try {
+        await programsRequest({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', id: program.id }),
+        });
+        if (program.name === currentProgramName) setProgramName('');
+      } catch (err) {
+        await Swal.fire({ icon: 'error', title: 'Not deleted', text: err.message });
+      }
+      openProgramsDialog();
+    });
+    li.append(info, open, del);
+    list.appendChild(li);
+  });
+  if (hasLegacy) {
+    const li = document.createElement('li');
+    li.innerHTML = '<div><strong>Saved in this browser</strong><span>From the old Save button</span></div>';
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.className = 'programs-open';
+    open.textContent = 'Open';
+    open.addEventListener('click', openLegacyProgram);
+    li.appendChild(open);
+    list.appendChild(li);
+  }
+  if (!list.children.length) {
+    const empty = document.createElement('p');
+    empty.className = 'programs-empty';
+    empty.textContent = 'No saved programs yet. Build something and press Save.';
+    list.replaceWith(empty);
+    Swal.fire({ title: 'My programs', html: empty, confirmButtonText: 'Close' });
+    return;
+  }
+  Swal.fire({ title: 'My programs', html: list, showConfirmButton: false, showCloseButton: true, width: 560 });
 }
 
 function goHome() {
@@ -1497,93 +1789,140 @@ function sendCodeToParent(status = 'idle') {
 }
 
 if (typeof workspace !== "undefined") {
-  workspace.addChangeListener(() => {
+  workspace.addChangeListener((event) => {
+    if (event?.isUiEvent) return; // selection, scrolling, opening the flyout
     updatePythonPreview();
     setPythonStatus('Blocks updated. Ready to run.', 'idle');
     sendCodeToParent('idle');
+    scheduleDraftSave();
   });
 }
 
-// --- New Drone Status Logic ---
+// --- Drone connection, live telemetry and the Simulator / Drone switch ---
 const TELLO_BRIDGE_URL = "http://127.0.0.1:5000";
+const LOW_BATTERY = 20; // % : warn before flying below this
+const TELEMETRY_POLL_MS = 2000;
+const RUN_MODE_KEY = 'codefly:runMode';
 const telloConnection = {
   connected: false,
+  connecting: false,
   battery: null,
 };
+let telemetryTimer = null;
+
+function initRunMode() {
+  const locked = document.body.dataset.simLocked === '1';
+  if (!locked) {
+    let saved = null;
+    try {
+      saved = localStorage.getItem(RUN_MODE_KEY);
+    } catch (err) {
+      saved = null;
+    }
+    // Simulator by default: most students practise without a drone.
+    simMode = IS_LESSON_SIM || saved !== 'drone';
+    document.querySelectorAll('.mode-option').forEach((btn) => {
+      btn.addEventListener('click', () => setRunMode(btn.dataset.mode === 'sim'));
+    });
+  }
+  applyRunMode();
+}
+
+function setRunMode(useSim) {
+  if (window.isProgramRunning?.()) return;
+  simMode = useSim;
+  try {
+    localStorage.setItem(RUN_MODE_KEY, useSim ? 'sim' : 'drone');
+  } catch (err) {
+    // Private windows may block storage; the switch still works for this visit.
+  }
+  applyRunMode();
+  if (useSim) {
+    openConsole();
+    resetSimState();
+  }
+}
+
+function applyRunMode() {
+  document.body.classList.toggle('sim-mode', simMode);
+  document.querySelectorAll('.mode-option').forEach((btn) => {
+    btn.setAttribute('aria-checked', String((btn.dataset.mode === 'sim') === simMode));
+  });
+  renderDroneStatus();
+  if (!simMode && telloConnection.connected) startTelemetryPolling();
+}
+
+function renderDroneStatus(telemetry = null) {
+  const card = document.getElementById('drone-card');
+  const label = document.getElementById('sidebar-connection-label');
+  const batteryLabel = document.getElementById('sidebar-battery-label');
+  const batteryBar = document.getElementById('battery-bar');
+  const connectBtn = document.getElementById('connect-btn');
+  const connectLabel = document.getElementById('connect-btn-label');
+  const telemetryBox = document.getElementById('header-telemetry');
+  const offlineLabel = document.getElementById('telemetry-offline');
+  const { connected, connecting, battery } = telloConnection;
+
+  let state = connected ? 'connected' : connecting ? 'connecting' : 'offline';
+  if (simMode) state = 'sim';
+  if (card) card.dataset.state = state;
+
+  if (label) {
+    label.textContent = {
+      sim: 'Simulator',
+      connected: 'Drone connected',
+      connecting: 'Connecting...',
+      offline: 'Not connected',
+    }[state];
+  }
+  if (batteryLabel) {
+    batteryLabel.textContent = simMode
+      ? 'No drone needed'
+      : battery !== null
+        ? `Battery: ${battery}%${battery < LOW_BATTERY ? ' (low)' : ''}`
+        : 'Battery: Unknown';
+  }
+  if (batteryBar) {
+    batteryBar.style.width = `${battery !== null && connected ? Math.max(0, Math.min(100, battery)) : 0}%`;
+    batteryBar.classList.toggle('is-low', battery !== null && battery < LOW_BATTERY);
+  }
+  if (connectBtn) {
+    connectBtn.disabled = connecting;
+    connectBtn.classList.toggle('is-connected', connected);
+    connectBtn.setAttribute('aria-pressed', connected ? 'true' : 'false');
+    connectBtn.querySelector('i').className = connected ? 'bx bx-unlink' : connecting ? 'bx bx-loader-alt bx-spin' : 'bx bx-wifi';
+  }
+  if (connectLabel) {
+    connectLabel.textContent = connected ? 'Disconnect' : connecting ? 'Connecting...' : 'Connect drone';
+  }
+
+  // Telemetry only means something with a connected drone.
+  const live = connected && !simMode;
+  telemetryBox?.classList.toggle('is-offline', !live);
+  if (offlineLabel) offlineLabel.textContent = simMode ? 'Simulator mode' : 'No drone data';
+  ['pitch', 'roll', 'yaw'].forEach((axis) => {
+    const el = document.getElementById(`telemetry-${axis}`);
+    if (!el) return;
+    if (!live) el.textContent = '--';
+    else if (telemetry && telemetry[axis] !== null && telemetry[axis] !== undefined) el.textContent = `${telemetry[axis]}°`;
+  });
+
+  setRunEnabled(commandReady || simMode);
+}
 
 function updateStatus(connected, battery, telemetry = null, cmdReady = null) {
   telloConnection.connected = !!connected;
   telloConnection.battery = typeof battery === "number" ? battery : null;
-  // In lesson/sim mode keep the commandReady flag true so the Launch button works offline
-  commandReady = IS_LESSON_SIM
-    ? true
-    : (cmdReady !== null ? !!cmdReady : !!connected || !!telemetry?.command_ready);
-
-  const connectBtn = document.getElementById("connect-btn");
-  const sidebarConnLabel = document.getElementById("sidebar-connection-label");
-  const sidebarBatteryLabel = document.getElementById("sidebar-battery-label");
-  const telemetryPitch = document.getElementById("telemetry-pitch");
-  const telemetryRoll = document.getElementById("telemetry-roll");
-  const telemetryYaw = document.getElementById("telemetry-yaw");
-  const connStatus = document.getElementById("connection-status");
-  const connIcon = document.getElementById("connection-icon");
-  const connText = document.getElementById("connection-text");
-  const battStatus = document.getElementById("battery-status");
-  const battIcon = document.getElementById("battery-icon");
-  const battText = document.getElementById("battery-text");
-  const iconEl = connectBtn?.querySelector("i");
-
-  connectBtn?.classList.remove("connecting");
-
-  const pitch = telemetry?.pitch ?? null;
-  const roll = telemetry?.roll ?? null;
-  const yaw = telemetry?.yaw ?? null;
-
-  if (connected) {
-    if (connStatus) connStatus.className = "status-box status-green";
-    if (battStatus) battStatus.className = "status-box status-yellow";
-    if (connIcon) connIcon.className = "bx bx-wifi";
-    if (connText) connText.textContent = "Connected (DJI Tello)";
-    if (battIcon) battIcon.className = "bx bx-battery";
-    if (battText) battText.textContent = battery !== null ? `Battery: ${battery}%` : "Battery: Unknown";
-    if (sidebarConnLabel) sidebarConnLabel.textContent = "Connected";
-    if (sidebarBatteryLabel) sidebarBatteryLabel.textContent = battery !== null ? `Battery: ${battery}%` : "Battery: Unknown";
-    if (telemetryPitch) telemetryPitch.textContent = pitch !== null ? pitch : "--";
-    if (telemetryRoll) telemetryRoll.textContent = roll !== null ? roll : "--";
-    if (telemetryYaw) telemetryYaw.textContent = yaw !== null ? yaw : "--";
-    if (connectBtn) {
-      connectBtn.setAttribute("aria-pressed", "true");
-      connectBtn.classList.remove("connecting");
-      connectBtn.classList.add("connected");
-    }
-    if (iconEl) iconEl.className = "bx bx-check";
-  } else {
-    if (connIcon) connIcon.className = "bx bx-wifi";
-    if (connText) connText.textContent = "Not Connected";
-    if (battIcon) battIcon.className = "bx bx-battery";
-    if (battText) battText.textContent = "Battery: Unknown";
-    if (sidebarConnLabel) sidebarConnLabel.textContent = "Not Connected";
-    if (sidebarBatteryLabel) sidebarBatteryLabel.textContent = "Battery: Unknown";
-    if (telemetryPitch) telemetryPitch.textContent = "--";
-    if (telemetryRoll) telemetryRoll.textContent = "--";
-    if (telemetryYaw) telemetryYaw.textContent = "--";
-    if (connectBtn) {
-      connectBtn.setAttribute("aria-pressed", "false");
-      connectBtn.classList.remove("connected");
-    }
-    if (iconEl) iconEl.className = "bx bx-rocket";
-  }
-
-  // gate the run/takeoff button
-  setRunEnabled(commandReady || IS_LESSON_SIM);
+  commandReady = cmdReady !== null ? !!cmdReady && !!connected : !!connected;
+  renderDroneStatus(telemetry);
+  if (!connected) stopTelemetryPolling();
 }
 
 async function checkStatus() {
   try {
     const response = await fetch(`${TELLO_BRIDGE_URL}/status`);
     const data = await response.json();
-    const telem = data.position || data.telemetry || data || null;
-    updateStatus(data.connected, data.battery, telem, data.command_ready);
+    updateStatus(data.connected, data.battery, data, data.command_ready);
     return !!data.connected;
   } catch (err) {
     updateStatus(false, null); // Bridge is offline
@@ -1591,42 +1930,104 @@ async function checkStatus() {
   }
 }
 
+// Live pitch/roll/yaw and battery while the drone is connected (paused in a hidden tab).
+function startTelemetryPolling() {
+  if (telemetryTimer) return;
+  telemetryTimer = setInterval(async () => {
+    if (document.hidden || simMode || !telloConnection.connected) return;
+    const stillConnected = await checkStatus();
+    if (!stillConnected) {
+      const consoleOutput = document.getElementById('consoleOutput');
+      if (consoleOutput) {
+        openConsole();
+        consoleOutput.textContent += '\n--- [WARN] Lost contact with the drone or the bridge. Reconnect to continue. ---';
+      }
+    }
+  }, TELEMETRY_POLL_MS);
+}
+
+function stopTelemetryPolling() {
+  clearInterval(telemetryTimer);
+  telemetryTimer = null;
+}
+
+async function connectDrone() {
+  if (telloConnection.connecting) return;
+  telloConnection.connecting = true;
+  renderDroneStatus();
+  let problem = null;
+  try {
+    let response;
+    try {
+      response = await fetch(`${TELLO_BRIDGE_URL}/connect`);
+    } catch (err) {
+      problem = 'bridge';
+      throw err;
+    }
+    const data = await response.json();
+    if (!response.ok || data?.status !== "connected") {
+      problem = 'drone';
+      throw new Error(data?.error || data?.status || "Unable to connect to drone.");
+    }
+    telloConnection.connecting = false;
+    updateStatus(true, data?.battery ?? null, data, data?.command_ready ?? true);
+    startTelemetryPolling();
+    checkStatus(); // /connect has no pitch/roll/yaw; fill them now, not after the first poll
+  } catch (err) {
+    console.warn("Failed to connect to Tello", err);
+    telloConnection.connecting = false;
+    updateStatus(false, null);
+    showConnectHelp(problem, err?.message);
+  }
+}
+
+// Explains what to fix instead of only flipping the label back to "Not connected".
+async function showConnectHelp(problem, detail) {
+  const steps = problem === 'bridge'
+    ? `<p>The drone bridge is not running on this computer.</p>
+       <ol class="connect-steps">
+         <li>Open a terminal in the CodeFly folder.</li>
+         <li>Run <code>py tello_bridge.py</code> and leave it open.</li>
+         <li>Press <strong>Try again</strong>.</li>
+       </ol>`
+    : `<p>The bridge is running but cannot reach the Tello.</p>
+       <ol class="connect-steps">
+         <li>Turn the drone on and wait for the light to blink.</li>
+         <li>Connect this computer's Wi-Fi to <strong>TELLO-xxxxxx</strong>.</li>
+         <li>Press <strong>Try again</strong>.</li>
+       </ol>
+       ${detail ? `<p class="connect-detail"></p>` : ''}`;
+  const locked = document.body.dataset.simLocked === '1';
+  const result = await Swal.fire({
+    icon: 'error',
+    title: 'Could not connect to the drone',
+    html: steps,
+    showDenyButton: !locked,
+    showCancelButton: true,
+    confirmButtonText: 'Try again',
+    denyButtonText: 'Use simulator',
+    denyButtonColor: '#6366f1',
+    cancelButtonText: 'Close',
+    didOpen: (popup) => {
+      // Bridge error text is shown as text, never as HTML.
+      const detailEl = popup.querySelector('.connect-detail');
+      if (detailEl) detailEl.textContent = `Bridge said: ${detail}`;
+    },
+  });
+  if (result.isConfirmed) connectDrone();
+  else if (result.isDenied) setRunMode(true);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const connectBtn = document.getElementById("connect-btn");
-
-  if (connectBtn) {
-    connectBtn.addEventListener("click", async () => {
-      connectBtn.disabled = true;
-
-      if (telloConnection.connected) {
-        // --- If connected, we want to disconnect (UI only) ---
-        updateStatus(false, null);
-        console.log("Disconnecting from UI.");
-        connectBtn.disabled = false;
-      } else {
-        const sidebarConnLabel = document.getElementById("sidebar-connection-label");
-        if (sidebarConnLabel) sidebarConnLabel.textContent = "Connecting...";
-        connectBtn.classList.remove("connected");
-        connectBtn.classList.add("connecting");
-        connectBtn.setAttribute("aria-pressed", "mixed");
-
-        try {
-          console.log("Attempting to connect via /connect...");
-          const response = await fetch(`${TELLO_BRIDGE_URL}/connect`);
-          const data = await response.json();
-          if (!response.ok || data?.status !== "connected") {
-            throw new Error(data?.error || data?.status || "Unable to connect to drone.");
-          }
-          updateStatus(true, data?.battery ?? null, data, data?.command_ready);
-        } catch (err) {
-          updateStatus(false, null);
-          console.error("Failed to connect to Tello", err);
-        } finally {
-          connectBtn.disabled = false;
-        }
-      }
-    });
-  }
+  connectBtn?.addEventListener("click", () => {
+    if (telloConnection.connected) {
+      // Disconnect in the UI only; the bridge keeps its link to the drone.
+      updateStatus(false, null);
+    } else {
+      connectDrone();
+    }
+  });
 });
 
 // ===============================

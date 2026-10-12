@@ -44,6 +44,8 @@ $chipLabel = $isAdmin ? 'Admin' : (preg_match('/pilot$/i', $rankTitle) ? $rankTi
 $isLite = isset($_GET['lite']) && $_GET['lite'] === '1';
 // Same switch as IS_LESSON_SIM in JS/workspace.js: lesson mode runs a simulator instead of the drone.
 $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
+// Lessons always simulate; the normal workspace lets the user switch between simulator and drone.
+$simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,7 +65,7 @@ $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
-<body class="scratch-shell <?php echo $isLite ? 'scratch-shell-lite' : ''; ?>" data-home="<?= htmlspecialchars($homeUrl, ENT_QUOTES, 'UTF-8'); ?>">
+<body class="scratch-shell <?php echo $isLite ? 'scratch-shell-lite' : ''; ?>" data-home="<?= htmlspecialchars($homeUrl, ENT_QUOTES, 'UTF-8'); ?>" data-user="<?= $userId ?>" data-sim-locked="<?= $simLocked ? '1' : '0' ?>">
   <?php if (!$isLite): ?>
     <header class="scratch-header">
       <div class="header-brand">
@@ -74,7 +76,8 @@ $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
           <h1>CodeFly Workspace</h1>
         </div>
       </div>
-      <div class="header-telemetry" aria-label="Drone telemetry">
+      <div class="header-telemetry is-offline" id="header-telemetry" aria-label="Drone telemetry">
+        <span class="telemetry-offline" id="telemetry-offline">No drone data</span>
         <div class="telemetry-chip">
           <p>Pitch</p>
           <span id="telemetry-pitch">--</span>
@@ -89,40 +92,27 @@ $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
         </div>
       </div>
       <div class="header-actions">
+        <?php if (!$simLocked): ?>
+          <div class="mode-switch" role="radiogroup" aria-label="Run on">
+            <button type="button" class="mode-option" data-mode="sim" role="radio" aria-checked="false" title="Run on the on-screen simulator (no drone needed)">
+              <i class='bx bx-desktop'></i><span>Simulator</span>
+            </button>
+            <button type="button" class="mode-option" data-mode="drone" role="radio" aria-checked="false" title="Run on the DJI Tello">
+              <i class='bx bx-paper-plane'></i><span>Drone</span>
+            </button>
+          </div>
+        <?php endif; ?>
         <div class="header-controls">
-          <button type="button" class="stage-btn flag header-flag-btn" id="header-flag-btn">
+          <button type="button" class="stage-btn flag header-flag-btn" id="header-flag-btn" title="Run the program (Esc stops and lands)">
             <span class="launch-timer" id="launch-timer">00:00</span>
             <span id="header-flag-label">Launch</span>
           </button>
         </div>
-        <div class="pilot-chip" id="pilot-chip">
-          <button type="button" class="chip-trigger" id="pilot-chip-trigger" aria-haspopup="true" aria-expanded="false">
+        <div class="pilot-chip" id="pilot-chip" title="Signed in">
+          <span class="chip-trigger">
             <span class="chip-label"><?= htmlspecialchars($chipLabel, ENT_QUOTES, 'UTF-8'); ?></span>
-            <img src="../Assets/logo3.png" alt="CodeFly logo" class="chip-logo">
-            <i class='bx bx-chevron-down'></i>
-          </button>
-          <div class="chip-menu" id="pilot-chip-menu" role="menu">
-            <button type="button" class="chip-option" data-action="undo">
-              <span class="chip-icon"><i class='bx bx-undo'></i></span>
-              <span class="chip-text">Undo</span>
-            </button>
-            <button type="button" class="chip-option" data-action="redo">
-              <span class="chip-icon"><i class='bx bx-redo'></i></span>
-              <span class="chip-text">Redo</span>
-            </button>
-            <button type="button" class="chip-option" data-action="reset">
-              <span class="chip-icon"><i class='bx bx-revision'></i></span>
-              <span class="chip-text">Reset</span>
-            </button>
-            <button type="button" class="chip-option" data-action="save">
-              <span class="chip-icon"><i class='bx bx-save'></i></span>
-              <span class="chip-text">Save</span>
-            </button>
-            <button type="button" class="chip-option" data-action="load">
-              <span class="chip-icon"><i class='bx bx-import'></i></span>
-              <span class="chip-text">Load</span>
-            </button>
-          </div>
+            <img src="../Assets/logo3.png" alt="" class="chip-logo">
+          </span>
         </div>
       </div>
     </header>
@@ -149,14 +139,19 @@ $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
   <div class="scratch-body">
     <aside class="scratch-sidebar">
       <?php if (!$isLite): ?>
-        <div class="sidebar-head">
-          <button type="button" id="connect-btn" class="brand-logo drone-avatar" aria-pressed="false">
-            <i class='bx bx-rocket'></i>
-          </button>
-          <div class="sidebar-copy">
-            <p id="sidebar-connection-label">Not Connected</p>
-            <span id="sidebar-battery-label">Battery: Unknown</span>
+        <div class="drone-card" id="drone-card" data-state="offline">
+          <div class="drone-card__status">
+            <span class="drone-card__dot" aria-hidden="true"></span>
+            <div class="sidebar-copy">
+              <p id="sidebar-connection-label">Not Connected</p>
+              <span id="sidebar-battery-label">Battery: Unknown</span>
+            </div>
           </div>
+          <div class="drone-card__battery" aria-hidden="true"><span id="battery-bar"></span></div>
+          <button type="button" id="connect-btn" class="drone-connect-btn" aria-pressed="false">
+            <i class='bx bx-wifi'></i><span id="connect-btn-label">Connect drone</span>
+          </button>
+          <p class="drone-card__sim-note">Simulator mode: no drone needed. Switch to <strong>Drone</strong> above to fly the Tello.</p>
         </div>
       <?php endif; ?>
 
@@ -236,9 +231,22 @@ $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
     </aside>
 
     <section class="workspace-panel">
-      <div class="panel-tabs" role="tablist">
-        <button class="tab-btn active" data-view="blocks">Blocks</button>
-        <button class="tab-btn" data-view="python">Python</button>
+      <div class="panel-head">
+        <div class="panel-tabs" role="tablist">
+          <button class="tab-btn active" data-view="blocks">Blocks</button>
+          <button class="tab-btn" data-view="python">Python</button>
+        </div>
+        <div class="canvas-toolbar" role="toolbar" aria-label="Program tools">
+          <span class="program-name" id="program-name" title="Current program">Untitled</span>
+          <button type="button" class="tool-btn" data-action="undo" title="Undo (Ctrl+Z)" aria-label="Undo"><i class='bx bx-undo'></i></button>
+          <button type="button" class="tool-btn" data-action="redo" title="Redo (Ctrl+Y)" aria-label="Redo"><i class='bx bx-redo'></i></button>
+          <button type="button" class="tool-btn" data-action="reset" title="Clear all blocks" aria-label="Clear all blocks"><i class='bx bx-trash'></i></button>
+          <?php if (!$isLite): ?>
+          <span class="tool-sep" aria-hidden="true"></span>
+          <button type="button" class="tool-btn tool-btn--text" data-action="save" title="Save to your account"><i class='bx bx-save'></i><span>Save</span></button>
+          <button type="button" class="tool-btn tool-btn--text" data-action="load" title="Open one of your saved programs"><i class='bx bx-folder-open'></i><span>My programs</span></button>
+          <?php endif; ?>
+        </div>
       </div>
 
       <div class="workspace-view active" data-view="blocks" id="blocks-view">
@@ -261,12 +269,17 @@ $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
           </button>
         </div>
         <div class="console-body" id="consoleBody">
-          <?php if ($isSim): ?>
-            <div class="sim-panel">
-              <canvas id="droneSimCanvas" width="360" height="200" aria-label="Drone simulator"></canvas>
+          <div class="sim-panel">
+            <canvas id="droneSimCanvas" width="480" height="270" aria-label="Drone simulator, seen from above"></canvas>
+            <div class="sim-side">
               <p id="droneSimStatus" class="sim-status">Ready</p>
+              <dl class="sim-readout">
+                <dt>Height</dt><dd id="simAltitude">0 cm</dd>
+                <dt>Heading</dt><dd id="simHeading">0&deg;</dd>
+              </dl>
+              <p class="sim-hint">Top view: forward is up. 1 grid square = 50 cm.</p>
             </div>
-          <?php endif; ?>
+          </div>
           <div class="console-panels">
             <div class="console-panel active">
               <pre id="consoleOutput" data-placeholder="Press Launch to see drone output here.">Press Launch to see drone output here.</pre>

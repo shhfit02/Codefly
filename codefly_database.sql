@@ -153,6 +153,18 @@ CREATE TABLE IF NOT EXISTS user_notifications (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Code Block programs saved from the workspace (PHP/programs.php)
+CREATE TABLE IF NOT EXISTS user_programs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    name VARCHAR(60) NOT NULL,
+    program MEDIUMTEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_program (user_id, name),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- First admin account
 -- No admin is seeded here: a default account with a published password would let
 -- anyone into the admin pages of a fresh install. Instead, register normally through

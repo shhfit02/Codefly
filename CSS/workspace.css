@@ -855,3 +855,434 @@ aside.scratch-sidebar > * {
     padding: 0 2px;
   }
 }
+
+/* ---------- Simulator / Drone switch (header) ---------- */
+.mode-switch {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.mode-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 7px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.mode-option[aria-checked="true"] {
+  background: #fff;
+  color: #1e3a8a;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+}
+
+.mode-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ---------- Telemetry: a single label until the drone sends data ---------- */
+.telemetry-offline {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.45);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.header-telemetry.is-offline .telemetry-chip {
+  display: none;
+}
+
+.header-telemetry.is-offline .telemetry-offline {
+  display: inline-flex;
+}
+
+/* ---------- Drone connection card (sidebar) ---------- */
+.drone-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+}
+
+.drone-card__status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.drone-card__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18);
+}
+
+.drone-card[data-state="connecting"] .drone-card__dot {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+  animation: drone-dot-pulse 1s ease-in-out infinite;
+}
+
+.drone-card[data-state="connected"] .drone-card__dot {
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+}
+
+.drone-card[data-state="sim"] .drone-card__dot {
+  background: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+}
+
+@keyframes drone-dot-pulse {
+  50% { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drone-card[data-state="connecting"] .drone-card__dot { animation: none; }
+}
+
+.drone-card__battery {
+  height: 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.drone-card__battery span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #22c55e;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+.drone-card__battery span.is-low {
+  background: #ef4444;
+}
+
+.drone-connect-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(120deg, #0f82ff, #6f71ff);
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(15, 130, 255, 0.25);
+}
+
+.drone-connect-btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.drone-connect-btn.is-connected {
+  background: #fff;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  box-shadow: none;
+}
+
+.drone-card__sim-note {
+  display: none;
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #475569;
+}
+
+/* In simulator mode the connect controls are replaced by a short note. */
+body.sim-mode .drone-card__battery,
+body.sim-mode .drone-connect-btn {
+  display: none;
+}
+
+body.sim-mode .drone-card__sim-note {
+  display: block;
+}
+
+/* ---------- Canvas toolbar (tabs row) ---------- */
+.panel-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 18px 18px 0;
+}
+
+.panel-head .panel-tabs {
+  flex: 1;
+  padding: 0;
+}
+
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 6px;
+}
+
+.program-name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5b6585;
+  margin-right: 6px;
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tool-btn i {
+  font-size: 1.15rem;
+}
+
+.tool-btn:hover {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.tool-btn[data-action="reset"]:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.tool-sep {
+  width: 1px;
+  height: 22px;
+  margin: 0 4px;
+  background: var(--border);
+}
+
+/* ---------- Simulator (console) ---------- */
+.sim-panel {
+  display: none;
+}
+
+/* Simulator beside the log, so both stay visible in the default console height. */
+body.sim-mode .console-body {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+body.sim-mode .sim-panel {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0 10px 14px;
+  flex-shrink: 0;
+}
+
+body.sim-mode #droneSimCanvas {
+  width: 320px;
+  height: auto;
+}
+
+body.sim-mode .console-panels {
+  min-width: 0;
+}
+
+.sim-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.sim-readout {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.sim-readout dt {
+  color: #94a3b8;
+}
+
+.sim-readout dd {
+  margin: 0;
+  font-weight: 700;
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+body.sim-mode .console-footer {
+  max-height: none;
+}
+
+@media (max-width: 1100px) {
+  body.sim-mode .console-body {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 1100px) {
+  .panel-head {
+    flex-wrap: wrap;
+  }
+
+  .panel-head .panel-tabs {
+    flex-basis: 100%;
+    order: 2;
+  }
+
+  .canvas-toolbar {
+    order: 1;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .program-name {
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .tool-btn--text span,
+  .mode-option span {
+    display: none;
+  }
+}
+
+/* ---------- "My programs" and connect-help dialogs (SweetAlert2) ---------- */
+.programs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 55vh;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.programs-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.programs-list li > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.programs-list strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #0f172a;
+}
+
+.programs-list span {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.programs-open,
+.programs-delete {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  height: 36px;
+}
+
+.programs-open {
+  padding: 0 14px;
+  color: #3730a3;
+}
+
+.programs-open:hover {
+  background: #eef2ff;
+}
+
+.programs-delete {
+  width: 36px;
+  color: #b91c1c;
+}
+
+.programs-delete:hover {
+  background: #fef2f2;
+}
+
+.programs-empty {
+  margin: 0;
+  color: #64748b;
+}
+
+.connect-steps {
+  text-align: left;
+  margin: 10px auto 0;
+  padding-left: 1.4em;
+  max-width: 340px;
+  line-height: 1.6;
+}
+
+.connect-steps code {
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+
+.connect-detail {
+  font-size: 0.8rem;
+  color: #64748b;
+}
