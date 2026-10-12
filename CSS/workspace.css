@@ -1100,7 +1100,7 @@ body.sim-mode .drone-card__sim-note {
 }
 
 .sim-float {
-  display: none;
+  display: block;
   position: absolute;
   top: 12px;
   right: 30px; /* clear of Blockly's vertical scrollbar */
@@ -1114,8 +1114,32 @@ body.sim-mode .drone-card__sim-note {
   color: #e2e8f0;
 }
 
-body.sim-mode .sim-float {
-  display: block;
+/* Simulator mode shows the canvas and readout; drone mode only the status and log. */
+body.sim-mode .drone-only,
+body:not(.sim-mode) .sim-only {
+  display: none !important;
+}
+
+.flight-log {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  max-height: 120px;
+  min-height: 34px;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: #060b17;
+  border: 1px solid #1f2b47;
+  color: #94a3b8;
+  font-family: "Fira Code", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+body:not(.sim-mode) .flight-log {
+  margin-top: 0;
+  max-height: 220px;
 }
 
 .sim-float__bar {

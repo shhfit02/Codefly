@@ -1,6 +1,3 @@
-const CONSOLE_MIN_HEIGHT = 140;
-const CONSOLE_MAX_HEIGHT = 520;
-let lastConsoleHeight = 260;
 const urlParams = new URLSearchParams(window.location.search);
 const LESSON_ID = urlParams.get('lesson') || '';
 const IS_LESSON_SIM = urlParams.get('sim') === '1' || urlParams.get('mode') === 'lesson';
@@ -154,13 +151,6 @@ const lessonToolboxConfigs = {
 };
 
 
-function toggleConsole() {
-  const footer = document.getElementById("consoleFooter");
-  if (!footer) return;
-  const shouldCollapse = !footer.classList.contains("collapsed");
-  setConsoleCollapsed(shouldCollapse);
-}
-
 function filterMissionBlocks(categoryName, allowedTypes) {
   const baseBlocks = toolboxContents[categoryName] || [];
   if (!allowedTypes || !allowedTypes.length) return baseBlocks;
@@ -194,124 +184,10 @@ function applyMissionToolboxConfig() {
   }
 }
 
-function clampConsoleHeight(value) {
-  return Math.min(CONSOLE_MAX_HEIGHT, Math.max(CONSOLE_MIN_HEIGHT, value));
-}
-
-function updateConsoleIcon(isCollapsed) {
-  const icon = document.getElementById("consoleToggleSymbol");
-  if (icon) {
-    icon.classList.toggle("bx-chevron-up", isCollapsed);
-    icon.classList.toggle("bx-chevron-down", !isCollapsed);
-  }
-}
-
-function setConsoleCollapsed(collapsed) {
-  const footer = document.getElementById("consoleFooter");
-  if (!footer) return;
-
-  if (collapsed) {
-    const currentHeight = footer.getBoundingClientRect().height;
-    if (!isNaN(currentHeight) && currentHeight > 0) {
-      lastConsoleHeight = clampConsoleHeight(currentHeight);
-    }
-    footer.classList.add("collapsed");
-    footer.style.height = "";
-  } else {
-    footer.classList.remove("collapsed");
-    const targetHeight = clampConsoleHeight(
-      lastConsoleHeight || footer.getBoundingClientRect().height || 240
-    );
-    footer.style.height = `${targetHeight}px`;
-  }
-
-  const isCollapsed = footer.classList.contains("collapsed");
-  updateConsoleIcon(isCollapsed);
-  const toggleBtn = document.getElementById("consoleToggleBtn");
-  if (toggleBtn) {
-    toggleBtn.setAttribute("aria-expanded", (!isCollapsed).toString());
-  }
-  setTimeout(resizeBlockly, 500);
-}
-
+// The run log lives in the floating flight panel (#simFloat); "opening the console" now just
+// makes sure that panel is not minimised.
 function openConsole() {
-  setConsoleCollapsed(false);
-}
-
-function clearActiveConsolePanel() {
-  const activePanel = document.querySelector(".console-panel.active pre");
-  if (activePanel) {
-    activePanel.textContent = activePanel.dataset.placeholder || "";
-    activePanel.scrollTop = 0;
-    activePanel.style.color = "";
-  }
-}
-
-function initConsoleResizer() {
-  const footer = document.getElementById("consoleFooter");
-  const resizer = document.getElementById("consoleResizer");
-  if (!footer || !resizer) return;
-
-  let startY = 0;
-  let startHeight = footer.getBoundingClientRect().height;
-
-  const handleDrag = (clientY) => {
-    const delta = clientY - startY;
-    const newHeight = clampConsoleHeight(startHeight - delta);
-    footer.style.height = `${newHeight}px`;
-    lastConsoleHeight = newHeight;
-    resizeBlockly();
-  };
-
-  const stopResize = () => {
-    document.body.classList.remove("resizing-console");
-    footer.classList.remove("resizing");
-    window.removeEventListener("mousemove", onMouseMove);
-    window.removeEventListener("mouseup", onMouseUp);
-    window.removeEventListener("touchmove", onTouchMove);
-    window.removeEventListener("touchend", onTouchEnd);
-    setTimeout(resizeBlockly, 200);
-  };
-
-  const onMouseMove = (e) => {
-    e.preventDefault();
-    handleDrag(e.clientY);
-  };
-
-  const onMouseUp = (e) => {
-    e.preventDefault();
-    stopResize();
-  };
-
-  const onTouchMove = (e) => {
-    if (e.touches.length !== 1) return;
-    handleDrag(e.touches[0].clientY);
-  };
-
-  const onTouchEnd = () => stopResize();
-
-  const startResize = (clientY) => {
-    startY = clientY;
-    startHeight = footer.getBoundingClientRect().height || lastConsoleHeight;
-    openConsole();
-    document.body.classList.add("resizing-console");
-    footer.classList.add("resizing");
-  };
-
-  resizer.addEventListener("mousedown", (e) => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    startResize(e.clientY);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  });
-
-  resizer.addEventListener("touchstart", (e) => {
-    if (e.touches.length !== 1) return;
-    startResize(e.touches[0].clientY);
-    window.addEventListener("touchmove", onTouchMove);
-    window.addEventListener("touchend", onTouchEnd);
-  });
+  setSimMinimised(false);
 }
 
 // NOTE: This object is NOT used.
@@ -338,25 +214,6 @@ if (typeof ResizeObserver !== 'undefined') {
 // Category click handlers
 document.addEventListener('DOMContentLoaded', function() {
   initRunMode();
-  const footer = document.getElementById("consoleFooter");
-  if (footer) {
-    updateConsoleIcon(footer.classList.contains("collapsed"));
-  }
-  const consoleToggleBtn = document.getElementById("consoleToggleBtn");
-  if (consoleToggleBtn) {
-    consoleToggleBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      toggleConsole();
-    });
-  }
-  const consoleClearBtn = document.getElementById("consoleClearBtn");
-  if (consoleClearBtn) {
-    consoleClearBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      clearActiveConsolePanel();
-    });
-  }
-  initConsoleResizer();
   // --- Logic for Active Category ---
   const categoriesContainer = document.getElementById('categories');
   const categories = categoriesContainer ? categoriesContainer.querySelectorAll('.category') : [];
@@ -1444,9 +1301,7 @@ async function runCode() {
 
   // 1. Get the console element and clear it
   const consoleOutput = document.getElementById('consoleOutput');
-  // In simulator mode the floating simulator shows the run, so the console (and the canvas
-  // space it takes) only opens when the user opens it.
-  const showConsole = () => { if (!simMode) openConsole(); };
+  const showConsole = openConsole;
   if (consoleOutput) {
     showConsole();
     consoleOutput.textContent = ''; // Clear console
@@ -1974,6 +1829,9 @@ function goHome() {
 }
 
 function setPythonStatus(message, state = 'idle') {
+  // Drone mode: the flight panel title shows the same status (the simulator sets its own).
+  const flightStatus = document.getElementById('droneSimStatus');
+  if (flightStatus && !simMode) flightStatus.textContent = message;
   const statusEl = document.getElementById('python-status');
   if (!statusEl) return;
   statusEl.textContent = message;
@@ -2106,8 +1964,17 @@ function setRunMode(useSim) {
     // Private windows may block storage; the switch still works for this visit.
   }
   applyRunMode();
+  // Start the flight panel fresh: the previous mode's log does not apply any more.
+  const log = document.getElementById('consoleOutput');
+  if (log) {
+    log.textContent = 'Press Launch to run your program.';
+    log.style.color = '';
+  }
   if (useSim) {
     resetSimState();
+  } else {
+    const status = document.getElementById('droneSimStatus');
+    if (status) status.textContent = 'Ready';
   }
 }
 

@@ -251,21 +251,24 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
 
       <div class="workspace-view active" data-view="blocks" id="blocks-view">
         <div id="blocklyDiv" class="blockly-stage"></div>
-        <!-- Floating simulator (simulator mode only): drag by its title bar, minimise with the button. -->
-        <section class="sim-float" id="simFloat" aria-label="Drone simulator">
+        <!-- Floating flight panel: the simulator (simulator mode) and the run log (both modes).
+             Drag it by its title bar; minimise it with the button. -->
+        <section class="sim-float" id="simFloat" aria-label="Flight panel">
           <header class="sim-float__bar" id="simFloatBar">
             <i class='bx bx-move' aria-hidden="true"></i>
-            <span class="sim-float__title">Simulator</span>
+            <span class="sim-float__title"><span class="sim-only">Simulator</span><span class="drone-only">Flight log</span></span>
             <span id="droneSimStatus" class="sim-status">Ready</span>
             <button type="button" class="sim-float__toggle" id="simFloatToggle" aria-expanded="true" aria-label="Minimise simulator"><i class='bx bx-minus'></i></button>
           </header>
           <div class="sim-float__body">
-            <canvas id="droneSimCanvas" width="480" height="270" aria-label="Drone simulator, seen from above"></canvas>
-            <dl class="sim-readout">
+            <canvas id="droneSimCanvas" class="sim-only" width="480" height="270" aria-label="Drone simulator, seen from above"></canvas>
+            <dl class="sim-readout sim-only">
               <dt>Height</dt><dd id="simAltitude">0 cm</dd>
               <dt>Heading</dt><dd id="simHeading">0&deg;</dd>
               <dt class="sim-hint">Forward is up &middot; 1 square = 50 cm</dt>
             </dl>
+            <!-- workspace.js writes each step, errors and bridge results here. -->
+            <pre id="consoleOutput" class="flight-log" aria-live="polite">Press Launch to run your program.</pre>
           </div>
         </section>
       </div>
@@ -275,24 +278,6 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
         <pre><code id="pythonPreview" class="language-python"># Drag blocks to see Python...</code></pre>
       </div>
 
-      <!-- Drone output: workspace.js writes run logs, errors and bridge results here. -->
-      <div class="console-footer collapsed" id="consoleFooter">
-        <div class="console-resizer" id="consoleResizer" aria-hidden="true"></div>
-        <div class="console-toolbar">
-          <span class="console-title">Drone Console</span>
-          <button type="button" class="console-btn" id="consoleClearBtn">Clear</button>
-          <button type="button" class="console-btn" id="consoleToggleBtn" aria-expanded="false" aria-controls="consoleBody" aria-label="Show or hide console">
-            <i class='bx bx-chevron-up' id="consoleToggleSymbol"></i>
-          </button>
-        </div>
-        <div class="console-body" id="consoleBody">
-          <div class="console-panels">
-            <div class="console-panel active">
-              <pre id="consoleOutput" data-placeholder="Press Launch to see drone output here.">Press Launch to see drone output here.</pre>
-            </div>
-          </div>
-        </div>
-      </div>
     </section>
 
   </div>

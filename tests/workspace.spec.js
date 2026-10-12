@@ -45,7 +45,7 @@ test.describe('workspace', () => {
     await expect(page.locator('#droneSimStatus')).toHaveText('Stopped');
   });
 
-  test('the simulator floats over the canvas and can be minimised', async ({ page }) => {
+  test('the flight panel floats over the canvas and can be minimised', async ({ page }) => {
     await openWorkspace(page);
     const sim = page.locator('#simFloat');
     await expect(sim).toBeVisible();
@@ -61,8 +61,12 @@ test.describe('workspace', () => {
     await expect(page.locator('#droneSimCanvas')).toBeVisible();
     await page.keyboard.press('Escape');
 
+    // Drone mode keeps the panel as a flight log, without the simulator.
     await page.locator('.mode-option[data-mode="drone"]').click();
-    await expect(sim).toBeHidden();
+    await expect(sim).toBeVisible();
+    await expect(page.locator('#droneSimCanvas')).toBeHidden();
+    await expect(sim.locator('.drone-only')).toHaveText('Flight log');
+    await expect(page.locator('#consoleFooter')).toHaveCount(0);
   });
 
   test('drone mode without a drone explains what to do and offers the simulator', async ({ page }) => {
