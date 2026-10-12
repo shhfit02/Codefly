@@ -277,12 +277,10 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
       </div>
 
       <div class="workspace-view" data-view="python" id="python-view">
-        <div class="python-status" id="python-status">Ready to transpile blocks.</div>
         <pre><code id="pythonPreview" class="language-python"># Drag blocks to see Python...</code></pre>
       </div>
 
       <div class="workspace-view" data-view="log" id="log-view">
-        <div class="python-status status-idle" id="flight-status">Connect the drone, then press Launch.</div>
         <div class="flight-log-slot" id="flightLogSlot"></div>
       </div>
 
