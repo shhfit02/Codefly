@@ -1265,51 +1265,54 @@ function clampPercent(value) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
+// Solid pastel of a hex colour (mixed with white), so pending segments never look darker
+// where they meet, unlike a translucent colour.
+function tintHex(hex, amount = 0.78) {
+  const n = parseInt(hex.slice(1), 16);
+  const mix = (c) => Math.round(c + (255 - c) * amount);
+  const r = mix((n >> 16) & 255);
+  const g = mix((n >> 8) & 255);
+  const b = mix(n & 255);
+  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
+}
+
+// One ring segment per lesson: done lessons in the module colour, the rest in its pastel.
+// Flat segment ends with a fixed gap (round ends overlapped the gaps and made dark blobs).
+// .donut-chart in home.css rotates it so the first lesson starts at 12 o'clock.
 function buildSegmentedDonutSVG(totalMissions = 1, completedMissions = 0, idx = 0, lessonTitles = [], doneFlags = null) {
   const total = Math.max(1, Math.floor(totalMissions));
   const completed = Math.max(0, Math.min(total, Math.floor(completedMissions)));
-  const r = 15.915;
+  const r = 15.915; // circumference = 100, so dash lengths are percentages
   const palette = ["#0ea5e9", "#22c55e", "#f97316", "#ec4899"];
   const doneColor = palette[idx % palette.length];
-  const pendingColor = `${doneColor}33`; // dimmed version
-  const baseColor = "#ffffff";
-  const gap = Math.min(10, (100 / total) * 0.3); // gap between lesson segments, smaller when there are many
-  const segment = Math.max(0, (100 / total) - gap);
-  let offset = 0;
+  const pendingColor = tintHex(doneColor);
+  const gap = total > 1 ? Math.min(2.5, (100 / total) * 0.3) : 0;
+  const segment = 100 / total - gap;
   const circles = [];
-
-  // base ring
-  circles.push(`
-    <circle cx="18" cy="18" r="${r}" fill="none" stroke="${baseColor}" stroke-width="7" stroke-linecap="round"></circle>
-  `);
 
   for (let i = 0; i < total; i += 1) {
     const isDone = Array.isArray(doneFlags) && doneFlags.length === total ? doneFlags[i] : i < completed;
-    const color = isDone ? doneColor : pendingColor;
     const lessonName = lessonTitles[i] || `Lesson ${i + 1}`;
     const safeName = lessonName.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
     circles.push(`
       <circle
+        class="donut-segment"
         cx="18"
         cy="18"
         r="${r}"
         fill="none"
-        stroke="${color}"
-        stroke-width="8"
+        stroke="${isDone ? doneColor : pendingColor}"
+        stroke-width="4"
         stroke-dasharray="${segment} ${100 - segment}"
-        stroke-dashoffset="-${offset}"
-        stroke-linecap="round"
-        data-lesson-title="${safeName}"
-        aria-label="${safeName}"
+        stroke-dashoffset="${-(i * (100 / total) + gap / 2)}"
       >
-        <title>${safeName}</title>
+        <title>${safeName}${isDone ? " (done)" : ""}</title>
       </circle>
     `);
-    offset += segment + gap;
   }
 
   return `
-    <svg class="donut-chart" viewBox="0 0 36 36" role="img" aria-hidden="true" width="120" height="120" style="display:block; border-radius:50%;" preserveAspectRatio="xMidYMid meet">
+    <svg class="donut-chart" viewBox="0 0 36 36" role="img" aria-hidden="true" width="120" height="120" preserveAspectRatio="xMidYMid meet">
       ${circles.join("")}
     </svg>
   `;
