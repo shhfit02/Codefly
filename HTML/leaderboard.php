@@ -370,6 +370,71 @@
       transform: translateX(8px) scale(1.03);
     }
 
+    /* home.css gives .home overflow-x:hidden, which stops the sticky rank panel from
+       following the window; clip cuts sideways overflow without that side effect. */
+    .home {
+      overflow-x: clip;
+    }
+
+    /* Silver and bronze for 2nd and 3rd place (1st is the gold .primary card). */
+    .top-pilot-card.second {
+      background: radial-gradient(circle at top left, #f8fafc, #cbd5e1);
+      border: none;
+    }
+
+    .top-pilot-card.third {
+      background: radial-gradient(circle at top left, #ffedd5, #fdba74);
+      border: none;
+    }
+
+    .top-pilot-card.second .top-pilot-card__position,
+    .top-pilot-card.third .top-pilot-card__position {
+      color: #ffffff;
+    }
+
+    /* The signed-in student. */
+    .you-tag {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 6px;
+      padding: 1px 8px;
+      border-radius: 999px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+
+    #leaderboard-body tr.is-you td {
+      background: #eff6ff;
+    }
+
+    .status-chip.training {
+      background: rgba(245, 158, 11, 0.15);
+      color: #b45309;
+    }
+
+    /* Rank ladder: current rank highlighted in place, earlier ranks ticked off. */
+    .ladder-pill.ladder-active {
+      transform: none;
+    }
+
+    .ladder-pill.ladder-done .ladder-pill__level::before {
+      content: "\2713  ";
+      color: #4ade80;
+    }
+
+    .ladder-pill__level {
+      white-space: nowrap;
+    }
+
+    .ladder-pill__note {
+      margin: 2px 0 0;
+      font-size: 0.72rem;
+      color: rgba(226, 232, 240, 0.8);
+    }
+
     #leaderboard-body tr td {
       border-bottom: 1px solid #e2e8f0;
     }
@@ -402,16 +467,21 @@
                 See where you stand, filter by rank and check out the pilots leading the way.
               </p>
             </div>
-            <div class="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-5 text-center min-w-[220px]">
-              <p class="text-xs uppercase tracking-[0.2em] text-white/70">Next unlock</p>
-                <p class="text-3xl font-bold">1,200 XP</p>
-                <p class="text-sm text-white/80 mt-2">Reach Elite Pilot to unlock the Code Block workspace and program the drone.</p>
-              <div class="flex flex-col gap-3 mt-4">
-                <button type="button" id="viewRulesBtn" class="inline-flex items-center justify-center gap-2 bg-white text-slate-900 font-semibold px-4 py-2 rounded-xl shadow-lg hover:-translate-y-0.5 transition">
-                View Rules
-                <i class='bx bx-right-arrow-alt text-lg'></i>
-                </button>
+            <div class="w-full sm:w-auto bg-white/20 backdrop-blur-md rounded-2xl px-5 sm:px-6 py-5 sm:min-w-[260px] lg:max-w-[320px]" aria-live="polite">
+              <div class="flex items-baseline justify-between gap-4">
+                <p class="text-xs uppercase tracking-[0.2em] text-white/70">Your progress</p>
+                <p class="text-sm font-semibold text-white/90 whitespace-nowrap"><span id="myPosition">#-</span><span id="myPositionOf" class="text-white/70"></span></p>
               </div>
+              <p class="text-3xl font-bold mt-1"><span id="myXp">--</span> <span class="text-base font-semibold text-white/80">XP</span></p>
+              <div class="mt-3 h-2 rounded-full bg-white/25 overflow-hidden" aria-hidden="true">
+                <div id="myXpBar" class="h-full rounded-full bg-white" style="width:0%"></div>
+              </div>
+              <p id="myNextRank" class="text-sm text-white/85 mt-2">&nbsp;</p>
+              <p id="myCodeBlock" class="text-xs text-white/80 mt-1 flex items-center gap-1"></p>
+              <button type="button" id="viewRulesBtn" class="mt-4 w-full inline-flex items-center justify-center gap-2 bg-white text-slate-900 font-semibold px-4 py-2 rounded-xl shadow-lg hover:-translate-y-0.5 transition">
+                How ranking works
+                <i class='bx bx-right-arrow-alt text-lg'></i>
+              </button>
             </div>
           </div>
         </div>
@@ -460,7 +530,7 @@
               <table class="min-w-full text-sm text-left text-gray-700">
                 <thead class="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">ID</th>
+                    <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">#</th>
                     <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Avatar</th>
                     <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Pilot</th>
                     <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Total XP</th>
@@ -480,17 +550,15 @@
       </div>
 
       <!-- RIGHT COLUMN -->
-      <div class="w-full lg:w-80 flex-shrink-0 self-start">
+      <div class="w-full lg:w-80 flex-shrink-0 lg:sticky lg:top-6 self-start">
         <div
-          class="rank-panel sticky top-6 rounded-2xl shadow-lg h-[calc(100vh-4rem)] relative overflow-hidden text-white"
+          class="rank-panel rounded-2xl shadow-lg h-[calc(100vh-4rem)] relative overflow-hidden text-white"
           style="background-image: url('../Assets/background-rank.jpg'); background-size: cover; background-position: center;"
         >
           <div class="rank-panel__overlay"></div>
           <div class="rank-panel__content">
             <div class="rank-panel__header">
-              <span class="rank-panel__eyebrow">Lesson tracker</span>
               <h2 class="rank-panel__title">Pilot Rank</h2>
-              <p class="rank-panel__subtitle">Elite Pilot at 1,200 XP unlocks Code Block. Track your climb.</p>
             </div>
 
             <div class="rank-card">
@@ -500,70 +568,38 @@
               <div class="rank-card__details">
                 <p class="rank-card__meta">Current clearance</p>
                 <h3 id="currentRankTitle" class="rank-card__title">Rookie</h3>
-                <p id="currentRankStatus" class="rank-card__status">Not Eligible to fly</p>
+                <p id="currentRankStatus" class="rank-card__status">&nbsp;</p>
               </div>
             </div>
 
             <div class="rank-panel__ladder">
               <div class="rank-panel__ladder-head">
                 <h4>Rank Ladder</h4>
-                <span class="rank-panel__ladder-meta">6 stages</span>
+                <span class="rank-panel__ladder-meta">From</span>
               </div>
               <div class="rank-ladder no-scrollbar" id="rankLadder">
-                <div class="ladder-pill" data-rank="bronze">
+                <?php
+                // Same thresholds as rankTiers() in PHP/profile_helpers.php.
+                $ladder = [
+                    ['bronze', 'Rookie', 'RankBronze.png', 0],
+                    ['silver', 'Operator', 'RankSilver.png', 400],
+                    ['gold', 'Specialist', 'RankGold.png', 800],
+                    ['ace', 'Elite Pilot', 'RankAce.png', 1200],
+                    ['captain', 'Commander', 'RankCaptain.png', 3000],
+                    ['commander', 'Grand Commander', 'RankCommander.png', 5000],
+                ];
+                foreach ($ladder as [$key, $name, $badge, $minXp]): ?>
+                <div class="ladder-pill" data-rank="<?= $key ?>">
                   <div class="ladder-pill__media">
-                    <img src="../Assets/RankBronze.png" alt="Rookie badge" />
+                    <img src="../Assets/<?= $badge ?>" alt="" />
                   </div>
                   <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Rookie</p>
+                    <p class="ladder-pill__name"><?= $name ?></p>
+                    <?php if ($key === 'ace'): ?><p class="ladder-pill__note"><i class="bx bx-lock-open-alt"></i> Unlocks Code Block</p><?php endif; ?>
                   </div>
-                  <span class="ladder-pill__level">Lv. 01</span>
+                  <span class="ladder-pill__level"><?= number_format($minXp) ?> XP</span>
                 </div>
-                <div class="ladder-pill" data-rank="silver">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankSilver.png" alt="Operator badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Operator</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 02</span>
-                </div>
-                <div class="ladder-pill" data-rank="gold">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankGold.png" alt="Specialist badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Specialist</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 03</span>
-                </div>
-                <div class="ladder-pill" data-rank="ace">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankAce.png" alt="Elite Pilot badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Elite Pilot</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 04</span>
-                </div>
-                <div class="ladder-pill" data-rank="captain">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankCaptain.png" alt="Commander badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Commander</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 05</span>
-                </div>
-                <div class="ladder-pill" data-rank="commander">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankCommander.png" alt="Grand Commander badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Grand Commander</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 06</span>
-                </div>
+                <?php endforeach; ?>
               </div>
             </div>
           </div>
@@ -588,16 +624,53 @@
       return map[normalized] || rawTitle || 'Rookie';
     }
 
+    const RANK_KEYS = ['bronze', 'silver', 'gold', 'ace', 'captain', 'commander'];
+    // The signed-in student (from profileCard.php), used to mark "You" in the lists.
+    let myUsername = '';
+
     function highlightRankLadder(rankTitle = '') {
       const ladder = document.querySelectorAll('#rankLadder .ladder-pill');
       if (!ladder.length) {
         return;
       }
-      const normalized = rankTitle.toLowerCase();
+      const current = RANK_KEYS.indexOf(rankTitle.toLowerCase());
       ladder.forEach((pill) => {
-        const isActive = pill.dataset.rank === normalized;
-        pill.classList.toggle('ladder-active', isActive);
+        const index = RANK_KEYS.indexOf(pill.dataset.rank);
+        pill.classList.toggle('ladder-active', index === current);
+        pill.classList.toggle('ladder-done', current >= 0 && index < current);
       });
+    }
+
+    // Hero card: XP, progress to the next rank, and whether Code Block is open.
+    function renderMyProgress(data) {
+      const xp = Number(data?.xp ?? data?.rank?.score ?? 0);
+      const next = data?.nextRank;
+      const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+      set('myXp', xp.toLocaleString());
+      const bar = document.getElementById('myXpBar');
+      if (next) {
+        const span = Math.max(1, next.minXp - next.fromXp);
+        if (bar) bar.style.width = `${Math.min(100, Math.max(0, ((xp - next.fromXp) / span) * 100))}%`;
+        set('myNextRank', `${(next.minXp - xp).toLocaleString()} XP to ${displayRankTitle(next.key)}`);
+      } else {
+        if (bar) bar.style.width = '100%';
+        set('myNextRank', 'Top rank reached!');
+      }
+      const codeBlock = document.getElementById('myCodeBlock');
+      if (codeBlock) {
+        codeBlock.innerHTML = data?.workspace?.allowed
+          ? "<i class='bx bx-lock-open-alt'></i> Code Block unlocked"
+          : "<i class='bx bx-lock-alt'></i> Code Block unlocks at Elite Pilot (1,200 XP)";
+      }
+    }
+
+    // "#2 of 5" from the sorted leaderboard.
+    function renderMyPosition(sortedData) {
+      const me = sortedData.find((p) => p.username === myUsername);
+      const pos = document.getElementById('myPosition');
+      const of = document.getElementById('myPositionOf');
+      if (pos) pos.textContent = me ? `#${me.position}` : '#-';
+      if (of) of.textContent = me ? ` of ${sortedData.length}` : '';
     }
 
     async function hydrateCurrentRankCard() {
@@ -639,6 +712,9 @@
           return;
         }
 
+        myUsername = payload.data?.username || '';
+        renderMyProgress(payload.data);
+        window.leaderboardController?.refreshMe();
         const rank = payload.data?.rank || {};
         const rankDisplay = displayRankTitle(rank.title);
         if (iconEl && rank.badge) {
@@ -648,7 +724,7 @@
           titleEl.textContent = rankDisplay;
         }
         if (statusEl) {
-          statusEl.textContent = rank.status || (rank.title === 'Bronze' ? 'Not Eligible to fly' : 'Cleared for all lessons');
+          statusEl.textContent = (rank.status || '').toLowerCase() === 'eligible' ? 'Cleared to fly' : 'In training';
         }
         if (statusChipEl) {
           const eligible = (rank.status || '').toLowerCase().includes('eligible');
@@ -665,6 +741,7 @@
       wireRulesCta();
 
       const controller = initLeaderboard([]);
+      window.leaderboardController = controller;
       const refreshButton = document.getElementById('refreshLeaderboard');
       const MIN_REFRESH_DURATION = 3000;
 
@@ -850,6 +927,7 @@
         if (button.dataset.bound) {
           return;
         }
+        button.dataset.label = button.textContent.trim();
         button.addEventListener('click', () => {
           state.activeRank = button.dataset.rank || 'all';
           filterButtons.forEach((btn) => {
@@ -877,8 +955,25 @@
             a.username.localeCompare(b.username))
           .map((pilot, index) => ({ ...pilot, position: index + 1 }));
         updateStats();
+        updateRankCounts();
+        refreshMe();
+      }
+
+      function refreshMe() {
+        renderMyPosition(state.sortedData);
         renderTopPilots();
         renderTable();
+      }
+
+      function updateRankCounts() {
+        const counts = Object.fromEntries(RANK_KEYS.map((key) => [key, 0]));
+        state.sortedData.forEach((pilot) => {
+          if (pilot.rankKey in counts) counts[pilot.rankKey] += 1;
+        });
+        filterButtons.forEach((btn) => {
+          const key = btn.dataset.rank;
+          btn.textContent = `${btn.dataset.label} (${key === 'all' ? state.sortedData.length : counts[key] || 0})`;
+        });
       }
 
       function updateStats() {
@@ -912,9 +1007,7 @@
             window.location.href = profileLink;
           };
           card.addEventListener('click', navigateToProfile);
-          if (index === 0) {
-            card.classList.add('primary');
-          }
+          card.classList.add(['primary', 'second', 'third'][index]);
 
           const infoWrapper = document.createElement('div');
           infoWrapper.className = 'top-pilot-card__info';
@@ -945,6 +1038,12 @@
           scoreEl.appendChild(scoreValue);
 
           details.appendChild(nameEl);
+          if (pilot.username === myUsername) {
+            const you = document.createElement('span');
+            you.className = 'you-tag';
+            you.textContent = 'You';
+            nameEl.appendChild(you);
+          }
           details.appendChild(scoreEl);
           infoWrapper.appendChild(details);
 
@@ -990,6 +1089,7 @@
 
           const row = document.createElement('tr');
           row.className = 'hover:bg-slate-50 transition cursor-pointer';
+          if (pilot.username === myUsername) row.classList.add('is-you');
           row.addEventListener('click', navigateToProfile);
 
           const positionCell = document.createElement('td');
@@ -1020,6 +1120,12 @@
           joined.className = 'text-xs text-slate-500';
           joined.textContent = `Joined ${pilot.joined || '--'}`;
           pilotCell.appendChild(pilotName);
+          if (pilot.username === myUsername) {
+            const you = document.createElement('span');
+            you.className = 'you-tag';
+            you.textContent = 'You';
+            pilotCell.appendChild(you);
+          }
           pilotCell.appendChild(joined);
           row.appendChild(pilotCell);
 
@@ -1048,15 +1154,15 @@
 
           const lessonsCell = document.createElement('td');
           lessonsCell.className = 'px-4 py-3 text-slate-600';
-          lessonsCell.textContent = `${pilot.lessons} lessons`;
+          lessonsCell.textContent = `${pilot.lessons} lesson${pilot.lessons === 1 ? '' : 's'}`;
           row.appendChild(lessonsCell);
 
           const statusCell = document.createElement('td');
           statusCell.className = 'px-4 py-3';
           const statusChip = document.createElement('span');
           const isEligible = pilot.status === 'Eligible';
-          statusChip.className = `status-chip ${isEligible ? 'eligible' : 'pending'}`;
-          statusChip.textContent = pilot.status || (isEligible ? 'Eligible' : 'Not Eligible');
+          statusChip.className = `status-chip ${isEligible ? 'eligible' : 'training'}`;
+          statusChip.textContent = isEligible ? 'Cleared to fly' : 'In training';
           statusCell.appendChild(statusChip);
           row.appendChild(statusCell);
 
@@ -1086,6 +1192,7 @@
       return {
         setData,
         resetView,
+        refreshMe,
       };
     }
   </script>

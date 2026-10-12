@@ -73,4 +73,20 @@ test.describe('leaderboards', () => {
     const rules = await page.locator('#rulesModal').textContent();
     for (const claim of FALSE_CLAIMS) expect(rules).not.toMatch(claim);
   });
+
+  test('student leaderboard shows the student their own place and progress', async ({ page }) => {
+    await login(page, student);
+    await page.goto('HTML/leaderboard.php');
+    const mine = page.locator('#leaderboard-body tr.is-you');
+    await expect(mine).toHaveCount(1);
+    await expect(mine).toContainText(student.username);
+    await expect(mine.locator('.you-tag')).toHaveText('You');
+
+    const position = await mine.locator('td').first().textContent();
+    const total = await page.locator('#leaderboard-body tr').count();
+    await expect(page.locator('#myPosition')).toHaveText(`#${position.trim()}`);
+    await expect(page.locator('#myPositionOf')).toHaveText(` of ${total}`);
+    await expect(page.locator('#myNextRank')).toHaveText(/XP to |Top rank reached/);
+    await expect(page.locator('.ladder-active')).toHaveCount(1);
+  });
 });
