@@ -370,6 +370,74 @@
       transform: translateX(8px) scale(1.03);
     }
 
+    /* Rank ladder rows double as filters and show how many pilots hold each rank. */
+    .ladder-pill--button {
+      width: 100%;
+      text-align: left;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .ladder-pill--button:hover,
+    .ladder-pill--button:focus-visible {
+      border-color: rgba(255, 255, 255, 0.45);
+      outline: none;
+    }
+
+    .ladder-pill--button.ladder-active {
+      transform: none;
+    }
+
+    .ladder-pill__name,
+    .ladder-pill__xp,
+    .ladder-pill__bar {
+      display: block;
+    }
+
+    .ladder-pill__xp {
+      font-size: 0.72rem;
+      color: rgba(226, 232, 240, 0.75);
+    }
+
+    .ladder-pill__bar {
+      height: 4px;
+      margin-top: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+    }
+
+    .ladder-pill__bar > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #38bdf8, #a78bfa);
+      transition: width 0.4s ease;
+    }
+
+    .ladder-pill__count {
+      min-width: 2ch;
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    /* Silver and bronze for 2nd and 3rd place (1st is the gold .primary card). */
+    .top-pilot-card.second {
+      background: radial-gradient(circle at top left, #f8fafc, #cbd5e1);
+      border: none;
+    }
+
+    .top-pilot-card.third {
+      background: radial-gradient(circle at top left, #ffedd5, #fdba74);
+      border: none;
+    }
+
+    .top-pilot-card.second .top-pilot-card__position,
+    .top-pilot-card.third .top-pilot-card__position {
+      color: #ffffff;
+    }
+
     #leaderboard-body tr td {
       border-bottom: 1px solid #e2e8f0;
     }
@@ -399,20 +467,30 @@
                 Codefly Pilot Leaderboard
               </h1>
               <p class="text-white/80 mt-3 max-w-2xl">
-                Track real-time performance, filter by rank tiers and celebrate the pilots who are pushing the Codefly platform forward.
+                Every student's XP, rank and completed lessons, straight from the database. Filter by rank or search a pilot to open their profile.
               </p>
-            </div>
-            <div class="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-5 text-center min-w-[220px]">
-              <p class="text-xs uppercase tracking-[0.2em] text-white/70">Lesson goal</p>
-                <p class="text-3xl font-bold">5,000 pts</p>
-                <p class="text-sm text-white/80 mt-2">Reach Grand Commander tier at 5,000 XP to unlock pro automation tools.</p>
-              <div class="flex flex-col gap-3 mt-4">
-                <button type="button" id="viewRulesBtn" class="inline-flex items-center justify-center gap-2 bg-white text-slate-900 font-semibold px-4 py-2 rounded-xl shadow-lg hover:-translate-y-0.5 transition">
-                View Rules
+              <button type="button" id="viewRulesBtn" class="mt-5 inline-flex items-center justify-center gap-2 bg-white text-slate-900 font-semibold px-4 py-2 rounded-xl shadow-lg hover:-translate-y-0.5 transition">
+                How ranking works
                 <i class='bx bx-right-arrow-alt text-lg'></i>
-                </button>
-              </div>
+              </button>
             </div>
+            <dl class="grid grid-cols-3 gap-2 sm:gap-3 lg:min-w-[360px]" aria-live="polite">
+              <div class="bg-white/20 backdrop-blur-md rounded-2xl px-2 sm:px-4 py-4 text-center">
+                <dt class="text-[10px] sm:text-[11px] uppercase tracking-[0.1em] text-white/75">Pilots</dt>
+                <dd id="statActivePilots" class="text-2xl sm:text-3xl font-bold mt-1 cf-skeleton">--</dd>
+                <p class="text-[11px] text-white/75 mt-1">students</p>
+              </div>
+              <div class="bg-white/20 backdrop-blur-md rounded-2xl px-2 sm:px-4 py-4 text-center">
+                <dt class="text-[10px] sm:text-[11px] uppercase tracking-[0.1em] text-white/75">Avg XP</dt>
+                <dd id="statAvgScore" class="text-2xl sm:text-3xl font-bold mt-1 cf-skeleton">--</dd>
+                <p class="text-[11px] text-white/75 mt-1">per pilot</p>
+              </div>
+              <div class="bg-white/20 backdrop-blur-md rounded-2xl px-2 sm:px-4 py-4 text-center" title="Students at Elite Pilot (1,200 XP) or above">
+                <dt class="text-[10px] sm:text-[11px] uppercase tracking-[0.1em] text-white/75">Code Block</dt>
+                <dd id="statEligible" class="text-2xl sm:text-3xl font-bold mt-1 cf-skeleton">--</dd>
+                <p class="text-[11px] text-white/75 mt-1">unlocked</p>
+              </div>
+            </dl>
           </div>
         </div>
 
@@ -420,7 +498,7 @@
           <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
               <h2 class="text-lg font-semibold text-gray-900">Top Pilots</h2>
-              <p class="text-sm text-gray-500">Performance snapshot - refreshed every hour</p>
+              <p class="text-sm text-gray-500">Highest XP right now. Press Refresh after students finish a quiz.</p>
             </div>
             <div class="flex items-center gap-2">
               <button type="button" id="refreshLeaderboard" class="refresh-btn text-sm font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 border border-blue-100 rounded-lg px-3 py-1.5">
@@ -466,7 +544,7 @@
                     <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Total XP</th>
                     <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Rank</th>
                     <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Lessons</th>
-                    <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Status Flight</th>
+                    <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Flight status</th>
                   </tr>
                 </thead>
                 <tbody id="leaderboard-body"></tbody>
@@ -492,71 +570,40 @@
           <div class="rank-panel__overlay"></div>
           <div class="rank-panel__content">
             <div class="rank-panel__header">
-              <span class="rank-panel__eyebrow">Lesson tracker</span>
-              <h2 class="rank-panel__title">Pilot Rank</h2>
-              <p class="rank-panel__subtitle">Grand Commander unlocks at 5,000 XP — track your progress.</p>
+              <span class="rank-panel__eyebrow">Rank distribution</span>
+              <h2 class="rank-panel__title">Pilot Ranks</h2>
+              <p class="rank-panel__subtitle">How many students hold each rank. Ranks follow XP; click one to filter the table.</p>
             </div>
 
             <div class="rank-panel__ladder">
               <div class="rank-panel__ladder-head">
                 <h4>Rank Ladder</h4>
-                <span class="rank-panel__ladder-meta">6 stages</span>
+                <span class="rank-panel__ladder-meta">Pilots</span>
               </div>
               <div class="rank-ladder no-scrollbar" id="rankLadder">
-                <div class="ladder-pill" data-rank="bronze">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankBronze.png" alt="Rookie badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Rookie</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 01</span>
-                </div>
-                <div class="ladder-pill" data-rank="silver">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankSilver.png" alt="Operator badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Operator</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 02</span>
-                </div>
-                <div class="ladder-pill" data-rank="gold">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankGold.png" alt="Specialist badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Specialist</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 03</span>
-                </div>
-                <div class="ladder-pill" data-rank="ace">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankAce.png" alt="Elite Pilot badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Elite Pilot</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 04</span>
-                </div>
-                <div class="ladder-pill" data-rank="captain">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankCaptain.png" alt="Commander badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Commander</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 05</span>
-                </div>
-                <div class="ladder-pill" data-rank="commander">
-                  <div class="ladder-pill__media">
-                    <img src="../Assets/RankCommander.png" alt="Grand Commander badge" />
-                  </div>
-                  <div class="ladder-pill__body">
-                    <p class="ladder-pill__name">Grand Commander</p>
-                  </div>
-                  <span class="ladder-pill__level">Lv. 06</span>
-                </div>
+                <?php
+                // Same thresholds as rankTiers() in PHP/profile_helpers.php.
+                $ladder = [
+                    ['bronze', 'Rookie', 'RankBronze.png', 0],
+                    ['silver', 'Operator', 'RankSilver.png', 400],
+                    ['gold', 'Specialist', 'RankGold.png', 800],
+                    ['ace', 'Elite Pilot', 'RankAce.png', 1200],
+                    ['captain', 'Commander', 'RankCaptain.png', 3000],
+                    ['commander', 'Grand Commander', 'RankCommander.png', 5000],
+                ];
+                foreach ($ladder as [$key, $name, $badge, $minXp]): ?>
+                <button type="button" class="ladder-pill ladder-pill--button" data-rank="<?= $key ?>" aria-pressed="false">
+                  <span class="ladder-pill__media">
+                    <img src="../Assets/<?= $badge ?>" alt="" />
+                  </span>
+                  <span class="ladder-pill__body">
+                    <span class="ladder-pill__name"><?= $name ?></span>
+                    <span class="ladder-pill__xp">from <?= number_format($minXp) ?> XP<?php if ($key === 'ace'): ?> <i class="bx bx-lock-open-alt" title="Unlocks Code Block"></i><span class="sr-only">, unlocks Code Block</span><?php endif; ?></span>
+                    <span class="ladder-pill__bar"><span data-rank-bar style="width:0%"></span></span>
+                  </span>
+                  <span class="ladder-pill__count" data-rank-count>–</span>
+                </button>
+                <?php endforeach; ?>
               </div>
             </div>
           </div>
@@ -733,11 +780,10 @@
       return xp < 0 ? 0 : xp;
     }
 
-    const DEFAULT_MISSIONS = 25;
+    // Lessons with a recorded quiz score (PHP/leaderboard.php), same count as the profile pages.
     function calculateMissions(pilot = {}) {
-      // Force every account to display 25 lessons as requested.
-      const lessons = toNumeric(pilot?.lessons, DEFAULT_MISSIONS);
-      return lessons < 0 ? DEFAULT_MISSIONS : DEFAULT_MISSIONS;
+      const lessons = toNumeric(pilot?.lessons, 0);
+      return lessons < 0 ? 0 : lessons;
     }
 
     function filterOutAdmins(pilots = []) {
@@ -835,6 +881,10 @@
       const statActivePilots = document.getElementById('statActivePilots');
       const statAvgScore = document.getElementById('statAvgScore');
       const statEligible = document.getElementById('statEligible');
+      const ladderButtons = Array.from(document.querySelectorAll('#rankLadder .ladder-pill--button'));
+      // Ranks from lowest to highest; Code Block (workspace) opens at Elite Pilot ('ace').
+      const RANK_KEYS = ['bronze', 'silver', 'gold', 'ace', 'captain', 'commander'];
+      const CODE_BLOCK_RANK = RANK_KEYS.indexOf('ace');
 
       if (searchInput && !searchInput.dataset.bound) {
         searchInput.addEventListener('input', (event) => {
@@ -845,64 +895,99 @@
         searchInput.dataset.bound = 'true';
       }
 
+      // The chips and the rank ladder are two views of the same filter.
+      function setActiveRank(rank) {
+        state.activeRank = rank || 'all';
+        state.page = 1;
+        filterButtons.forEach((btn) => {
+          const isActive = btn.dataset.rank === state.activeRank;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+        ladderButtons.forEach((btn) => {
+          const isActive = btn.dataset.rank === state.activeRank;
+          btn.classList.toggle('ladder-active', isActive);
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+        renderTable();
+      }
+
       filterButtons.forEach((button) => {
         if (button.dataset.bound) {
           return;
         }
-        button.addEventListener('click', () => {
-          state.activeRank = button.dataset.rank || 'all';
-          state.page = 1;
-          filterButtons.forEach((btn) => {
-            const isActive = btn === button;
-            btn.classList.toggle('active', isActive);
-            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-          });
-          renderTable();
-        });
+        button.dataset.label = button.textContent.trim();
+        button.addEventListener('click', () => setActiveRank(button.dataset.rank));
         button.dataset.bound = 'true';
       });
 
-      function setData(pilots) {
-        // Keep Ace-ranked pilots at the very top of the list, even above Commander/Captain.
-        const RANK_ORDER = ['ace', 'commander', 'captain', 'gold', 'silver', 'bronze'];
-        const rankWeight = (key = '') => {
-          const normalized = key.toLowerCase().replace(/[^a-z]/g, '');
-          const idx = RANK_ORDER.indexOf(normalized);
-          return idx === -1 ? RANK_ORDER.length : idx;
-        };
+      ladderButtons.forEach((button) => {
+        // Clicking the selected rank again shows everyone.
+        button.addEventListener('click', () => {
+          setActiveRank(state.activeRank === button.dataset.rank ? 'all' : button.dataset.rank);
+          document.getElementById('leaderboard-body')?.closest('.rounded-2xl')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
 
+      function setData(pilots) {
         const enriched = withXpAndMissions(pilots).map((pilot) => {
           const xp = calculateXp(pilot);
           const rankKey = (pilot.rankKey || pilot.rank || '').toLowerCase().replace(/[^a-z]/g, '');
           return { ...pilot, xp, score: xp, rankKey };
         });
 
+        // Ranks follow XP, so XP decides the order; ties go to more lessons completed.
         state.sortedData = enriched
-          .sort((a, b) => {
-            const rankDiff = rankWeight(a.rankKey) - rankWeight(b.rankKey);
-            if (rankDiff !== 0) return rankDiff;
-            return (b.xp || 0) - (a.xp || 0);
-          })
+          .sort((a, b) =>
+            (b.xp || 0) - (a.xp || 0) ||
+            (b.lessons || 0) - (a.lessons || 0) ||
+            a.username.localeCompare(b.username))
           .map((pilot, index) => ({ ...pilot, position: index + 1 }));
         state.page = 1;
         updateStats();
+        updateRankCounts();
         renderTopPilots();
         renderTable();
       }
 
       function updateStats() {
+        const total = state.sortedData.length;
         if (statActivePilots) {
-          statActivePilots.textContent = state.sortedData.length.toString();
+          statActivePilots.textContent = total.toLocaleString();
         }
         if (statAvgScore) {
           const totalXp = state.sortedData.reduce((sum, pilot) => sum + (pilot.xp || 0), 0);
-          const avg = state.sortedData.length ? Math.round(totalXp / state.sortedData.length) : 0;
-          statAvgScore.textContent = avg.toLocaleString();
+          statAvgScore.textContent = (total ? Math.round(totalXp / total) : 0).toLocaleString();
         }
         if (statEligible) {
-          const eligibleCount = state.sortedData.filter((pilot) => pilot.status === 'Eligible').length;
-          statEligible.textContent = eligibleCount.toString();
+          const unlocked = state.sortedData.filter((pilot) => RANK_KEYS.indexOf(pilot.rankKey) >= CODE_BLOCK_RANK).length;
+          statEligible.textContent = unlocked.toLocaleString();
         }
+        [statActivePilots, statAvgScore, statEligible].forEach((el) => el?.classList.remove('cf-skeleton'));
+      }
+
+      function updateRankCounts() {
+        const counts = Object.fromEntries(RANK_KEYS.map((key) => [key, 0]));
+        state.sortedData.forEach((pilot) => {
+          if (pilot.rankKey in counts) counts[pilot.rankKey] += 1;
+        });
+        const total = state.sortedData.length;
+
+        filterButtons.forEach((btn) => {
+          const key = btn.dataset.rank;
+          const count = key === 'all' ? total : counts[key] || 0;
+          btn.textContent = `${btn.dataset.label} (${count})`;
+        });
+
+        ladderButtons.forEach((btn) => {
+          const count = counts[btn.dataset.rank] || 0;
+          const countEl = btn.querySelector('[data-rank-count]');
+          const barEl = btn.querySelector('[data-rank-bar]');
+          if (countEl) countEl.textContent = count.toLocaleString();
+          if (barEl) barEl.style.width = `${total ? Math.round((count / total) * 100) : 0}%`;
+          const name = btn.querySelector('.ladder-pill__name')?.textContent || '';
+          btn.setAttribute('aria-label', `${name}: ${count} pilot${count === 1 ? '' : 's'}. Filter the table`);
+        });
       }
 
       function renderTopPilots() {
@@ -921,9 +1006,7 @@
             window.location.href = profileLink;
           };
           card.addEventListener('click', navigateToProfile);
-          if (index === 0) {
-            card.classList.add('primary');
-          }
+          card.classList.add(['primary', 'second', 'third'][index]);
 
           const infoWrapper = document.createElement('div');
           infoWrapper.className = 'top-pilot-card__info';
@@ -1061,7 +1144,7 @@
 
           const lessonsCell = document.createElement('td');
           lessonsCell.className = 'px-4 py-3 text-slate-600';
-          lessonsCell.textContent = `${pilot.lessons} lessons`;
+          lessonsCell.textContent = `${pilot.lessons} lesson${pilot.lessons === 1 ? '' : 's'}`;
           row.appendChild(lessonsCell);
 
           const statusCell = document.createElement('td');
@@ -1145,13 +1228,8 @@
         if (searchInput) {
           searchInput.value = '';
         }
-        filterButtons.forEach((button) => {
-          const isActive = button.dataset.rank === 'all';
-          button.classList.toggle('active', isActive);
-          button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-        });
         renderTopPilots();
-        renderTable();
+        setActiveRank('all');
       }
 
       return {
@@ -1166,14 +1244,14 @@
   <div id="rulesModal" class="rules-backdrop" aria-hidden="true">
     <div class="rules-card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
       <div class="rules-header">
-        <h3 id="rulesTitle" class="rules-title">Codefly Leaderboard Rules</h3>
+        <h3 id="rulesTitle" class="rules-title">How ranking works</h3>
       </div>
       <ul class="rules-list">
-        <li><i class='bx bx-rocket'></i><span>Earn XP by completing lessons, lessons, and quizzes. Higher-tier modules yield more XP.</span></li>
-        <li><i class='bx bx-lock-alt'></i><span>Workspace access requires Elite Pilot rank or higher. Ranks below Elite Pilot remain in training.</span></li>
-        <li><i class='bx bx-time-five'></i><span>Leaderboard refreshes hourly. Ties are broken by earliest completion time.</span></li>
-        <li><i class='bx bx-shield-quarter'></i><span>Fair play only—no automation or spoofed runs. Violations may reset XP.</span></li>
-        <li><i class='bx bx-target-lock'></i><span>Grand Commander tier unlocks pro automation tools once you hit 5,000 XP.</span></li>
+        <li><i class='bx bx-rocket'></i><span>Each correct quiz answer earns 10 XP. Only a pilot's best attempt at each quiz counts, so retakes cannot farm XP.</span></li>
+        <li><i class='bx bx-medal'></i><span>Ranks follow XP: Rookie 0, Operator 400, Specialist 800, Elite Pilot 1,200, Commander 3,000, Grand Commander 5,000.</span></li>
+        <li><i class='bx bx-lock-open-alt'></i><span>Elite Pilot (1,200 XP) unlocks the Code Block workspace for programming the drone.</span></li>
+        <li><i class='bx bx-sort-down'></i><span>Pilots are ordered by XP. Ties go to the pilot with more lessons completed.</span></li>
+        <li><i class='bx bx-refresh'></i><span>Standings load live from the database; press Refresh for the latest.</span></li>
       </ul>
       <div class="rules-actions">
         <button type="button" class="rules-btn primary" data-close-rules style="width: 100%;">Got it</button>

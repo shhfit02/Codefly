@@ -112,7 +112,8 @@ try {
         $rank = $ranks[$userId] ?? PROFILE_DEFAULT_RANK;
         $joined = $user['created_at'] ? date('M Y', strtotime($user['created_at'])) : '--';
         $rankTitle = $rank['title'] ?? 'Bronze';
-        $rankKey = strtolower(preg_replace('/[^a-z]/', '', $rankTitle)) ?: 'bronze';
+        // Lowercase first: stripping [^a-z] from "Bronze" would leave "ronze".
+        $rankKey = preg_replace('/[^a-z]/', '', strtolower($rankTitle)) ?: 'bronze';
         $lessonsPending = computeCompletedMissions($meta);
 
         $data[] = [

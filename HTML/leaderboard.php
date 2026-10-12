@@ -399,13 +399,13 @@
                 Codefly Pilot Leaderboard
               </h1>
               <p class="text-white/80 mt-3 max-w-2xl">
-                Track real-time performance, filter by rank tiers and celebrate the pilots who are pushing the Codefly platform forward.
+                See where you stand, filter by rank and check out the pilots leading the way.
               </p>
             </div>
             <div class="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-5 text-center min-w-[220px]">
-              <p class="text-xs uppercase tracking-[0.2em] text-white/70">Lesson goal</p>
-                <p class="text-3xl font-bold">5,000 pts</p>
-                <p class="text-sm text-white/80 mt-2">Reach Grand Commander tier at 5,000 XP to unlock pro automation tools.</p>
+              <p class="text-xs uppercase tracking-[0.2em] text-white/70">Next unlock</p>
+                <p class="text-3xl font-bold">1,200 XP</p>
+                <p class="text-sm text-white/80 mt-2">Reach Elite Pilot to unlock the Code Block workspace and program the drone.</p>
               <div class="flex flex-col gap-3 mt-4">
                 <button type="button" id="viewRulesBtn" class="inline-flex items-center justify-center gap-2 bg-white text-slate-900 font-semibold px-4 py-2 rounded-xl shadow-lg hover:-translate-y-0.5 transition">
                 View Rules
@@ -420,7 +420,7 @@
           <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
             <div>
               <h2 class="text-lg font-semibold text-gray-900">Top Pilots</h2>
-              <p class="text-sm text-gray-500">Performance snapshot - refreshed every hour</p>
+              <p class="text-sm text-gray-500">Highest XP right now. Press Refresh after finishing a quiz.</p>
             </div>
             <div class="flex items-center gap-2">
               <button type="button" id="refreshLeaderboard" class="refresh-btn text-sm font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 border border-blue-100 rounded-lg px-3 py-1.5">
@@ -466,7 +466,7 @@
                     <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Total XP</th>
                     <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Rank</th>
                     <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Lessons</th>
-                    <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Status Flight</th>
+                    <th class="px-4 py-3 font-semibold text-gray-500 uppercase tracking-wide text-xs">Flight status</th>
                   </tr>
                 </thead>
                 <tbody id="leaderboard-body"></tbody>
@@ -490,7 +490,7 @@
             <div class="rank-panel__header">
               <span class="rank-panel__eyebrow">Lesson tracker</span>
               <h2 class="rank-panel__title">Pilot Rank</h2>
-              <p class="rank-panel__subtitle">Grand Commander unlocks at 5,000 XP — track your progress.</p>
+              <p class="rank-panel__subtitle">Elite Pilot at 1,200 XP unlocks Code Block. Track your climb.</p>
             </div>
 
             <div class="rank-card">
@@ -863,26 +863,18 @@
       });
 
       function setData(pilots) {
-        // Keep Ace-ranked pilots at the very top of the list, even above Commander/Captain.
-        const RANK_ORDER = ['ace', 'commander', 'captain', 'gold', 'silver', 'bronze'];
-        const rankWeight = (key = '') => {
-          const normalized = key.toLowerCase().replace(/[^a-z]/g, '');
-          const idx = RANK_ORDER.indexOf(normalized);
-          return idx === -1 ? RANK_ORDER.length : idx;
-        };
-
         const enriched = withXpAndMissions(pilots).map((pilot) => {
           const xp = calculateXp(pilot);
           const rankKey = (pilot.rankKey || pilot.rank || '').toLowerCase().replace(/[^a-z]/g, '');
           return { ...pilot, xp, score: xp, rankKey };
         });
 
+        // Ranks follow XP, so XP decides the order; ties go to more lessons completed.
         state.sortedData = enriched
-          .sort((a, b) => {
-            const rankDiff = rankWeight(a.rankKey) - rankWeight(b.rankKey);
-            if (rankDiff !== 0) return rankDiff;
-            return (b.xp || 0) - (a.xp || 0);
-          })
+          .sort((a, b) =>
+            (b.xp || 0) - (a.xp || 0) ||
+            (b.lessons || 0) - (a.lessons || 0) ||
+            a.username.localeCompare(b.username))
           .map((pilot, index) => ({ ...pilot, position: index + 1 }));
         updateStats();
         renderTopPilots();
@@ -1102,14 +1094,14 @@
   <div id="rulesModal" class="rules-backdrop" aria-hidden="true">
     <div class="rules-card" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
       <div class="rules-header">
-        <h3 id="rulesTitle" class="rules-title">Codefly Leaderboard Rules</h3>
+        <h3 id="rulesTitle" class="rules-title">How ranking works</h3>
       </div>
       <ul class="rules-list">
-        <li><i class='bx bx-rocket'></i><span>Earn XP by completing lessons, lessons, and quizzes. Higher-tier modules yield more XP.</span></li>
-        <li><i class='bx bx-lock-alt'></i><span>Workspace access requires Elite Pilot rank or higher. Ranks below Elite Pilot remain in training.</span></li>
-        <li><i class='bx bx-time-five'></i><span>Leaderboard refreshes hourly. Ties are broken by earliest completion time.</span></li>
-        <li><i class='bx bx-shield-quarter'></i><span>Fair play only - no automation or spoofed runs. Violations may reset XP.</span></li>
-        <li><i class='bx bx-target-lock'></i><span>Grand Commander tier unlocks pro automation tools once you hit 5,000 XP.</span></li>
+        <li><i class='bx bx-rocket'></i><span>Each correct quiz answer earns 10 XP. Only your best attempt at each quiz counts, so improve your score to earn more.</span></li>
+        <li><i class='bx bx-medal'></i><span>Ranks follow XP: Rookie 0, Operator 400, Specialist 800, Elite Pilot 1,200, Commander 3,000, Grand Commander 5,000.</span></li>
+        <li><i class='bx bx-lock-open-alt'></i><span>Elite Pilot (1,200 XP) unlocks the Code Block workspace, where you program the drone.</span></li>
+        <li><i class='bx bx-sort-down'></i><span>Pilots are ordered by XP. Ties go to the pilot with more lessons completed.</span></li>
+        <li><i class='bx bx-refresh'></i><span>Standings are live; press Refresh to see the latest.</span></li>
       </ul>
       <div class="rules-actions">
         <button type="button" class="rules-btn primary" data-close-rules style="width: 100%;">Got it</button>
