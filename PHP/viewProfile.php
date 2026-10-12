@@ -22,7 +22,7 @@ try {
         'data' => [
             'profile' => $profileBundle['profile'],
             'account' => $profileBundle['account'],
-            'stats' => $profileBundle['stats'],
+            'stats' => profileProgressStats($conn, $profileBundle),
             'settings' => $settings,
             'rank' => $profileBundle['rank'],
         ],

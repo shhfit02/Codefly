@@ -679,3 +679,54 @@ function updateUserRank(mysqli $conn, int $userId, array $rankData): bool
 
     return true;
 }
+
+/**
+ * Lessons done per module: a lesson counts once it has a quiz score (quiz_score_<lessonId>),
+ * the same rule as the lesson counts elsewhere. A module is complete when all its lessons are.
+ */
+function moduleProgress(mysqli $conn, array $meta): array
+{
+    $modules = [];
+    $result = $conn->query('
+        SELECT m.id, m.title, l.id AS lesson_id
+        FROM modules m
+        LEFT JOIN lessons l ON l.module_id = m.id
+        ORDER BY m.id, l.id
+    ');
+    while ($row = $result->fetch_assoc()) {
+        $id = (int)$row['id'];
+        $modules[$id] ??= ['id' => $id, 'title' => $row['title'], 'lessons' => 0, 'completed' => 0];
+        if ($row['lesson_id'] !== null) {
+            $modules[$id]['lessons']++;
+            $score = $meta['quiz_score_' . $row['lesson_id']] ?? '';
+            if ($score !== '' && $score !== null) {
+                $modules[$id]['completed']++;
+            }
+        }
+    }
+    return array_values($modules);
+}
+
+/**
+ * Real progress for the profile pages: login streak (only while unbroken), lessons and modules
+ * completed, per-module progress and the next rank. Added to fetchUserProfile()'s stats.
+ */
+function profileProgressStats(mysqli $conn, array $bundle): array
+{
+    $meta = $bundle['meta'] ?? [];
+    $xp = (int)($bundle['rank']['score'] ?? 0);
+    $lastLogin = $meta['last_login_date'] ?? null;
+    $streakAlive = $lastLogin !== null
+        && in_array($lastLogin, [date('Y-m-d'), date('Y-m-d', strtotime('-1 day'))], true);
+    $modules = moduleProgress($conn, $meta);
+
+    return ($bundle['stats'] ?? []) + [
+        'loginStreak' => $streakAlive ? (int)($meta['login_streak'] ?? 0) : 0,
+        'lastLogin' => $lastLogin,
+        'lessonsCompleted' => computeCompletedMissions($meta),
+        'lessonsTotal' => array_sum(array_column($modules, 'lessons')),
+        'modulesCompleted' => count(array_filter($modules, fn ($m) => $m['lessons'] > 0 && $m['completed'] === $m['lessons'])),
+        'modules' => $modules,
+        'nextRank' => nextRankForXp($xp),
+    ];
+}

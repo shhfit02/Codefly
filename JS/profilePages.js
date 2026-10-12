@@ -193,6 +193,7 @@
     if (coverInput) {
       coverInput.disabled = !isOwner;
     }
+    document.getElementById("updateInfoLink")?.classList.toggle("hidden", !isOwner);
   }
 
   async function initViewProfile() {
@@ -252,7 +253,7 @@
     if (profile.bio) {
       taglineParts.push(profile.bio);
     }
-    const tagline = taglineParts.join(" \u00b7 ") || "Share your journey from the Edit Profile page.";
+    const tagline = taglineParts.join(" \u00b7 ") || (isOwner ? "Add your school and a short bio from Edit profile." : "");
     setTextContent("viewProfileTagline", tagline);
 
     setImageSource("viewProfileAvatar", profile.avatar || DEFAULTS.avatar);
@@ -270,27 +271,92 @@
     setTextContent("viewDetailGender", formatGender(profile.gender));
     setTextContent("viewDetailSchool", profile.school || "--");
     setTextContent("viewDetailPhone", profile.phone || "--");
-    setTextContent("viewDetailBio", profile.bio || "Add a short bio to introduce yourself.");
+    setTextContent("viewDetailBio", profile.bio || (isOwner ? "Add a short bio to introduce yourself." : "--"));
 
-    const missionsCompleted =
-      typeof rank.lessons === "number"
-        ? rank.lessons
-        : typeof stats.missionsCompleted === "number"
-        ? stats.missionsCompleted
-        : stats.flightHours ?? 0;
-    setTextContent("viewFlightHours", missionsCompleted);
-    const xpValue =
-      typeof rank.score === "number"
-        ? rank.score
-        : typeof stats.xp === "number"
-        ? stats.xp
-        : typeof stats.lessonScore === "number"
-        ? stats.lessonScore
-        : 0;
-    setTextContent("viewMissionScore", xpValue);
-    setTextContent("viewCertification", stats.certification || "Cadet Pilot");
+    // Rank card: "Eligible" means cleared to fly; green only when that is true.
+    setImageSource("viewRankBadgeLarge", rank.badge || DEFAULTS.rankBadge);
+    setTextContent("viewRankTitle", displayRank || "Rookie");
+    const rankStatus = document.getElementById("viewRankStatus");
+    if (rankStatus) {
+      const cleared = (rank.status || "").toLowerCase() === "eligible";
+      rankStatus.className = `text-xs font-semibold mt-1 inline-flex items-center gap-1 ${cleared ? "text-emerald-600" : "text-amber-600"}`;
+      rankStatus.innerHTML = `<i class='bx ${cleared ? "bx-check-circle" : "bx-time-five"}'></i>`;
+      rankStatus.append(cleared ? "Cleared to fly" : "Still in training");
+    }
+
+    // XP and progress to the next rank.
+    const xpValue = Number(rank.score ?? stats.xp ?? 0) || 0;
+    setTextContent("viewMissionScore", xpValue.toLocaleString());
+    const xpBar = document.getElementById("viewXpBar");
+    const next = stats.nextRank;
+    if (next) {
+      const span = Math.max(1, next.minXp - next.fromXp);
+      if (xpBar) xpBar.style.width = `${Math.min(100, Math.max(0, ((xpValue - next.fromXp) / span) * 100))}%`;
+      setTextContent("viewXpNext", `${(next.minXp - xpValue).toLocaleString()} XP to ${displayRankTitle(next.key)}`);
+    } else if (stats.modules) {
+      if (xpBar) xpBar.style.width = "100%";
+      setTextContent("viewXpNext", "Top rank reached");
+    }
+
+    // Lessons and modules (a lesson counts once its quiz is done).
+    const lessonsDone = stats.lessonsCompleted ?? rank.lessons ?? stats.missionsCompleted ?? 0;
+    setTextContent("viewFlightHours", lessonsDone);
+    setTextContent("viewLessonsTotal", stats.lessonsTotal ? ` / ${stats.lessonsTotal}` : "");
+    const modules = Array.isArray(stats.modules) ? stats.modules : null;
+    setTextContent("viewModulesDone", modules?.length ? `${stats.modulesCompleted ?? 0} of ${modules.length} modules finished` : "");
+
+    if (stats.loginStreak !== undefined) {
+      setTextContent("viewStreak", stats.loginStreak);
+      setTextContent("viewLastLogin", stats.lastLogin ? `Last login ${formatShortDate(stats.lastLogin)}` : "No login yet");
+    }
+    if (modules) renderModuleProgress(modules);
 
     toggleOwnerControls(isOwner);
+  }
+
+  function formatShortDate(value) {
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime())
+      ? value
+      : date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  }
+
+  // One bar per module, green when every lesson's quiz is done.
+  function renderModuleProgress(modules) {
+    const list = document.getElementById("moduleProgress");
+    if (!list) return;
+    list.innerHTML = "";
+    if (!modules.length) {
+      list.innerHTML = '<li class="text-sm text-slate-400">No modules yet.</li>';
+      return;
+    }
+    modules.forEach((mod) => {
+      const pct = mod.lessons ? Math.round((mod.completed / mod.lessons) * 100) : 0;
+      const done = mod.lessons > 0 && mod.completed === mod.lessons;
+      const li = document.createElement("li");
+      const head = document.createElement("div");
+      head.className = "flex items-start justify-between gap-3 text-sm";
+      const title = document.createElement("span");
+      title.className = "font-semibold text-slate-800 min-w-0";
+      title.textContent = mod.title || "Module";
+      const count = document.createElement("span");
+      count.className = `shrink-0 ${done ? "text-emerald-600 font-semibold" : "text-slate-500"}`;
+      count.textContent = done ? "Completed" : `${mod.completed} / ${mod.lessons} lessons`;
+      head.append(title, count);
+      const bar = document.createElement("div");
+      bar.className = "mt-2 h-2 rounded-full bg-slate-100 overflow-hidden";
+      bar.setAttribute("role", "progressbar");
+      bar.setAttribute("aria-valuenow", String(pct));
+      bar.setAttribute("aria-valuemin", "0");
+      bar.setAttribute("aria-valuemax", "100");
+      bar.setAttribute("aria-label", `${mod.title}: ${pct}%`);
+      const fill = document.createElement("div");
+      fill.className = `h-full rounded-full ${done ? "bg-emerald-500" : "bg-gradient-to-r from-sky-400 to-indigo-500"}`;
+      fill.style.width = `${pct}%`;
+      bar.appendChild(fill);
+      li.append(head, bar);
+      list.appendChild(li);
+    });
   }
 
   function formatGender(value) {
