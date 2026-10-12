@@ -820,6 +820,98 @@ function initDroneSim() {
   if (!simCanvas || !simCanvas.getContext) return;
   simCtx = simCanvas.getContext('2d');
   resetSimState();
+  initSimFloat();
+}
+
+// --- Floating simulator window: drag by the title bar, minimise, remember where it was ---
+const SIM_FLOAT_KEY = 'codefly:simFloat';
+
+function setSimMinimised(minimised) {
+  const box = document.getElementById('simFloat');
+  const toggle = document.getElementById('simFloatToggle');
+  if (!box || !toggle) return;
+  box.classList.toggle('is-minimised', minimised);
+  toggle.setAttribute('aria-expanded', String(!minimised));
+  toggle.setAttribute('aria-label', minimised ? 'Show simulator' : 'Minimise simulator');
+  toggle.querySelector('i').className = minimised ? 'bx bx-expand-alt' : 'bx bx-minus';
+  saveSimFloat();
+}
+
+function saveSimFloat() {
+  const box = document.getElementById('simFloat');
+  if (!box) return;
+  try {
+    localStorage.setItem(SIM_FLOAT_KEY, JSON.stringify({
+      left: box.style.left || null,
+      top: box.style.top || null,
+      minimised: box.classList.contains('is-minimised'),
+    }));
+  } catch (err) {
+    // Storage blocked: the window still works, it just will not remember its place.
+  }
+}
+
+// Keeps the window inside the canvas area (for example after the window is resized).
+function clampSimFloat() {
+  const box = document.getElementById('simFloat');
+  const area = document.getElementById('blocks-view');
+  if (!box || !area || !box.style.left || getComputedStyle(box).position !== 'absolute') return;
+  const maxLeft = Math.max(0, area.clientWidth - box.offsetWidth);
+  const maxTop = Math.max(0, area.clientHeight - box.offsetHeight);
+  box.style.left = `${Math.min(maxLeft, Math.max(0, parseFloat(box.style.left)))}px`;
+  box.style.top = `${Math.min(maxTop, Math.max(0, parseFloat(box.style.top)))}px`;
+}
+
+function initSimFloat() {
+  const box = document.getElementById('simFloat');
+  const bar = document.getElementById('simFloatBar');
+  const toggle = document.getElementById('simFloatToggle');
+  const area = document.getElementById('blocks-view');
+  if (!box || !bar || !toggle || !area) return;
+
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(SIM_FLOAT_KEY) || 'null');
+  } catch (err) {
+    saved = null;
+  }
+  if (saved?.left && saved?.top) {
+    box.style.left = saved.left;
+    box.style.top = saved.top;
+    box.style.right = 'auto';
+  }
+  if (saved?.minimised) setSimMinimised(true);
+  requestAnimationFrame(clampSimFloat);
+  window.addEventListener('resize', clampSimFloat);
+
+  toggle.addEventListener('click', () => setSimMinimised(!box.classList.contains('is-minimised')));
+  toggle.addEventListener('pointerdown', (e) => e.stopPropagation()); // a click, not a drag
+
+  bar.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || getComputedStyle(box).position !== 'absolute') return;
+    const areaBox = area.getBoundingClientRect();
+    const start = box.getBoundingClientRect();
+    const offsetX = e.clientX - start.left;
+    const offsetY = e.clientY - start.top;
+    box.classList.add('is-dragging');
+    bar.setPointerCapture(e.pointerId);
+    const move = (ev) => {
+      box.style.right = 'auto';
+      box.style.left = `${ev.clientX - areaBox.left - offsetX}px`;
+      box.style.top = `${ev.clientY - areaBox.top - offsetY}px`;
+      clampSimFloat();
+    };
+    const end = () => {
+      box.classList.remove('is-dragging');
+      bar.removeEventListener('pointermove', move);
+      bar.removeEventListener('pointerup', end);
+      bar.removeEventListener('pointercancel', end);
+      saveSimFloat();
+    };
+    bar.addEventListener('pointermove', move);
+    bar.addEventListener('pointerup', end);
+    bar.addEventListener('pointercancel', end);
+  });
 }
 
 function resetSimState() {
@@ -1352,8 +1444,11 @@ async function runCode() {
 
   // 1. Get the console element and clear it
   const consoleOutput = document.getElementById('consoleOutput');
+  // In simulator mode the floating simulator shows the run, so the console (and the canvas
+  // space it takes) only opens when the user opens it.
+  const showConsole = () => { if (!simMode) openConsole(); };
   if (consoleOutput) {
-    openConsole();
+    showConsole();
     consoleOutput.textContent = ''; // Clear console
     consoleOutput.style.color = '#00FF00'; // Green "console" color
   }
@@ -1361,7 +1456,7 @@ async function runCode() {
   // Helper function to log messages to our console
   function logToConsole(message) {
     if (consoleOutput) {
-      openConsole();
+      showConsole();
       consoleOutput.textContent += message + '\n';
       consoleOutput.scrollTop = consoleOutput.scrollHeight; // Auto-scroll
     } else {
@@ -1415,9 +1510,11 @@ async function runCode() {
 
   if (simMode) {
     logToConsole('--- [SIM] Running on the simulator (no drone) ---');
-    const footer = document.getElementById('consoleFooter');
-    const box = footer?.getBoundingClientRect();
-    if (box && box.bottom > window.innerHeight) footer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Bring the floating simulator back if it was minimised, and into view on small screens.
+    setSimMinimised(false);
+    const simBox = document.getElementById('simFloat');
+    const rect = simBox?.getBoundingClientRect();
+    if (rect && (rect.bottom > window.innerHeight || rect.top < 0)) simBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     setPythonStatus('Simulating blocks...', 'running');
     const outcome = await runDroneSimulation(pythonCode, logToConsole);
     if (outcome === 'stopped') {
@@ -2010,7 +2107,6 @@ function setRunMode(useSim) {
   }
   applyRunMode();
   if (useSim) {
-    openConsole();
     resetSimState();
   }
 }

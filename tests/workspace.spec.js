@@ -45,6 +45,26 @@ test.describe('workspace', () => {
     await expect(page.locator('#droneSimStatus')).toHaveText('Stopped');
   });
 
+  test('the simulator floats over the canvas and can be minimised', async ({ page }) => {
+    await openWorkspace(page);
+    const sim = page.locator('#simFloat');
+    await expect(sim).toBeVisible();
+    // Inside the canvas area, not pushed below it.
+    const simBox = await sim.boundingBox();
+    const canvasBox = await page.locator('#blocklyDiv').boundingBox();
+    expect(simBox.y + simBox.height).toBeLessThanOrEqual(canvasBox.y + canvasBox.height);
+
+    await page.locator('#simFloatToggle').click();
+    await expect(page.locator('#droneSimCanvas')).toBeHidden();
+    // Launch brings it back.
+    await page.locator('#header-flag-btn').click();
+    await expect(page.locator('#droneSimCanvas')).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await page.locator('.mode-option[data-mode="drone"]').click();
+    await expect(sim).toBeHidden();
+  });
+
   test('drone mode without a drone explains what to do and offers the simulator', async ({ page }) => {
     await openWorkspace(page);
     await page.locator('.mode-option[data-mode="drone"]').click();

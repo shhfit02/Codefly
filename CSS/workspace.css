@@ -755,24 +755,6 @@ aside.scratch-sidebar > * {
   word-break: break-word;
 }
 
-/* Lesson-mode simulator (only rendered when ?sim=1 or ?mode=lesson) */
-.sim-panel {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 14px 0;
-}
-#droneSimCanvas {
-  background: #111c34;
-  border: 1px solid #1f2b47;
-  border-radius: 10px;
-  max-width: 100%;
-}
-.sim-status {
-  margin: 0;
-  font-weight: 600;
-  color: #93c5fd;
-}
 
 
 @media (max-width: 1280px) {
@@ -1112,47 +1094,110 @@ body.sim-mode .drone-card__sim-note {
   background: var(--border);
 }
 
-/* ---------- Simulator (console) ---------- */
-.sim-panel {
+/* ---------- Floating simulator over the canvas (simulator mode) ---------- */
+#blocks-view {
+  position: relative;
+}
+
+.sim-float {
+  display: none;
+  position: absolute;
+  top: 12px;
+  right: 30px; /* clear of Blockly's vertical scrollbar */
+  z-index: 40;
+  width: 270px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0b1223;
+  border: 1px solid #1f2b47;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.35);
+  color: #e2e8f0;
+}
+
+body.sim-mode .sim-float {
+  display: block;
+}
+
+.sim-float__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 12px;
+  background: #111c34;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.sim-float.is-dragging .sim-float__bar {
+  cursor: grabbing;
+}
+
+.sim-float__bar > i {
+  color: #64748b;
+}
+
+.sim-float__title {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.sim-status {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #93c5fd;
+}
+
+.sim-float__toggle {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: transparent;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.sim-float__toggle:hover {
+  background: #1e293b;
+}
+
+.sim-float__body {
+  padding: 10px;
+}
+
+.sim-float.is-minimised {
+  width: auto;
+}
+
+.sim-float.is-minimised .sim-float__body {
   display: none;
 }
 
-/* Simulator beside the log, so both stay visible in the default console height. */
-body.sim-mode .console-body {
-  flex-direction: row;
-  align-items: stretch;
-}
-
-body.sim-mode .sim-panel {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 10px 0 10px 14px;
-  flex-shrink: 0;
-}
-
-body.sim-mode #droneSimCanvas {
-  width: 340px;
+#droneSimCanvas {
+  display: block;
+  width: 100%;
   height: auto;
-}
-
-body.sim-mode .console-panels {
-  min-width: 0;
-}
-
-.sim-side {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 160px;
+  background: #111c34;
+  border: 1px solid #1f2b47;
+  border-radius: 10px;
 }
 
 .sim-readout {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px 12px;
-  margin: 0;
-  font-size: 0.85rem;
+  grid-template-columns: auto auto auto auto;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin: 8px 2px 0;
+  font-size: 0.8rem;
 }
 
 .sim-readout dt {
@@ -1160,25 +1205,28 @@ body.sim-mode .console-panels {
 }
 
 .sim-readout dd {
-  margin: 0;
+  margin: 0 6px 0 0;
   font-weight: 700;
   color: #e2e8f0;
   font-variant-numeric: tabular-nums;
 }
 
-.sim-hint {
-  margin: 0;
-  font-size: 0.75rem;
+.sim-readout .sim-hint {
+  grid-column: 1 / -1;
+  font-size: 0.72rem;
   color: #64748b;
 }
 
-body.sim-mode .console-footer {
-  max-height: none;
-}
+/* Phones and small tablets: not enough canvas to float over, so it sits below it. */
+@media (max-width: 900px) {
+  .sim-float {
+    position: static;
+    width: auto;
+    margin-bottom: 10px;
+  }
 
-@media (max-width: 1100px) {
-  body.sim-mode .console-body {
-    flex-direction: column;
+  .sim-float__bar {
+    cursor: default;
   }
 }
 

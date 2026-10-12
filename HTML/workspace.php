@@ -251,6 +251,23 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
 
       <div class="workspace-view active" data-view="blocks" id="blocks-view">
         <div id="blocklyDiv" class="blockly-stage"></div>
+        <!-- Floating simulator (simulator mode only): drag by its title bar, minimise with the button. -->
+        <section class="sim-float" id="simFloat" aria-label="Drone simulator">
+          <header class="sim-float__bar" id="simFloatBar">
+            <i class='bx bx-move' aria-hidden="true"></i>
+            <span class="sim-float__title">Simulator</span>
+            <span id="droneSimStatus" class="sim-status">Ready</span>
+            <button type="button" class="sim-float__toggle" id="simFloatToggle" aria-expanded="true" aria-label="Minimise simulator"><i class='bx bx-minus'></i></button>
+          </header>
+          <div class="sim-float__body">
+            <canvas id="droneSimCanvas" width="480" height="270" aria-label="Drone simulator, seen from above"></canvas>
+            <dl class="sim-readout">
+              <dt>Height</dt><dd id="simAltitude">0 cm</dd>
+              <dt>Heading</dt><dd id="simHeading">0&deg;</dd>
+              <dt class="sim-hint">Forward is up &middot; 1 square = 50 cm</dt>
+            </dl>
+          </div>
+        </section>
       </div>
 
       <div class="workspace-view" data-view="python" id="python-view">
@@ -269,17 +286,6 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
           </button>
         </div>
         <div class="console-body" id="consoleBody">
-          <div class="sim-panel">
-            <canvas id="droneSimCanvas" width="480" height="270" aria-label="Drone simulator, seen from above"></canvas>
-            <div class="sim-side">
-              <p id="droneSimStatus" class="sim-status">Ready</p>
-              <dl class="sim-readout">
-                <dt>Height</dt><dd id="simAltitude">0 cm</dd>
-                <dt>Heading</dt><dd id="simHeading">0&deg;</dd>
-              </dl>
-              <p class="sim-hint">Top view: forward is up. 1 grid square = 50 cm.</p>
-            </div>
-          </div>
           <div class="console-panels">
             <div class="console-panel active">
               <pre id="consoleOutput" data-placeholder="Press Launch to see drone output here.">Press Launch to see drone output here.</pre>
