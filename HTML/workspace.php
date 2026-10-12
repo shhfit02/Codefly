@@ -28,19 +28,6 @@ if (!workspaceAccess($rank, $isAdmin, 0)['allowed']) {
 }
 $homeUrl = $isAdmin ? '../HTML/adminDashboard.php' : '../HTML/home.php';
 
-$displayRankMap = [
-    'bronze' => 'Rookie',
-    'silver' => 'Operator',
-    'gold' => 'Specialist',
-    'ace' => 'Elite Pilot',
-    'captain' => 'Commander',
-    'commander' => 'Grand Commander',
-];
-
-$rawRank = strtolower($rank['title'] ?? 'ace');
-$rankTitle = $displayRankMap[$rawRank] ?? ucfirst($rank['title'] ?? 'Ace');
-// Chip text: "Admin" for admins, otherwise "<rank> Pilot" without doubling "Elite Pilot Pilot".
-$chipLabel = $isAdmin ? 'Admin' : (preg_match('/pilot$/i', $rankTitle) ? $rankTitle : $rankTitle . ' Pilot');
 $isLite = isset($_GET['lite']) && $_GET['lite'] === '1';
 // Same switch as IS_LESSON_SIM in JS/workspace.js: lesson mode runs a simulator instead of the drone.
 $isSim = (($_GET['sim'] ?? '') === '1') || (($_GET['mode'] ?? '') === 'lesson');
@@ -115,12 +102,6 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
             <span class="launch-timer" id="launch-timer">00:00</span>
             <span id="header-flag-label">Launch</span>
           </button>
-        </div>
-        <div class="pilot-chip" id="pilot-chip" title="Signed in">
-          <span class="chip-trigger">
-            <span class="chip-label"><?= htmlspecialchars($chipLabel, ENT_QUOTES, 'UTF-8'); ?></span>
-            <img src="../Assets/logo3.png" alt="" class="chip-logo">
-          </span>
         </div>
       </div>
     </header>
