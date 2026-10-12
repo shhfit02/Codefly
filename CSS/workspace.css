@@ -1471,3 +1471,57 @@ body:not(.sim-mode) .sim-float {
 .blockly-stage {
   border-radius: 0;
 }
+
+/* ---------- App layout (laptop and up): header + sidebar + canvas fill exactly one screen ----------
+   The sidebar and the canvas are joined edge to edge with no outer margins, and the page itself
+   never scrolls; the category list and the canvas scroll inside their own areas. */
+@media (min-width: 901px) {
+  .scratch-shell {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .scratch-body {
+    flex: 1;
+    min-height: 0;
+    gap: 0;
+    padding: 0;
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+
+  aside.scratch-sidebar {
+    border-radius: 0;
+    max-height: none;
+    min-height: 0;
+    box-shadow: none;
+    border-right: 1px solid var(--border);
+  }
+
+  .workspace-panel {
+    height: auto;
+    min-height: 0;
+    background: #eef2f8;
+  }
+
+  .panel-head {
+    padding: 8px 12px 0;
+  }
+
+  .blockly-stage {
+    border: none;
+    border-top: 1px solid var(--border);
+    box-shadow: none;
+  }
+
+  #pythonPreview,
+  .flight-log-slot .flight-log {
+    border-radius: 0;
+    border: none;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1280px) {
+  .scratch-body {
+    grid-template-columns: 250px minmax(0, 1fr);
+  }
+}
