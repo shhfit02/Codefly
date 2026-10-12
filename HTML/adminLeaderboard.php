@@ -578,9 +578,7 @@
           <div class="rank-panel__overlay"></div>
           <div class="rank-panel__content">
             <div class="rank-panel__header">
-              <span class="rank-panel__eyebrow">Rank distribution</span>
               <h2 class="rank-panel__title">Pilot Ranks</h2>
-              <p class="rank-panel__subtitle">How many students hold each rank. Ranks follow XP; click one to filter the table.</p>
             </div>
 
             <div class="rank-panel__ladder">
