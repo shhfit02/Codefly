@@ -147,7 +147,10 @@ document.addEventListener("DOMContentLoaded", () => {
       label: "Temerloh",
     };
 
+    let weatherRequest = 0;
     function fetchWeather(lat, lon, label) {
+      // Only the newest request may update the card (a slow earlier one must not overwrite it).
+      const requestId = ++weatherRequest;
       // PHP/weather.php calls OpenWeatherMap with the key kept on the server.
       fetch(`../PHP/weather.php?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`, {
         credentials: "same-origin",
@@ -157,6 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return res.json();
         })
         .then((data) => {
+          if (requestId !== weatherRequest) return;
           const weatherTempEl = document.getElementById("weather-temp");
           const weatherDescEl = document.getElementById("weather-desc");
           const weatherLocationEl = document.getElementById("weather-location");
@@ -204,6 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         })
         .catch(() => {
+          if (requestId !== weatherRequest) return;
           const weatherDescEl = document.getElementById("weather-desc");
           if (weatherDescEl) {
             weatherDescEl.textContent = "Failed to load";
@@ -211,7 +216,86 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    fetchWeather(WEATHER_COORDS.lat, WEATHER_COORDS.lon, WEATHER_COORDS.label);
+    // "Use my location": the browser asks for permission only when the button is pressed.
+    // Once allowed, the choice is remembered (per browser) and later visits use it directly.
+    // Coordinates are rounded to ~1 km before they leave the browser.
+    const LOCATION_PREF_KEY = "codefly:weatherUseDevice";
+    const locateBtn = document.getElementById("weather-locate");
+    const locateLabel = document.getElementById("weather-locate-label");
+    const readPref = () => {
+      try {
+        return localStorage.getItem(LOCATION_PREF_KEY) === "1";
+      } catch (err) {
+        return false;
+      }
+    };
+    const writePref = (on) => {
+      try {
+        if (on) localStorage.setItem(LOCATION_PREF_KEY, "1");
+        else localStorage.removeItem(LOCATION_PREF_KEY);
+      } catch (err) {
+        // Storage blocked: it just will not be remembered.
+      }
+    };
+    const setLocateState = (state) => {
+      if (!locateBtn || !locateLabel) return;
+      const icon = locateBtn.querySelector("i");
+      locateBtn.disabled = state === "busy";
+      if (icon) icon.className = state === "busy" ? "bx bx-loader-alt bx-spin" : "bx bx-current-location";
+      locateLabel.textContent = state === "busy" ? "Locating..." : state === "device" ? `Use ${WEATHER_COORDS.label}` : "Use my location";
+      locateBtn.title = state === "device" ? `Show the weather in ${WEATHER_COORDS.label} instead` : "Show the weather where you are";
+    };
+
+    function useDeviceLocation({ quiet = false } = {}) {
+      if (!navigator.geolocation) {
+        if (!quiet) toastWeather("This browser cannot share its location.");
+        return;
+      }
+      setLocateState("busy");
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(2);
+          const lon = pos.coords.longitude.toFixed(2);
+          writePref(true);
+          setLocateState("device");
+          fetchWeather(lat, lon, null); // the label comes from the weather service (nearest town)
+        },
+        (err) => {
+          writePref(false);
+          setLocateState("default");
+          fetchWeather(WEATHER_COORDS.lat, WEATHER_COORDS.lon, WEATHER_COORDS.label);
+          if (!quiet) {
+            toastWeather(err.code === err.PERMISSION_DENIED
+              ? "Location is blocked for this site. Allow it in the browser's address bar to use it."
+              : "Could not get your location right now.");
+          }
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 10 * 60 * 1000 },
+      );
+    }
+
+    // Short note on the button itself (the home page has no dialog library); full text on hover.
+    function toastWeather(message) {
+      if (!locateBtn || !locateLabel) return;
+      locateLabel.textContent = message.startsWith("Location is blocked") ? "Location blocked" : "Location unavailable";
+      locateBtn.title = message;
+      setTimeout(() => setLocateState(readPref() ? "device" : "default"), 5000);
+    }
+
+    locateBtn?.addEventListener("click", () => {
+      if (readPref()) {
+        // Back to the default town.
+        writePref(false);
+        setLocateState("default");
+        fetchWeather(WEATHER_COORDS.lat, WEATHER_COORDS.lon, WEATHER_COORDS.label);
+      } else {
+        useDeviceLocation();
+      }
+    });
+
+    // Remembered choice: go straight to the device location (falls back to the default town).
+    if (readPref()) useDeviceLocation({ quiet: true });
+    else fetchWeather(WEATHER_COORDS.lat, WEATHER_COORDS.lon, WEATHER_COORDS.label);
   }
 
   // ---------------- LEARNING PROGRESS CARDS ----------------

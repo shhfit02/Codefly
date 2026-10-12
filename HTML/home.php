@@ -74,6 +74,10 @@
                         <p class="text-[0.65rem] uppercase tracking-[0.4em] text-white/60">Current</p>
                         <p id="weather-location" class="text-sm font-semibold text-white">Detecting...</p>
                         <p id="weather-date" class="text-xs text-white/60 mt-1">--</p>
+                        <!-- Asks the browser for the location only when pressed (see JS/home.js). -->
+                        <button type="button" id="weather-locate" class="mt-2 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-white/15 hover:bg-white/25 px-2.5 py-1 text-[11px] leading-none font-semibold text-white" title="Show the weather where you are">
+                          <i class='bx bx-current-location text-sm'></i><span id="weather-locate-label">Use my location</span>
+                        </button>
                       </div>
                       <div class="text-right">
                         <i id="weather-icon" class="bx bx-cloud text-4xl text-white"></i>
