@@ -370,6 +370,14 @@
       transform: translateX(8px) scale(1.03);
     }
 
+    /* home.css gives .home overflow-x:hidden, which makes it a scroll container: the
+       sticky rank panel then sticks to .home (which never scrolls) instead of the window.
+       clip cuts sideways overflow the same way without that, so the panel stays in view
+       while the list on the left scrolls. */
+    .home {
+      overflow-x: clip;
+    }
+
     /* Rank ladder rows double as filters and show how many pilots hold each rank. */
     .ladder-pill--button {
       width: 100%;

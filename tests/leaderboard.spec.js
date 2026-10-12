@@ -50,6 +50,16 @@ test.describe('leaderboards', () => {
     for (const claim of FALSE_CLAIMS) expect(rules).not.toMatch(claim);
   });
 
+  test('admin rank panel stays in view while the list scrolls', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 650 });
+    await login(page, admin);
+    await page.goto('HTML/adminLeaderboard.php');
+    await expect(page.locator('#leaderboard-body tr').first()).toBeVisible();
+    const panel = page.locator('.rank-panel');
+    await page.evaluate(() => window.scrollTo(0, 300));
+    await expect.poll(async () => (await panel.boundingBox())?.y).toBe(24); // lg:top-6
+  });
+
   test('student leaderboard: XP order and no false claims', async ({ page }) => {
     await login(page, student);
     await page.goto('HTML/leaderboard.php');
