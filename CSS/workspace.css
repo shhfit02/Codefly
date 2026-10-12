@@ -1582,3 +1582,76 @@ body:not(.sim-mode) .sim-float {
     display: none;
   }
 }
+
+/* ---------- Light header ----------
+   The CodeFly, UPSI and FKMT logos are made for a white background (as in the login card), so
+   the header is white; the brand blue stays as a thin top stripe and on the active controls. */
+.scratch-header {
+  /* Brand stripe along the top edge only. */
+  background: linear-gradient(90deg, #0f82ff, #6f71ff) top / 100% 4px no-repeat, #fff;
+  padding-top: 16px;
+  color: #0f172a;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.brand-pill {
+  height: auto;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.ghost-home-btn {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.ghost-home-btn:hover {
+  background: #e0e7ff;
+}
+
+.header-copy h1 {
+  color: #0f172a;
+}
+
+.header-telemetry .telemetry-chip {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  color: #0f172a;
+}
+
+.header-telemetry .telemetry-chip p {
+  color: #64748b;
+}
+
+.telemetry-offline {
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+.mode-switch {
+  background: #f1f5f9;
+  border-color: var(--border);
+}
+
+.mode-option {
+  color: #475569;
+}
+
+.mode-option[aria-checked="true"] {
+  background: linear-gradient(120deg, #0f82ff, #6f71ff);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(15, 130, 255, 0.3);
+}
+
+.chip-trigger {
+  background: #f8fafc;
+  border-color: var(--border);
+  color: #0f172a;
+}
+
+.chip-trigger:hover {
+  background: #eef2ff;
+}
