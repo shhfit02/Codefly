@@ -114,6 +114,9 @@
               <label class="text-sm text-gray-600">Confirm password
                 <input type="password" name="confirmPassword" placeholder="Repeat password" class="mt-2 w-full rounded-2xl border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 px-4 py-3">
               </label>
+              <label class="text-sm text-gray-600 md:col-span-2">Current password
+                <input type="password" name="currentPassword" placeholder="Needed to change your email or password" autocomplete="current-password" class="mt-2 w-full rounded-2xl border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-500 px-4 py-3">
+              </label>
             </div>
             <div class="rounded-3xl border border-gray-100 bg-gray-50/80 p-5 space-y-4">
               <div class="flex flex-col gap-1">

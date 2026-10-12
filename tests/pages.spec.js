@@ -42,6 +42,7 @@ test.describe('student pages', () => {
   test.skip(!student, `no student test account (run: php tests/accounts.php setup -> ${CREDENTIALS_FILE})`);
 
   test('every student page loads cleanly', async ({ page }) => {
+    test.setTimeout(90000); // 11 pages, while other test files run in parallel
     await login(page, student);
     await expect(page).toHaveURL(/HTML\/home\.php$/);
     const { moduleId, lessonId } = await findModule(page);
@@ -76,6 +77,7 @@ test.describe('admin pages', () => {
   test.skip(!admin, `no admin test account (run: php tests/accounts.php setup -> ${CREDENTIALS_FILE})`);
 
   test('every admin page loads cleanly', async ({ page }) => {
+    test.setTimeout(90000); // 13 pages, while other test files run in parallel
     await login(page, admin);
     await expect(page).toHaveURL(/HTML\/adminDashboard\.php$/);
     const { moduleId, lessonId } = await findModule(page);

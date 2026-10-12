@@ -440,6 +440,9 @@
         if (form.elements.confirmPassword) {
           form.elements.confirmPassword.value = "";
         }
+        if (form.elements.currentPassword) {
+          form.elements.currentPassword.value = "";
+        }
         setStatus(statusEl, payload.message || "Account updated successfully.", "success");
       } catch (error) {
         setStatus(statusEl, buildErrorMessage(error), "error");

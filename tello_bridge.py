@@ -10,7 +10,22 @@ from djitellopy import Tello
 # ===============================
 
 app = Flask(__name__)
-CORS(app)  # Allow access from dashboard
+# Only CodeFly pages served from this PC (XAMPP :8080, Live Server, ...) may call the bridge.
+# With CORS open to every origin, any website open in the browser could POST to
+# /run_script and run Python on this computer.
+LOCAL_ORIGIN = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
+CORS(app, origins=[LOCAL_ORIGIN])
+
+
+@app.before_request
+def reject_foreign_host():
+    """
+    Block DNS rebinding: a site whose domain is re-pointed at 127.0.0.1 would count as
+    same-origin and skip CORS, but its requests still carry its own Host header.
+    """
+    host = (request.host or "").split(":")[0]
+    if host not in ("127.0.0.1", "localhost"):
+        return jsonify({"status": "failed", "error": "Forbidden host"}), 403
 
 # Create a global Tello object
 tello = Tello()
@@ -170,6 +185,9 @@ def stop_script():
             return jsonify({"status": "emergency command sent"})
         else:
             print("STOP/LAND command received")
+            # Tello answers 'error' to land while already on the ground.
+            if not tello.is_flying:
+                return jsonify({"status": "already on the ground"})
             tello.land()  # Use land for safety
             return jsonify({"status": "land command sent"})
     except Exception as e:
@@ -184,7 +202,7 @@ def single_command():
 
     payload = request.json or {}
     cmd_type = payload.get("type")
-    result = {}
+    result: dict = {}  # extra fields for the response (landed, photo path)
 
     try:
         with lock:
@@ -203,8 +221,8 @@ def single_command():
                 else:
                     tello.rotate_counter_clockwise(value)
             elif cmd_type == "move":
-                direction = payload.get("dir")
-                value = check_range(int(round(float(payload.get("value", 0)))), MOVE_MIN_CM, MOVE_MAX_CM, "Distance", "cm")
+                direction = str(payload.get("dir", ""))
+                value = check_range(round(float(payload.get("value", 0))), MOVE_MIN_CM, MOVE_MAX_CM, "Distance", "cm")
                 method_map = {
                     "forward": tello.move_forward,
                     "back": tello.move_back,
@@ -304,6 +322,7 @@ def execute_tello_script(code_to_run: str):
     """
 
     def custom_rotate(degrees):
+        check_stop()
         degrees = int(degrees)
         if degrees > 0:
             tello.rotate_clockwise(degrees)

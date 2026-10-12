@@ -2,6 +2,7 @@
 session_start();
 require_once 'db.php';
 require_once 'profile_helpers.php';
+require_once 'remember_helpers.php';
 
 if (!isset($_SESSION['user_id'])) {
     respondJson(401, [
@@ -60,6 +61,7 @@ $values = [
     'email' => trim($input['email'] ?? ''),
     'password' => $input['password'] ?? '',
     'confirmPassword' => $input['confirmPassword'] ?? '',
+    'currentPassword' => $input['currentPassword'] ?? '',
     'inAppNotifications' => !empty($input['inAppNotifications']),
 ];
 
@@ -105,6 +107,27 @@ if (empty($errors)) {
     $stmt->close();
 }
 
+// A new password or email needs the current password, as in changePassword.php: otherwise
+// anyone at an unlocked, signed-in computer could take the account over (a new email
+// also lets them reset the password with a TAC).
+$account = null;
+if (empty($errors)) {
+    $stmt = $conn->prepare('SELECT email, password FROM users WHERE id = ? LIMIT 1');
+    $stmt->bind_param('i', $userId);
+    $stmt->execute();
+    $account = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    $emailChanged = $account && strcasecmp($account['email'], $values['email']) !== 0;
+    if ($account && ($values['password'] !== '' || $emailChanged)) {
+        if ($values['currentPassword'] === '') {
+            $errors[] = 'Enter your current password to change your email or password.';
+        } elseif (!password_verify($values['currentPassword'], $account['password'])) {
+            $errors[] = 'Current password is incorrect.';
+        }
+    }
+}
+
 if (!empty($errors)) {
     respondJson(422, [
         'status' => 'error',
@@ -136,6 +159,15 @@ try {
     ]);
 
     $conn->commit();
+
+    // Same as changePassword.php: sign out "remember me" on other devices.
+    if ($values['password'] !== '') {
+        if (getRememberCookieParts()) {
+            rememberUser($conn, $userId);
+        } else {
+            forgetRememberedUser($conn, null, $userId);
+        }
+    }
 
     $_SESSION['username'] = $values['username'];
 

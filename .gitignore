@@ -1,6 +1,7 @@
 node_modules/
 .codex/
 .vscode/
+pyrefly.toml
 npm-debug.log*
 
 # Local secrets (copy the *.example.php files)
