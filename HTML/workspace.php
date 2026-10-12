@@ -287,8 +287,5 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
   <script src="../JS/workspace-blocks.js"></script>
   <script src="../JS/workspace.js"></script>
-
-  <footer class="app-footer" style="width:100%; text-align:center; padding:16px 12px; font-size:12px; color:#64748b;">
-    COPYRIGHT &copy; 2022 Universiti Pendidikan Sultan Idris
-  </footer></body>
+</body>
 </html>
