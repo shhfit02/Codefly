@@ -1539,7 +1539,7 @@ body:not(.sim-mode) .sim-float {
 }
 
 .brand-pill__codefly {
-  height: 50px;
+  height: 40px;
   width: auto;
 }
 
@@ -1562,7 +1562,7 @@ body:not(.sim-mode) .sim-float {
 }
 
 .brand-pill__powered img {
-  height: 48px;
+  height: 38px;
   width: auto;
 }
 
