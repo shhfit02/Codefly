@@ -1466,3 +1466,8 @@ body:not(.sim-mode) .sim-float {
     min-height: 480px;
   }
 }
+
+/* Square canvas corners. */
+.blockly-stage {
+  border-radius: 0;
+}
