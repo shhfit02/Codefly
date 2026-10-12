@@ -1223,7 +1223,32 @@ body:not(.sim-mode) .sim-float {
 }
 
 .sim-float.is-minimised {
-  width: auto;
+  width: auto !important; /* beats the saved width set inline by the resize grip */
+}
+
+/* Resize grip in the bottom-left corner: the window sits on the right, so it grows leftwards. */
+.sim-float__resize {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nesw-resize;
+  touch-action: none;
+  background:
+    linear-gradient(45deg, transparent 45%, #475569 45%, #475569 55%, transparent 55%) 0 0 / 100% 100%,
+    linear-gradient(45deg, transparent 70%, #475569 70%, #475569 80%, transparent 80%) 0 0 / 100% 100%;
+  transform: scaleX(-1);
+  opacity: 0.8;
+}
+
+.sim-float__resize:hover,
+.sim-float.is-resizing .sim-float__resize {
+  opacity: 1;
+}
+
+.sim-float.is-minimised .sim-float__resize {
+  display: none;
 }
 
 .sim-float.is-minimised .sim-float__body {
@@ -1269,12 +1294,16 @@ body:not(.sim-mode) .sim-float {
 @media (max-width: 900px) {
   .sim-float {
     position: static;
-    width: auto;
+    width: auto !important;
     margin-bottom: 10px;
   }
 
   .sim-float__bar {
     cursor: default;
+  }
+
+  .sim-float__resize {
+    display: none;
   }
 }
 

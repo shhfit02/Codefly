@@ -263,6 +263,8 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
                  Flight log tab in drone mode (see applyRunMode). -->
             <pre id="consoleOutput" class="flight-log" aria-live="polite">Press Launch to run your program.</pre>
           </div>
+          <!-- Drag to resize (the right edge stays put); double-click for the default size. -->
+          <span class="sim-float__resize" id="simFloatResize" title="Drag to resize · double-click to reset" aria-hidden="true"></span>
         </section>
       </div>
 

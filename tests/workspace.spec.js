@@ -78,6 +78,27 @@ test.describe('workspace', () => {
     await expect(page.locator('.tab-btn.active')).toHaveText('Blocks');
   });
 
+  test('the simulator can be resized from its corner and remembers the size', async ({ page }) => {
+    await openWorkspace(page);
+    const sim = page.locator('#simFloat');
+    const before = await sim.boundingBox();
+    const grip = await page.locator('#simFloatResize').boundingBox();
+    await page.mouse.move(grip.x + 5, grip.y + 5);
+    await page.mouse.down();
+    await page.mouse.move(grip.x - 150, grip.y + 5, { steps: 5 });
+    await page.mouse.up();
+    const after = await sim.boundingBox();
+    expect(after.width).toBeGreaterThan(before.width + 100);
+    // The right edge stays put; the window grows leftwards.
+    expect(Math.abs(after.x + after.width - (before.x + before.width))).toBeLessThan(2);
+
+    await page.reload();
+    await expect.poll(async () => (await sim.boundingBox()).width).toBeGreaterThan(before.width + 100);
+
+    await page.locator('#simFloatResize').dblclick();
+    await expect.poll(async () => Math.round((await sim.boundingBox()).width)).toBe(Math.round(before.width));
+  });
+
   test('the simulator counts photos taken by camera blocks', async ({ page }) => {
     await openWorkspace(page);
     await page.evaluate(() => Blockly.serialization.workspaces.load({ blocks: { languageVersion: 0, blocks: [{

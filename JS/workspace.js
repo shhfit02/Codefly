@@ -731,8 +731,11 @@ function initDroneSim() {
   initSimFloat();
 }
 
-// --- Floating simulator window: drag by the title bar, minimise, remember where it was ---
+// --- Floating simulator window: drag by the title bar, resize from the corner, minimise,
+// remember where it was ---
 const SIM_FLOAT_KEY = 'codefly:simFloat';
+const SIM_FLOAT_MIN_WIDTH = 240;
+const SIM_FLOAT_MAX_WIDTH = 640;
 
 function setSimMinimised(minimised) {
   const box = document.getElementById('simFloat');
@@ -752,6 +755,7 @@ function saveSimFloat() {
     localStorage.setItem(SIM_FLOAT_KEY, JSON.stringify({
       left: box.style.left || null,
       top: box.style.top || null,
+      width: box.style.width || null,
       minimised: box.classList.contains('is-minimised'),
     }));
   } catch (err) {
@@ -763,7 +767,12 @@ function saveSimFloat() {
 function clampSimFloat() {
   const box = document.getElementById('simFloat');
   const area = document.getElementById('blocks-view');
-  if (!box || !area || !box.style.left || getComputedStyle(box).position !== 'absolute') return;
+  if (!box || !area || getComputedStyle(box).position !== 'absolute') return;
+  if (box.style.width) {
+    const maxWidth = Math.min(SIM_FLOAT_MAX_WIDTH, area.clientWidth - 20);
+    box.style.width = `${Math.max(SIM_FLOAT_MIN_WIDTH, Math.min(maxWidth, parseFloat(box.style.width)))}px`;
+  }
+  if (!box.style.left) return;
   const maxLeft = Math.max(0, area.clientWidth - box.offsetWidth);
   const maxTop = Math.max(0, area.clientHeight - box.offsetHeight);
   box.style.left = `${Math.min(maxLeft, Math.max(0, parseFloat(box.style.left)))}px`;
@@ -774,6 +783,7 @@ function initSimFloat() {
   const box = document.getElementById('simFloat');
   const bar = document.getElementById('simFloatBar');
   const toggle = document.getElementById('simFloatToggle');
+  const grip = document.getElementById('simFloatResize');
   const area = document.getElementById('blocks-view');
   if (!box || !bar || !toggle || !area) return;
 
@@ -788,6 +798,7 @@ function initSimFloat() {
     box.style.top = saved.top;
     box.style.right = 'auto';
   }
+  if (saved?.width) box.style.width = saved.width;
   if (saved?.minimised) setSimMinimised(true);
   requestAnimationFrame(clampSimFloat);
   window.addEventListener('resize', clampSimFloat);
@@ -819,6 +830,45 @@ function initSimFloat() {
     bar.addEventListener('pointermove', move);
     bar.addEventListener('pointerup', end);
     bar.addEventListener('pointercancel', end);
+  });
+
+  if (!grip) return;
+  // The grip is on the bottom-left corner, so the right edge stays where it is and the
+  // window grows leftwards and down (the canvas keeps its 16:9 shape).
+  grip.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || getComputedStyle(box).position !== 'absolute') return;
+    e.preventDefault();
+    const areaBox = area.getBoundingClientRect();
+    const start = box.getBoundingClientRect();
+    const right = start.right - areaBox.left;
+    box.classList.add('is-resizing');
+    grip.setPointerCapture(e.pointerId);
+    const move = (ev) => {
+      const maxWidth = Math.min(SIM_FLOAT_MAX_WIDTH, right);
+      const width = Math.max(SIM_FLOAT_MIN_WIDTH, Math.min(maxWidth, start.width + (start.left - ev.clientX)));
+      box.style.width = `${width}px`;
+      box.style.left = `${right - width}px`;
+      box.style.top = `${start.top - areaBox.top}px`;
+      box.style.right = 'auto';
+    };
+    const end = () => {
+      box.classList.remove('is-resizing');
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', end);
+      grip.removeEventListener('pointercancel', end);
+      clampSimFloat();
+      saveSimFloat();
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  });
+  grip.addEventListener('dblclick', () => {
+    const before = box.getBoundingClientRect();
+    box.style.width = '';
+    if (box.style.left) box.style.left = `${parseFloat(box.style.left) + before.width - box.offsetWidth}px`;
+    clampSimFloat();
+    saveSimFloat();
   });
 }
 
