@@ -1525,3 +1525,60 @@ body:not(.sim-mode) .sim-float {
     grid-template-columns: 250px minmax(0, 1fr);
   }
 }
+
+/* ---------- Header brand: CodeFly logo | Powered by UPSI · FKMT (as on the login page) ---------- */
+.brand-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 58px;
+  padding: 4px 16px 4px 8px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15);
+}
+
+.brand-pill__codefly {
+  height: 50px;
+  width: auto;
+}
+
+.brand-pill__powered {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 12px;
+  border-left: 1px solid #e2e8f0;
+}
+
+.brand-pill__label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  max-width: 54px;
+  color: #475569;
+}
+
+.brand-pill__powered img {
+  height: 48px;
+  width: auto;
+}
+
+/* Smaller laptops: keep the CodeFly logo, drop the sponsor logos to make room. */
+@media (max-width: 1400px) {
+  .brand-pill__powered {
+    display: none;
+  }
+
+  .brand-pill {
+    padding-right: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .header-copy {
+    display: none;
+  }
+}

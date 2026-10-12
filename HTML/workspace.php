@@ -72,8 +72,16 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
         <button class="ghost-home-btn" onclick="goHome()" aria-label="Back">
           <i class='bx bx-chevron-left'></i>
         </button>
+        <!-- Same logos as the login page, on a white pill so the dark lettering stays readable. -->
+        <div class="brand-pill">
+          <img src="../Assets/codefly_header_logo.png" alt="CodeFly" class="brand-pill__codefly">
+          <span class="brand-pill__powered">
+            <span class="brand-pill__label">Powered by</span>
+            <img src="../Assets/powered_header.png" alt="Universiti Pendidikan Sultan Idris, Fakulti Komputeran dan Meta-Teknologi">
+          </span>
+        </div>
         <div class="header-copy">
-          <h1>CodeFly Workspace</h1>
+          <h1>Workspace</h1>
         </div>
       </div>
       <div class="header-telemetry is-offline" id="header-telemetry" aria-label="Drone telemetry">
