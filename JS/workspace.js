@@ -1279,6 +1279,20 @@ async function runCode() {
   stopRequested = false;
   ensureTelloPythonGenerators(); // guard against missing generators
 
+  // Nothing on the canvas: say what to do instead of silently doing nothing.
+  if (!workspace.getAllBlocks(false).length) {
+    setLaunchButtonIdle();
+    Swal.fire({
+      icon: 'info',
+      title: 'Add some blocks first',
+      html: 'Drag blocks from the categories on the left onto the canvas. '
+        + 'Start with <strong>take off</strong>, add some moves, and finish with <strong>land</strong>. '
+        + 'Then press <strong>Launch</strong>.',
+      confirmButtonText: 'OK',
+    });
+    return;
+  }
+
   if (!commandReady && !simMode) {
     setLaunchButtonIdle();
     setPythonStatus('Connect to Tello first.', 'error');
@@ -1357,9 +1371,17 @@ async function runCode() {
     return;
   }
   if (!pythonCode) {
-    logToConsole("--- [SIM] No blocks to run ---");
+    // Blocks are on the canvas but none of them is a command (e.g. only a number block).
+    logToConsole("--- No commands to run ---");
     setPythonStatus('No blocks to run.', 'error');
     setLaunchButtonIdle();
+    Swal.fire({
+      icon: 'info',
+      title: 'Nothing to run yet',
+      html: 'The blocks on the canvas do not give the drone any commands. '
+        + 'Add command blocks such as <strong>take off</strong>, <strong>fly</strong> and <strong>land</strong>.',
+      confirmButtonText: 'OK',
+    });
     return;
   }
   // The generated code lives in the Python tab; the console only shows what runs.

@@ -78,6 +78,18 @@ test.describe('workspace', () => {
     await expect(page.locator('.tab-btn.active')).toHaveText('Blocks');
   });
 
+  test('launching an empty canvas explains what to do', async ({ page }) => {
+    await openWorkspace(page);
+    await page.evaluate(() => workspace.clear());
+    for (const mode of ['sim', 'drone']) {
+      await page.locator(`.mode-option[data-mode="${mode}"]`).click();
+      await page.locator('#header-flag-btn').click({ force: true });
+      await expect(page.locator('.swal2-title')).toHaveText('Add some blocks first');
+      await expect(page.locator('#header-flag-label')).toHaveText('Launch');
+      await page.locator('.swal2-confirm').click();
+    }
+  });
+
   test('drone mode without a drone explains what to do and offers the simulator', async ({ page }) => {
     await openWorkspace(page);
     await page.locator('.mode-option[data-mode="drone"]').click();
