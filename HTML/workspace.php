@@ -234,7 +234,9 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
       <div class="panel-head">
         <div class="panel-tabs" role="tablist">
           <button class="tab-btn active" data-view="blocks">Blocks</button>
-          <button class="tab-btn" data-view="python">Python</button>
+          <button class="tab-btn sim-only" data-view="python">Python</button>
+          <!-- Drone mode: the run log replaces the Python tab (the simulator panel is hidden). -->
+          <button class="tab-btn drone-only" data-view="log">Flight log</button>
         </div>
         <div class="canvas-toolbar" role="toolbar" aria-label="Program tools">
           <span class="program-name" id="program-name" title="Current program">Untitled</span>
@@ -251,23 +253,24 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
 
       <div class="workspace-view active" data-view="blocks" id="blocks-view">
         <div id="blocklyDiv" class="blockly-stage"></div>
-        <!-- Floating flight panel: the simulator (simulator mode) and the run log (both modes).
-             Drag it by its title bar; minimise it with the button. -->
-        <section class="sim-float" id="simFloat" aria-label="Flight panel">
+        <!-- Floating simulator (simulator mode) with the run log under it. In drone mode the log
+             moves to the Flight log tab. Drag by the title bar; minimise with the button. -->
+        <section class="sim-float" id="simFloat" aria-label="Drone simulator">
           <header class="sim-float__bar" id="simFloatBar">
             <i class='bx bx-move' aria-hidden="true"></i>
-            <span class="sim-float__title"><span class="sim-only">Simulator</span><span class="drone-only">Flight log</span></span>
+            <span class="sim-float__title">Simulator</span>
             <span id="droneSimStatus" class="sim-status">Ready</span>
             <button type="button" class="sim-float__toggle" id="simFloatToggle" aria-expanded="true" aria-label="Minimise simulator"><i class='bx bx-minus'></i></button>
           </header>
           <div class="sim-float__body">
-            <canvas id="droneSimCanvas" class="sim-only" width="480" height="270" aria-label="Drone simulator, seen from above"></canvas>
-            <dl class="sim-readout sim-only">
+            <canvas id="droneSimCanvas" width="480" height="270" aria-label="Drone simulator, seen from above"></canvas>
+            <dl class="sim-readout">
               <dt>Height</dt><dd id="simAltitude">0 cm</dd>
               <dt>Heading</dt><dd id="simHeading">0&deg;</dd>
               <dt class="sim-hint">Forward is up &middot; 1 square = 50 cm</dt>
             </dl>
-            <!-- workspace.js writes each step, errors and bridge results here. -->
+            <!-- workspace.js writes each step, errors and bridge results here; it is moved into the
+                 Flight log tab in drone mode (see applyRunMode). -->
             <pre id="consoleOutput" class="flight-log" aria-live="polite">Press Launch to run your program.</pre>
           </div>
         </section>
@@ -276,6 +279,11 @@ $simLocked = ($_GET['mode'] ?? '') === 'lesson' || $isLite;
       <div class="workspace-view" data-view="python" id="python-view">
         <div class="python-status" id="python-status">Ready to transpile blocks.</div>
         <pre><code id="pythonPreview" class="language-python"># Drag blocks to see Python...</code></pre>
+      </div>
+
+      <div class="workspace-view" data-view="log" id="log-view">
+        <div class="python-status status-idle" id="flight-status">Connect the drone, then press Launch.</div>
+        <div class="flight-log-slot" id="flightLogSlot"></div>
       </div>
 
     </section>

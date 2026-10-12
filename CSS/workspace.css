@@ -1114,7 +1114,7 @@ body.sim-mode .drone-card__sim-note {
   color: #e2e8f0;
 }
 
-/* Simulator mode shows the canvas and readout; drone mode only the status and log. */
+/* Simulator mode: Python tab and the floating simulator. Drone mode: Flight log tab instead. */
 body.sim-mode .drone-only,
 body:not(.sim-mode) .sim-only {
   display: none !important;
@@ -1137,9 +1137,33 @@ body:not(.sim-mode) .sim-only {
   word-break: break-word;
 }
 
-body:not(.sim-mode) .flight-log {
-  margin-top: 0;
-  max-height: 220px;
+body:not(.sim-mode) .sim-float {
+  display: none;
+}
+
+/* Flight log tab (drone mode): the log fills the tab like the Python view. */
+#log-view.active {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.flight-log-slot {
+  flex: 1;
+  min-height: 320px;
+  display: flex;
+}
+
+.flight-log-slot .flight-log {
+  flex: 1;
+  margin: 0;
+  max-height: none;
+  padding: 18px;
+  border-radius: 16px;
+  background: #0f172a;
+  border-color: #1e2a4a;
+  font-size: 13px;
 }
 
 .sim-float__bar {
@@ -1408,4 +1432,9 @@ body:not(.sim-mode) .flight-log {
   .console-footer {
     flex-shrink: 0;
   }
+}
+
+/* Status pills keep their own width inside the flex (column) Python and Flight log views. */
+.workspace-view .python-status {
+  align-self: flex-start;
 }

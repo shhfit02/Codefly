@@ -45,7 +45,7 @@ test.describe('workspace', () => {
     await expect(page.locator('#droneSimStatus')).toHaveText('Stopped');
   });
 
-  test('the flight panel floats over the canvas and can be minimised', async ({ page }) => {
+  test('the simulator floats over the canvas; drone mode swaps Python for the Flight log', async ({ page }) => {
     await openWorkspace(page);
     const sim = page.locator('#simFloat');
     await expect(sim).toBeVisible();
@@ -61,12 +61,21 @@ test.describe('workspace', () => {
     await expect(page.locator('#droneSimCanvas')).toBeVisible();
     await page.keyboard.press('Escape');
 
-    // Drone mode keeps the panel as a flight log, without the simulator.
+    // Drone mode: no floating simulator, and the Python tab becomes the Flight log tab.
     await page.locator('.mode-option[data-mode="drone"]').click();
-    await expect(sim).toBeVisible();
-    await expect(page.locator('#droneSimCanvas')).toBeHidden();
-    await expect(sim.locator('.drone-only')).toHaveText('Flight log');
+    await expect(sim).toBeHidden();
+    await expect(page.locator('.tab-btn[data-view="python"]')).toBeHidden();
+    const logTab = page.locator('.tab-btn[data-view="log"]');
+    await expect(logTab).toBeVisible();
+    await logTab.click();
+    await expect(page.locator('#flightLogSlot #consoleOutput')).toBeVisible();
     await expect(page.locator('#consoleFooter')).toHaveCount(0);
+
+    // Back to the simulator: the log returns under it and the Python tab is back.
+    await page.locator('.mode-option[data-mode="sim"]').click();
+    await expect(page.locator('.tab-btn[data-view="python"]')).toBeVisible();
+    await expect(page.locator('#simFloat #consoleOutput')).toHaveCount(1);
+    await expect(page.locator('.tab-btn.active')).toHaveText('Blocks');
   });
 
   test('drone mode without a drone explains what to do and offers the simulator', async ({ page }) => {

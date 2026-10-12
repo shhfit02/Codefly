@@ -184,10 +184,11 @@ function applyMissionToolboxConfig() {
   }
 }
 
-// The run log lives in the floating flight panel (#simFloat); "opening the console" now just
-// makes sure that panel is not minimised.
+// "Open the console" = show the run log: the floating simulator in simulator mode, the
+// Flight log tab in drone mode.
 function openConsole() {
-  setSimMinimised(false);
+  if (simMode) setSimMinimised(false);
+  else window.setWorkspaceTab?.('log');
 }
 
 // NOTE: This object is NOT used.
@@ -393,6 +394,9 @@ document.addEventListener('DOMContentLoaded', function() {
       setWorkspaceTab(target);
     });
   });
+
+  window.setWorkspaceTab = setWorkspaceTab;
+  window.currentWorkspaceTab = () => document.querySelector('.tab-btn.active')?.dataset.view || 'blocks';
 
   // Ensure both the UI and the preview start in sync.
   setWorkspaceTab('blocks');
@@ -1301,9 +1305,9 @@ async function runCode() {
 
   // 1. Get the console element and clear it
   const consoleOutput = document.getElementById('consoleOutput');
-  const showConsole = openConsole;
+  // Show the log once when a run starts, not on every line (the user may go back to Blocks).
   if (consoleOutput) {
-    showConsole();
+    openConsole();
     consoleOutput.textContent = ''; // Clear console
     consoleOutput.style.color = '#00FF00'; // Green "console" color
   }
@@ -1311,7 +1315,6 @@ async function runCode() {
   // Helper function to log messages to our console
   function logToConsole(message) {
     if (consoleOutput) {
-      showConsole();
       consoleOutput.textContent += message + '\n';
       consoleOutput.scrollTop = consoleOutput.scrollHeight; // Auto-scroll
     } else {
@@ -1829,9 +1832,13 @@ function goHome() {
 }
 
 function setPythonStatus(message, state = 'idle') {
-  // Drone mode: the flight panel title shows the same status (the simulator sets its own).
-  const flightStatus = document.getElementById('droneSimStatus');
-  if (flightStatus && !simMode) flightStatus.textContent = message;
+  // The Flight log tab (drone mode) shows the same status line.
+  const flightStatus = document.getElementById('flight-status');
+  if (flightStatus) {
+    flightStatus.textContent = message;
+    flightStatus.classList.remove('status-running', 'status-error', 'status-idle');
+    flightStatus.classList.add(state === 'running' ? 'status-running' : state === 'error' ? 'status-error' : 'status-idle');
+  }
   const statusEl = document.getElementById('python-status');
   if (!statusEl) return;
   statusEl.textContent = message;
@@ -1972,14 +1979,18 @@ function setRunMode(useSim) {
   }
   if (useSim) {
     resetSimState();
-  } else {
-    const status = document.getElementById('droneSimStatus');
-    if (status) status.textContent = 'Ready';
   }
 }
 
 function applyRunMode() {
   document.body.classList.toggle('sim-mode', simMode);
+  // One run log, shown under the simulator or in the Flight log tab.
+  const log = document.getElementById('consoleOutput');
+  const home = simMode ? document.querySelector('.sim-float__body') : document.getElementById('flightLogSlot');
+  if (log && home && log.parentElement !== home) home.appendChild(log);
+  // The Python tab is hidden in drone mode and the Flight log tab in simulator mode.
+  const tab = window.currentWorkspaceTab?.();
+  if ((!simMode && tab === 'python') || (simMode && tab === 'log')) window.setWorkspaceTab('blocks');
   document.querySelectorAll('.mode-option').forEach((btn) => {
     btn.setAttribute('aria-checked', String((btn.dataset.mode === 'sim') === simMode));
   });
