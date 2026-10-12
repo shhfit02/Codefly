@@ -791,8 +791,8 @@ ensureTelloPythonGenerators();
 ensureTelloPythonGenerators();
 
 // --- Simulator (top view) ---
-// Heading 0 = facing up the screen; turning clockwise increases it. Height is shown beside
-// the canvas, since a top view cannot show up/down.
+// Heading 0 = facing up the screen; turning clockwise increases it. A top view cannot show
+// height directly, so the drone's shadow drifts away and the drone grows a little as it climbs.
 let simCanvas, simCtx, simStatusEl;
 const simState = {
   x: 0,
@@ -801,11 +801,18 @@ const simState = {
   altitude: 0,
   flying: false,
   trail: [],
+  propAngle: 0,
 };
 const SIM_SCALE = 0.6; // pixels per cm: 1 grid square (30 px) = 50 cm
 const SIM_GRID_PX = 30;
 const SIM_TAKEOFF_CM = 80; // the Tello hovers at roughly this height after takeoff
 const SIM_MOVE_ANGLE = { forward: 0, right: 90, back: 180, left: -90 };
+let simFrame = null;
+let simTween = null;
+// Positions are world pixels with the take-off pad at (0, 0). The view pans to keep the
+// drone on screen, so long flights are not squashed against the edge of the canvas.
+const simCamera = { x: 0, y: 0 };
+const SIM_EDGE_MARGIN = 60;
 
 function initDroneSim() {
   simCanvas = document.getElementById('droneSimCanvas');
@@ -817,8 +824,12 @@ function initDroneSim() {
 
 function resetSimState() {
   if (!simCanvas || !simCtx) return;
-  simState.x = simCanvas.width / 2;
-  simState.y = simCanvas.height / 2;
+  simTween?.resolve(); // never leave a run waiting on a cancelled glide
+  simTween = null;
+  simState.x = 0;
+  simState.y = 0;
+  simCamera.x = 0;
+  simCamera.y = 0;
   simState.heading = 0;
   simState.altitude = 0;
   simState.flying = false;
@@ -828,7 +839,7 @@ function resetSimState() {
 }
 
 function setSimStatus(text) {
-  if (simStatusEl) {
+  if (simStatusEl && text !== undefined) {
     simStatusEl.textContent = text;
   }
   const altEl = document.getElementById('simAltitude');
@@ -837,59 +848,193 @@ function setSimStatus(text) {
   if (headEl) headEl.textContent = `${((Math.round(simState.heading) % 360) + 360) % 360}°`;
 }
 
-function drawSim() {
-  if (!simCanvas || !simCtx) return;
-  const { width, height } = simCanvas;
-  simCtx.clearRect(0, 0, width, height);
+const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2);
+
+// Glides simState to the target values over `ms`, redrawing every frame.
+function animateSim(target, ms) {
+  const from = {};
+  Object.keys(target).forEach((key) => { from[key] = simState[key]; });
+  return new Promise((resolve) => {
+    simTween = { from, target, start: performance.now(), ms: Math.max(1, ms), resolve };
+    startSimLoop();
+  });
+}
+
+function startSimLoop() {
+  if (simFrame) return;
+  let last = performance.now();
+  const tick = (now) => {
+    const dt = now - last;
+    last = now;
+    if (simTween) {
+      const t = Math.min(1, (now - simTween.start) / simTween.ms);
+      const k = easeInOut(t);
+      Object.keys(simTween.target).forEach((key) => {
+        simState[key] = simTween.from[key] + (simTween.target[key] - simTween.from[key]) * k;
+      });
+      setSimStatus();
+      if (t >= 1) {
+        const done = simTween.resolve;
+        simTween = null;
+        done();
+      }
+    }
+    if (simState.flying) simState.propAngle += dt * 0.05;
+    drawSim();
+    // Keep animating while flying (spinning props) or gliding; otherwise stop the loop.
+    simFrame = simTween || simState.flying ? requestAnimationFrame(tick) : null;
+  };
+  simFrame = requestAnimationFrame(tick);
+}
+
+function drawGrid(width, height) {
   simCtx.fillStyle = '#0f172a';
   simCtx.fillRect(0, 0, width, height);
-
-  // Grid: one square = 50 cm.
   simCtx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
   simCtx.lineWidth = 1;
-  for (let gx = (width / 2) % SIM_GRID_PX; gx < width; gx += SIM_GRID_PX) {
+  const mod = (v) => ((v % SIM_GRID_PX) + SIM_GRID_PX) % SIM_GRID_PX;
+  for (let gx = mod(width / 2 - simCamera.x); gx < width; gx += SIM_GRID_PX) {
     simCtx.beginPath();
     simCtx.moveTo(gx + 0.5, 0);
     simCtx.lineTo(gx + 0.5, height);
     simCtx.stroke();
   }
-  for (let gy = (height / 2) % SIM_GRID_PX; gy < height; gy += SIM_GRID_PX) {
+  for (let gy = mod(height / 2 - simCamera.y); gy < height; gy += SIM_GRID_PX) {
     simCtx.beginPath();
     simCtx.moveTo(0, gy + 0.5);
     simCtx.lineTo(width, gy + 0.5);
     simCtx.stroke();
   }
-
-  // Take-off pad.
-  simCtx.strokeStyle = 'rgba(250, 204, 21, 0.6)';
+  // Take-off pad (H) at the world origin.
+  const cx = width / 2 - simCamera.x;
+  const cy = height / 2 - simCamera.y;
+  simCtx.strokeStyle = 'rgba(250, 204, 21, 0.55)';
+  simCtx.lineWidth = 1.5;
   simCtx.beginPath();
-  simCtx.arc(width / 2, height / 2, 12, 0, Math.PI * 2);
+  simCtx.arc(cx, cy, 16, 0, Math.PI * 2);
+  simCtx.stroke();
+  simCtx.fillStyle = 'rgba(250, 204, 21, 0.55)';
+  simCtx.font = 'bold 13px Inter, sans-serif';
+  simCtx.textAlign = 'center';
+  simCtx.textBaseline = 'middle';
+  simCtx.fillText('H', cx, cy + 1);
+}
+
+// Tello-style quadcopter seen from above, centred on (0, 0) and facing up.
+function drawQuadcopter(scale) {
+  const arm = 21 * scale;
+  const guard = 13 * scale;
+  const motors = [[-arm, -arm], [arm, -arm], [arm, arm], [-arm, arm]];
+
+  // Arms.
+  simCtx.strokeStyle = '#cbd5e1';
+  simCtx.lineWidth = 3.5 * scale;
+  simCtx.lineCap = 'round';
+  simCtx.beginPath();
+  simCtx.moveTo(motors[0][0], motors[0][1]);
+  simCtx.lineTo(motors[2][0], motors[2][1]);
+  simCtx.moveTo(motors[1][0], motors[1][1]);
+  simCtx.lineTo(motors[3][0], motors[3][1]);
   simCtx.stroke();
 
-  // Flight path.
-  if (simState.trail.length > 1) {
-    simCtx.strokeStyle = 'rgba(34, 211, 238, 0.7)';
-    simCtx.lineWidth = 2;
+  motors.forEach(([mx, my], i) => {
+    const front = i < 2;
+    // Propeller guard.
+    simCtx.fillStyle = 'rgba(148, 163, 184, 0.14)';
+    simCtx.strokeStyle = front ? '#f97316' : '#94a3b8'; // orange guards mark the front
+    simCtx.lineWidth = 1.6 * scale;
     simCtx.beginPath();
-    simState.trail.forEach((p, i) => (i ? simCtx.lineTo(p.x, p.y) : simCtx.moveTo(p.x, p.y)));
+    simCtx.arc(mx, my, guard, 0, Math.PI * 2);
+    simCtx.fill();
     simCtx.stroke();
-  }
+    // Two-blade propeller (neighbouring motors spin opposite ways).
+    const spin = simState.propAngle * (i % 2 ? -1 : 1) + i;
+    simCtx.save();
+    simCtx.translate(mx, my);
+    simCtx.rotate(spin);
+    simCtx.strokeStyle = simState.flying ? 'rgba(226, 232, 240, 0.55)' : '#e2e8f0';
+    simCtx.lineWidth = 2.2 * scale;
+    simCtx.beginPath();
+    simCtx.moveTo(-guard * 0.8, 0);
+    simCtx.lineTo(guard * 0.8, 0);
+    simCtx.stroke();
+    simCtx.restore();
+    // Motor hub.
+    simCtx.fillStyle = '#334155';
+    simCtx.beginPath();
+    simCtx.arc(mx, my, 2 * scale, 0, Math.PI * 2);
+    simCtx.fill();
+  });
 
-  // Drone: filled while flying, outlined on the ground; the line shows where it faces.
-  const rad = (simState.heading * Math.PI) / 180;
-  const size = simState.flying ? 10 : 8;
-  simCtx.lineWidth = 2;
-  simCtx.strokeStyle = '#a855f7';
-  simCtx.fillStyle = simState.flying ? '#a855f7' : 'transparent';
+  // Body.
+  const bw = 20 * scale;
+  const bh = 28 * scale;
+  simCtx.fillStyle = '#f8fafc';
+  simCtx.strokeStyle = '#475569';
+  simCtx.lineWidth = 1.2 * scale;
   simCtx.beginPath();
-  simCtx.arc(simState.x, simState.y, size, 0, Math.PI * 2);
+  if (simCtx.roundRect) simCtx.roundRect(-bw / 2, -bh / 2, bw, bh, 4 * scale);
+  else simCtx.rect(-bw / 2, -bh / 2, bw, bh);
   simCtx.fill();
   simCtx.stroke();
-  simCtx.strokeStyle = '#facc15';
+  // Camera at the front, and the status light (green flying, amber landed).
+  simCtx.fillStyle = '#0f172a';
   simCtx.beginPath();
-  simCtx.moveTo(simState.x, simState.y);
-  simCtx.lineTo(simState.x + Math.sin(rad) * 20, simState.y - Math.cos(rad) * 20);
+  simCtx.arc(0, -bh / 2 + 3 * scale, 2.2 * scale, 0, Math.PI * 2);
+  simCtx.fill();
+  simCtx.fillStyle = simState.flying ? '#22c55e' : '#f59e0b';
+  simCtx.beginPath();
+  simCtx.arc(0, bh / 2 - 4 * scale, 1.8 * scale, 0, Math.PI * 2);
+  simCtx.fill();
+}
+
+function followDrone(width, height) {
+  const sx = simState.x - simCamera.x + width / 2;
+  const sy = simState.y - simCamera.y + height / 2;
+  if (sx < SIM_EDGE_MARGIN) simCamera.x -= SIM_EDGE_MARGIN - sx;
+  if (sx > width - SIM_EDGE_MARGIN) simCamera.x += sx - (width - SIM_EDGE_MARGIN);
+  if (sy < SIM_EDGE_MARGIN) simCamera.y -= SIM_EDGE_MARGIN - sy;
+  if (sy > height - SIM_EDGE_MARGIN) simCamera.y += sy - (height - SIM_EDGE_MARGIN);
+}
+
+function drawSim() {
+  if (!simCanvas || !simCtx) return;
+  const { width, height } = simCanvas;
+  followDrone(width, height);
+  simCtx.clearRect(0, 0, width, height);
+  drawGrid(width, height);
+
+  simCtx.save();
+  simCtx.translate(width / 2 - simCamera.x, height / 2 - simCamera.y);
+  // Flight path, up to the drone's current (possibly gliding) position.
+  simCtx.strokeStyle = 'rgba(34, 211, 238, 0.7)';
+  simCtx.lineWidth = 2;
+  simCtx.lineCap = 'round';
+  simCtx.beginPath();
+  simState.trail.forEach((p, i) => (i ? simCtx.lineTo(p.x, p.y) : simCtx.moveTo(p.x, p.y)));
+  simCtx.lineTo(simState.x, simState.y);
   simCtx.stroke();
+
+  const lift = Math.min(1, simState.altitude / 200);
+  const scale = 1 + lift * 0.25;
+  const rad = (simState.heading * Math.PI) / 180;
+
+  // Shadow: further away and softer as the drone climbs.
+  simCtx.save();
+  simCtx.translate(simState.x + 6 + lift * 14, simState.y + 8 + lift * 18);
+  simCtx.rotate(rad);
+  simCtx.fillStyle = `rgba(0, 0, 0, ${0.45 - lift * 0.25})`;
+  simCtx.beginPath();
+  simCtx.ellipse(0, 0, 32 * scale, 32 * scale, 0, 0, Math.PI * 2);
+  simCtx.fill();
+  simCtx.restore();
+
+  simCtx.save();
+  simCtx.translate(simState.x, simState.y);
+  simCtx.rotate(rad);
+  drawQuadcopter(scale);
+  simCtx.restore();
+  simCtx.restore();
 }
 
 // Evaluates a plain numeric expression such as "90", "(2)*100" or "1.5"; NaN for anything else
@@ -1065,61 +1210,74 @@ function shouldUseSequentialOps(pythonCode) {
   return true;
 }
 
-function applySimOp(op) {
+// Plays one op on the canvas. Moves and turns glide; height changes show in the readout.
+async function playSimOp(op) {
   if (!simCanvas || !simCtx) return;
   switch (op.type) {
     case 'takeoff':
       simState.flying = true;
-      simState.altitude = SIM_TAKEOFF_CM;
       setSimStatus('Takeoff');
+      await animateSim({ altitude: SIM_TAKEOFF_CM }, 700);
       break;
     case 'land':
     case 'emergency':
+      setSimStatus(op.type === 'land' ? 'Landing' : 'Emergency stop: landing');
+      await animateSim({ altitude: 0 }, 700);
       simState.flying = false;
-      simState.altitude = 0;
       setSimStatus(op.type === 'land' ? 'Landed' : 'Emergency stop: landed');
       break;
     case 'turn':
-      simState.heading += op.dir === 'cw' ? op.value : -op.value;
       setSimStatus(`Turn ${op.dir === 'cw' ? 'right' : 'left'} ${op.value}°`);
+      await animateSim({ heading: simState.heading + (op.dir === 'cw' ? op.value : -op.value) }, 400 + Math.min(600, op.value * 3));
       break;
     case 'move': {
       if (!simState.flying) {
         setSimStatus(`Move ${op.dir} skipped: take off first`);
         break;
       }
+      setSimStatus(`Move ${op.dir} ${op.value} cm`);
       if (op.dir === 'up' || op.dir === 'down') {
-        simState.altitude = Math.max(0, simState.altitude + (op.dir === 'up' ? op.value : -op.value));
-        setSimStatus(`Move ${op.dir} ${op.value} cm`);
+        await animateSim({ altitude: Math.max(0, simState.altitude + (op.dir === 'up' ? op.value : -op.value)) }, 600);
         break;
       }
       const rad = ((simState.heading + (SIM_MOVE_ANGLE[op.dir] ?? 0)) * Math.PI) / 180;
       const distancePx = (op.value || 0) * SIM_SCALE;
-      simState.x = Math.max(8, Math.min(simCanvas.width - 8, simState.x + Math.sin(rad) * distancePx));
-      simState.y = Math.max(8, Math.min(simCanvas.height - 8, simState.y - Math.cos(rad) * distancePx));
-      simState.trail.push({ x: simState.x, y: simState.y });
-      setSimStatus(`Move ${op.dir} ${op.value} cm`);
+      const x = simState.x + Math.sin(rad) * distancePx;
+      const y = simState.y - Math.cos(rad) * distancePx;
+      await animateSim({ x, y }, 400 + Math.min(900, op.value * 3));
+      simState.trail.push({ x, y });
       break;
     }
     case 'wait':
       setSimStatus(`Wait ${op.value}s`);
+      // Waits play at 40% speed (capped) so long programs stay watchable.
+      await sleep(Math.min(3000, Math.max(400, (op.value || 0) * 400)));
       break;
-    case 'flip':
+    case 'flip': {
       setSimStatus(`Flip ${{ f: 'forward', b: 'back', l: 'left', r: 'right' }[op.dir] || op.dir}`);
+      const start = simState.heading;
+      await animateSim({ heading: start + 360 }, 600);
+      simState.heading = start;
       break;
+    }
+    case 'circle': {
+      setSimStatus(`Circle ${op.value}s`);
+      await animateSim({ heading: simState.heading + 360 }, Math.min(3000, Math.max(600, (op.value || 0) * 600)));
+      break;
+    }
     case 'photo':
       setSimStatus('Photo taken');
+      await sleep(400);
       break;
     case 'bounce':
       setSimStatus('Bounce');
-      break;
-    case 'circle':
-      setSimStatus(`Circle ${op.value}s`);
+      await animateSim({ altitude: simState.altitude + 30 }, 250);
+      await animateSim({ altitude: Math.max(0, simState.altitude - 30) }, 250);
       break;
     default:
       break;
   }
-  drawSim();
+  setSimStatus();
 }
 
 // Plays the program step by step on the canvas. Resolves 'complete' or 'stopped'.
@@ -1143,15 +1301,19 @@ async function runDroneSimulation(pythonCode, logToConsole) {
   }
   for (const op of ops) {
     if (stopRequested) {
+      // Like the real Stop: the drone lands where it is.
+      if (simState.flying) {
+        await animateSim({ altitude: 0 }, 500);
+        simState.flying = false;
+      }
       setSimStatus('Stopped');
       logToConsole?.('[SIM] Stopped');
       return 'stopped';
     }
-    applySimOp(op);
     logToConsole?.(`[SIM] ${op.type} ${op.dir ?? ''} ${op.value ?? ''}`.replace(/\s+/g, ' ').trim());
+    await playSimOp(op);
     if (op.type === 'emergency') break;
-    // Waits play at 40% speed (capped) so long programs stay watchable.
-    await sleep(op.type === 'wait' ? Math.min(3000, Math.max(400, (op.value || 0) * 400)) : 600);
+    await sleep(120);
   }
   setSimStatus(simState.flying ? 'Complete (still flying: add a Land block)' : 'Complete');
   return 'complete';

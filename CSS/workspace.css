@@ -1132,7 +1132,7 @@ body.sim-mode .sim-panel {
 }
 
 body.sim-mode #droneSimCanvas {
-  width: 320px;
+  width: 340px;
   height: auto;
 }
 
