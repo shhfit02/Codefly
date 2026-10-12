@@ -1409,8 +1409,8 @@ async function runCode() {
     setLaunchButtonIdle();
     return;
   }
-  logToConsole("--- [PY] Generated code ---");
-  logToConsole(pythonCode.trim());
+  // The generated code lives in the Python tab; the console only shows what runs.
+  console.log('Generated Python:\n' + pythonCode);
   sendCodeToParent('running');
 
   if (simMode) {
