@@ -1,4 +1,10 @@
+import ast
+import math
+import numbers
 import os
+import random
+import socket
+import sys
 import threading
 import time
 import re
@@ -10,12 +16,64 @@ from djitellopy import Tello
 # DJI TELLO BRIDGE SERVER
 # ===============================
 
+PORT = 5000
+FROZEN = getattr(sys, "frozen", False)  # running as CodeFlyBridge.exe (PyInstaller)
+# Next to tello_bridge.py, or next to the .exe once installed.
+APP_DIR = os.path.dirname(sys.executable if FROZEN else os.path.abspath(__file__))
+# The installed .exe lives in a folder students should not have to write to, so its photos
+# and log go to %LOCALAPPDATA%\CodeFly Bridge instead.
+DATA_DIR = os.path.join(os.environ.get("LOCALAPPDATA", APP_DIR), "CodeFly Bridge") if FROZEN else APP_DIR
+
+
+def already_running():
+    """True when a bridge already listens on the port (started at login, then by the site)."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.5)
+        return s.connect_ex(("127.0.0.1", PORT)) == 0
+
+
+# Before Tello() below, which takes the drone's UDP ports: a second copy must just exit.
+if __name__ == '__main__':
+    if sys.stdout is None:
+        # Started without a console (the installed .exe, or pythonw at login): log to a file.
+        os.makedirs(DATA_DIR, exist_ok=True)
+        sys.stdout = sys.stderr = open(os.path.join(DATA_DIR, "bridge.log"), "a", buffering=1, encoding="utf-8")
+    if already_running():
+        print(f"A CodeFly bridge is already running on port {PORT}.")
+        sys.exit(0)
+
 app = Flask(__name__)
-# Only CodeFly pages served from this PC (XAMPP :8080, Live Server, ...) may call the bridge.
-# With CORS open to every origin, any website open in the browser could POST to
-# /run_script and run Python on this computer.
+# Only CodeFly pages may call the bridge: pages served from this PC (XAMPP :8080, Live
+# Server, ...) plus the hosted CodeFly site(s) listed in allowed_origins.txt or the
+# CODEFLY_ORIGINS environment variable (comma-separated, e.g. https://codefly.example.com).
+# With CORS open to every origin, any website open in the browser could drive the drone.
 LOCAL_ORIGIN = r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
-CORS(app, origins=[LOCAL_ORIGIN])
+
+
+def load_allowed_origins():
+    entries = os.environ.get("CODEFLY_ORIGINS", "").split(",")
+    for folder in {APP_DIR, DATA_DIR}:
+        try:
+            with open(os.path.join(folder, "allowed_origins.txt"), encoding="utf-8") as f:
+                entries += f.read().splitlines()
+        except OSError:
+            pass
+    origins = []
+    for entry in entries:
+        entry = entry.strip().rstrip("/")
+        if entry and not entry.startswith("#"):
+            # Exact origins only (scheme://host[:port]); never a wildcard.
+            if not re.fullmatch(r"https?://[A-Za-z0-9.-]+(:\d+)?", entry):
+                print(f"Ignoring invalid CodeFly site origin: {entry}")
+                continue
+            origins.append(entry)
+    return origins
+
+
+ALLOWED_ORIGINS = load_allowed_origins()
+# allow_private_network: Chrome asks a public HTTPS site for this before it may call
+# 127.0.0.1 (Private / Local Network Access).
+CORS(app, origins=[LOCAL_ORIGIN, *ALLOWED_ORIGINS], allow_private_network=True)
 
 
 @app.before_request
@@ -41,7 +99,7 @@ stop_event = threading.Event()
 # Last /run_script result, polled by the workspace via /script_status.
 script_state = {"state": "idle", "error": None, "photos": []}
 
-PHOTO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "photos")
+PHOTO_DIR = os.path.join(DATA_DIR, "photos")
 MOVE_MIN_CM, MOVE_MAX_CM = 20, 500      # Tello SDK limits for up/down/left/right/forward/back
 TURN_MIN_DEG, TURN_MAX_DEG = 1, 360     # Tello SDK limits for cw/ccw
 BOUNCE_HEIGHT_CM = 30
@@ -294,6 +352,8 @@ class ScriptTello:
         raise ScriptStopped("Emergency stop: drone landed")
 
     def __getattr__(self, name):
+        if name not in SCRIPT_TELLO_METHODS:
+            raise AttributeError(f"tello.{name} is not available to block programs")
         attr = getattr(tello, name)
         if not callable(attr):
             return attr
@@ -316,6 +376,75 @@ class ScriptTime:
         return getattr(time, name)
 
 
+# --- What a block program may do ---
+# /run_script used to exec() any Python it was sent. Now the bridge can be reached from the
+# hosted CodeFly site, so it only runs what the blocks generate: drone calls, time.sleep,
+# math/random, loops, ifs, variables and Blockly's small helper functions (math_isPrime).
+SCRIPT_TELLO_METHODS = {
+    "takeoff", "land", "flip", "send_rc_control",
+    "move_forward", "move_back", "move_left", "move_right", "move_up", "move_down",
+    "rotate_clockwise", "rotate_counter_clockwise",
+    "take_picture", "bounce", "emergency_land", "get_battery", "get_height",
+}
+SCRIPT_MODULES = {"tello", "time", "math", "random"}  # names whose attributes scripts may use
+SCRIPT_IMPORTS = {"time", "math", "random", "numbers"}
+SCRIPT_BUILTINS = {
+    "range": range, "int": int, "float": float, "round": round, "abs": abs, "min": min,
+    "max": max, "sum": sum, "len": len, "bool": bool, "str": str, "print": print,
+    "isinstance": isinstance, "Exception": Exception, "True": True, "False": False, "None": None,
+}
+SCRIPT_NODES = (
+    ast.Module, ast.Expr, ast.Assign, ast.AugAssign, ast.Name, ast.Load, ast.Store,
+    ast.Constant, ast.Call, ast.keyword, ast.Attribute, ast.BinOp, ast.UnaryOp, ast.BoolOp,
+    ast.Compare, ast.IfExp, ast.If, ast.For, ast.While, ast.Break, ast.Continue, ast.Pass,
+    ast.FunctionDef, ast.arguments, ast.arg, ast.Return, ast.Global, ast.Import,
+    ast.ImportFrom, ast.alias, ast.Try, ast.ExceptHandler, ast.List, ast.Tuple,
+    ast.operator, ast.unaryop, ast.boolop, ast.cmpop,
+)
+PROTECTED_NAMES = SCRIPT_MODULES | {"custom_rotate"} | set(SCRIPT_BUILTINS)
+
+
+def check_script(code: str):
+    """Raises ValueError unless the code only uses what block programs need."""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError as e:
+        raise ValueError(f"Program is not valid Python (line {e.lineno})") from None
+
+    def reject(node, why):
+        raise ValueError(f"Line {getattr(node, 'lineno', '?')}: {why}")
+
+    for node in ast.walk(tree):
+        if not isinstance(node, SCRIPT_NODES):
+            reject(node, f"{type(node).__name__} is not allowed in a block program")
+        if isinstance(node, ast.Attribute):
+            # Only tello.x, time.x, math.x, random.x; never a chain or a private name.
+            if node.attr.startswith("_") or not isinstance(node.value, ast.Name) \
+                    or node.value.id not in SCRIPT_MODULES:
+                reject(node, f"'.{node.attr}' is not allowed")
+            if node.value.id == "tello" and node.attr not in SCRIPT_TELLO_METHODS:
+                reject(node, f"tello.{node.attr} is not available to block programs")
+        elif isinstance(node, ast.Name):
+            if node.id.startswith("__"):
+                reject(node, f"'{node.id}' is not allowed")
+            if isinstance(node.ctx, ast.Store) and node.id in PROTECTED_NAMES:
+                reject(node, f"'{node.id}' cannot be changed")
+        elif isinstance(node, (ast.FunctionDef, ast.arg, ast.Global)):
+            names = node.names if isinstance(node, ast.Global) else \
+                [node.name if isinstance(node, ast.FunctionDef) else node.arg]
+            if any(n.startswith("__") or n in PROTECTED_NAMES for n in names):
+                reject(node, "that name is reserved")
+            if isinstance(node, ast.FunctionDef) and node.decorator_list:
+                reject(node, "decorators are not allowed")
+        elif isinstance(node, ast.Import):
+            if any(a.name not in SCRIPT_IMPORTS or a.asname for a in node.names):
+                reject(node, "only time, math, random and numbers can be imported")
+        elif isinstance(node, ast.ImportFrom):
+            if node.module not in SCRIPT_IMPORTS or node.level \
+                    or any(a.name.startswith("_") or a.name == "*" or a.asname for a in node.names):
+                reject(node, "only time, math, random and numbers can be imported")
+
+
 def execute_tello_script(code_to_run: str):
     """
     Runs the received code in a separate thread.
@@ -330,9 +459,18 @@ def execute_tello_script(code_to_run: str):
         elif degrees < 0:
             tello.rotate_counter_clockwise(abs(degrees))
 
+    script_time = ScriptTime()
+    modules = {"time": script_time, "math": math, "random": random, "numbers": numbers}
+
+    def script_import(name, globals=None, locals=None, fromlist=(), level=0):
+        if level or name not in modules:
+            raise ImportError(f"import {name} is not allowed")
+        return modules[name]
+
     script_globals = {
+        '__builtins__': {**SCRIPT_BUILTINS, '__import__': script_import},
         'tello': ScriptTello(),
-        'time': ScriptTime(),
+        'time': script_time,
         'custom_rotate': custom_rotate,
     }
 
@@ -364,6 +502,11 @@ def run_script():
         return jsonify({"status": "failed", "error": "Another script is still running"}), 409
 
     code_from_blockly = data['code']
+    try:
+        check_script(str(code_from_blockly))
+    except ValueError as e:
+        return jsonify({"status": "failed", "error": f"Program refused: {e}"}), 400
+
     stop_event.clear()
     script_state.update(state="running", error=None, photos=[])
 
@@ -397,7 +540,8 @@ def get_photo(name):
 # MAIN
 # ===============================
 if __name__ == '__main__':
-    print("Tello bridge (djitellopy) running on http://127.0.0.1:5000")
+    print(f"Tello bridge (djitellopy) running on http://127.0.0.1:{PORT}")
+    print("Allowed sites:", ", ".join(["this computer", *ALLOWED_ORIGINS]))
     print("Make sure your PC is connected to TELLO Wi-Fi before using the UI.")
-    # Localhost only: /run_script executes Python, so it must not be reachable from the network.
-    app.run(host='127.0.0.1', port=5000)
+    # Localhost only: the bridge flies the drone, so it must not be reachable from the network.
+    app.run(host='127.0.0.1', port=PORT)

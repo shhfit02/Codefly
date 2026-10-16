@@ -1420,7 +1420,8 @@ body:not(.sim-mode) .sim-float {
   padding: 1px 6px;
 }
 
-.connect-detail {
+.connect-detail,
+.connect-detail-static {
   font-size: 0.8rem;
   color: #64748b;
 }

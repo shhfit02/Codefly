@@ -135,6 +135,24 @@ test.describe('workspace', () => {
     await expect(page.locator('#sidebar-connection-label')).toHaveText('Simulator');
   });
 
+  test('connecting without the bridge offers to start it and to download it', async ({ page }) => {
+    await openWorkspace(page);
+    await page.locator('.mode-option[data-mode="drone"]').click();
+    await page.locator('#connect-btn').click();
+    await expect(page.locator('.swal2-title')).toHaveText('Could not connect to the drone');
+    await expect(page.locator('.swal2-confirm')).toHaveText('Start bridge');
+    await expect(page.locator('.swal2-html-container a[download]')).toHaveText('Download CodeFly Bridge');
+
+    // No bridge installed here: it opens codefly-bridge:// in a hidden frame (the page stays),
+    // waits, and Cancel just closes the wait.
+    await page.locator('.swal2-confirm').click();
+    await expect(page.locator('.swal2-title')).toHaveText('Starting the drone bridge...');
+    await expect(page.locator('iframe[src="codefly-bridge://start"]')).toHaveCount(1);
+    await page.locator('.swal2-cancel').click();
+    await expect(page.locator('.swal2-popup')).toHaveCount(0);
+    await expect(page).toHaveURL(/workspace\.php/);
+  });
+
   test('programs are saved per account and can be opened and deleted', async ({ page }) => {
     const name = `zz test ${Date.now()}`;
     await openWorkspace(page);

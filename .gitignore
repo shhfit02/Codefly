@@ -30,6 +30,13 @@ __pycache__/
 test-results/
 playwright-report/
 
+# Drone bridge: per-computer site list and log, and installer build output
+/allowed_origins.txt
+bridge.log
+installer/build/
+installer/dist/
+Assets/downloads/*.exe
+
 # Output of build-upload.ps1
 codefly-upload/
 codefly-upload.zip

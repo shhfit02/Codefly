@@ -598,7 +598,7 @@ function addFlightPhoto(savedPath) {
       title: img.alt,
       imageUrl: url,
       imageAlt: img.alt,
-      html: `<p class="connect-detail">Saved as <code></code> in the <strong>photos</strong> folder next to tello_bridge.py.</p>`,
+      html: `<p class="connect-detail">Saved as <code></code> in the bridge's <strong>photos</strong> folder (next to tello_bridge.py, or %LOCALAPPDATA%\\CodeFly Bridge\\photos when installed).</p>`,
       didOpen: (popup) => { popup.querySelector('code').textContent = name; },
       width: 720,
       confirmButtonText: 'Close',
@@ -2278,16 +2278,60 @@ async function connectDrone() {
   }
 }
 
+// The CodeFly Bridge installer (installer/build-bridge.bat) registers codefly-bridge:// so the
+// site can start the bridge; the browser asks the student before opening it.
+const BRIDGE_PROTOCOL_URL = 'codefly-bridge://start';
+const BRIDGE_INSTALLER_URL = '../Assets/downloads/CodeFlyBridgeSetup.exe';
+const BRIDGE_START_WAIT_MS = 15000;
+
+async function isBridgeUp() {
+  try {
+    const response = await fetch(`${TELLO_BRIDGE_URL}/status`, { cache: 'no-store' });
+    return response.ok;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Opens codefly-bridge:// and waits for the bridge to answer: 'up', 'cancelled' or 'timeout'.
+async function startBridge() {
+  // Through a hidden frame: if the bridge is not installed, some browsers show an error
+  // page for the unknown link, and the workspace must not be replaced by it.
+  const frame = document.createElement('iframe');
+  frame.hidden = true;
+  frame.src = BRIDGE_PROTOCOL_URL;
+  document.body.appendChild(frame);
+  setTimeout(() => frame.remove(), 5000);
+  Swal.fire({
+    title: 'Starting the drone bridge...',
+    html: '<p>If your browser asks to open <strong>CodeFly Bridge</strong>, choose <strong>Open</strong>.</p>',
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    showCancelButton: true,
+    cancelButtonText: 'Cancel',
+    didOpen: () => Swal.showLoading(),
+  });
+  const deadline = Date.now() + BRIDGE_START_WAIT_MS;
+  while (Date.now() < deadline) {
+    if (!Swal.isVisible()) return 'cancelled';
+    if (await isBridgeUp()) {
+      Swal.close();
+      return 'up';
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  return 'timeout';
+}
+
 // Explains what to fix instead of only flipping the label back to "Not connected".
-async function showConnectHelp(problem, detail) {
+async function showConnectHelp(problem, detail, afterStartAttempt = false) {
   const steps = problem === 'bridge'
-    ? `<p>The drone bridge is not running on this computer.</p>
+    ? `<p>${afterStartAttempt ? 'The drone bridge did not start. Is CodeFly Bridge installed on this computer?' : 'The drone bridge is not running on this computer.'}</p>
        <ol class="connect-steps">
-         <li>In the CodeFly folder (<code>C:\\xampp\\htdocs\\codefly</code>), double-click <strong>start-bridge.bat</strong>.</li>
-         <li>Leave the black window open while you fly.</li>
-         <li>Press <strong>Try again</strong>.</li>
+         <li>Press <strong>Start bridge</strong>. If your browser asks to open CodeFly Bridge, choose <strong>Open</strong>.</li>
+         <li>First time on this computer? <a href="${BRIDGE_INSTALLER_URL}" download>Download CodeFly Bridge</a>, run it once, then press <strong>Start bridge</strong>. After that it starts by itself when Windows starts.</li>
        </ol>
-       <p class="connect-detail">Or in a terminal in that folder: <code>py tello_bridge.py</code></p>`
+       <p class="connect-detail-static">Running CodeFly from this computer (XAMPP)? You can also double-click <strong>start-bridge.bat</strong> in the CodeFly folder.</p>`
     : `<p>The bridge is running but cannot reach the Tello.</p>
        <ol class="connect-steps">
          <li>Turn the drone on and wait for the light to blink.</li>
@@ -2302,7 +2346,7 @@ async function showConnectHelp(problem, detail) {
     html: steps,
     showDenyButton: !locked,
     showCancelButton: true,
-    confirmButtonText: 'Try again',
+    confirmButtonText: problem === 'bridge' ? 'Start bridge' : 'Try again',
     denyButtonText: 'Use simulator',
     denyButtonColor: '#6366f1',
     cancelButtonText: 'Close',
@@ -2312,7 +2356,11 @@ async function showConnectHelp(problem, detail) {
       if (detailEl) detailEl.textContent = `Bridge said: ${detail}`;
     },
   });
-  if (result.isConfirmed) connectDrone();
+  if (result.isConfirmed && problem === 'bridge') {
+    const started = await startBridge();
+    if (started === 'up') connectDrone();
+    else if (started === 'timeout') showConnectHelp('bridge', null, true);
+  } else if (result.isConfirmed) connectDrone();
   else if (result.isDenied) setRunMode(true);
 }
 

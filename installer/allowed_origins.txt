@@ -1,0 +1,5 @@
+# CodeFly sites that may use the drone bridge on this computer, one per line.
+# Pages served from this computer (http://localhost, http://127.0.0.1) are always allowed.
+# Use the exact address of the hosted site: scheme and domain, no path, no wildcards.
+# Example:
+# https://codefly.example.com
