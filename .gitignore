@@ -7,6 +7,7 @@ npm-debug.log*
 # Local secrets (copy the *.example.php files)
 PHP/mail_config.php
 PHP/weather_config.php
+PHP/db_config.php
 
 # Personal data and runtime uploads: database dumps (password hashes, emails),
 # users' photos, module covers/videos uploaded through the app (folders are created on upload)
@@ -28,3 +29,7 @@ __pycache__/
 # Playwright output
 test-results/
 playwright-report/
+
+# Output of build-upload.ps1
+codefly-upload/
+codefly-upload.zip

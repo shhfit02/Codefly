@@ -1,8 +1,13 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$dbname = "codefly";
+// Hosted sites put their database login in db_config.php (not in git; copy
+// db_config.example.php). Without it, the XAMPP defaults below are used.
+$configFile = __DIR__ . '/db_config.php';
+$config = is_file($configFile) ? require $configFile : [];
+$host = $config['host'] ?? "localhost";
+$user = $config['user'] ?? "root";
+$pass = $config['password'] ?? "";
+$dbname = $config['database'] ?? "codefly";
+unset($configFile, $config);
 
 // Endpoints answer with JSON; PHP warnings printed into the response would corrupt it.
 // Errors still go to the Apache/PHP error log.

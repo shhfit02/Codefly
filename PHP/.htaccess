@@ -1,3 +1,7 @@
 # JSON endpoints: never print PHP warnings into responses; they still go to the error log.
-php_flag display_errors Off
-php_flag log_errors On
+# Wrapped in IfModule: hosts that run PHP as FPM/CGI (most shared hosting) answer every
+# request with "500 Internal Server Error" on a bare php_flag. db.php sets the same thing.
+<IfModule php_module>
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>
