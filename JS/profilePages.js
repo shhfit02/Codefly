@@ -735,7 +735,8 @@
   }
 
   // Admin Settings only (the student Settings page has no photo input).
-  // Also refreshes the hero card and sidebar photos so the new one shows everywhere.
+  // Also refreshes the hero card and sidebar photos (the sidebar and its phone More sheet)
+  // so the new one shows everywhere.
   function setupAccountAvatarUpload() {
     setupUploadHandler({
       inputId: "accountAvatarInput",
@@ -745,7 +746,7 @@
       previewElement: [
         document.getElementById("accountAvatarPreview"),
         document.getElementById("accountProfileImage"),
-        document.querySelector(".sidebar-user__avatar"),
+        ...document.querySelectorAll(".sidebar-user__avatar"),
       ],
     });
   }

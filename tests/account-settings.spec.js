@@ -72,9 +72,11 @@ test.describe('account settings', () => {
     await openSettings(page);
     await page.locator('#accountAvatarInput').setInputFiles('Assets/logo4.png');
     await expect(page.locator('#accountAvatarStatus')).toContainText('Avatar updated');
-    // The card, the hero and the sidebar all switch to the new photo.
-    for (const selector of ['#accountAvatarPreview', '#accountProfileImage', '.sidebar-user__avatar']) {
-      await expect(page.locator(selector)).toHaveAttribute('src', /uploads\/avatars\/user-\d+-/);
+    // The card, the hero and the sidebar (and its copy in the phone More sheet) all switch to the new photo.
+    const photos = page.locator('#accountAvatarPreview, #accountProfileImage, .sidebar-user__avatar');
+    await expect(photos).toHaveCount(4);
+    for (const photo of await photos.all()) {
+      await expect(photo).toHaveAttribute('src', /uploads\/avatars\/user-\d+-.*\?ts=/);
     }
 
     await openSettings(page);

@@ -102,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  initPhoneNavMore();
   initNotificationBell();
 
   // ---------------- PROFILE MENU ----------------
@@ -863,6 +864,55 @@ function handleWorkspaceRedirectNotice() {
   }
 }
 
+// ---------------- PHONE BOTTOM BAR: "More" sheet ----------------
+// Keep in sync with the phone bottom-bar media query in CSS/home.css.
+const PHONE_NAV_QUERY = "(max-width: 600px)";
+
+/** Fills the More sheet with copies of the sidebar items the bar hides (data-mobile="more", Logout, admin card). */
+function initPhoneNavMore() {
+  const btn = document.getElementById("mobile-more-btn");
+  if (!sidebar || !btn) return;
+
+  const sheet = document.createElement("ul");
+  sheet.id = "mobile-more";
+  sheet.className = "mobile-more";
+  sheet.hidden = true;
+  // The dark-mode row needs its own handlers, so it stays desktop-only.
+  sidebar.querySelectorAll('.menu-links [data-mobile="more"], .bottom-content li:not(.mode)').forEach((item) => {
+    const copy = item.cloneNode(true);
+    copy.removeAttribute("data-mobile");
+    copy.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+    sheet.appendChild(copy);
+  });
+  sidebar.appendChild(sheet);
+
+  // On a page that lives under More (e.g. Settings), light up More in the bar.
+  if (sidebar.querySelector('.menu-links [data-mobile="more"].active')) {
+    btn.parentElement.classList.add("active");
+  }
+
+  const close = () => {
+    sheet.hidden = true;
+    btn.setAttribute("aria-expanded", "false");
+  };
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    sheet.hidden = !sheet.hidden;
+    btn.setAttribute("aria-expanded", String(!sheet.hidden));
+  });
+  document.addEventListener("click", (e) => {
+    if (!sheet.hidden && !sheet.contains(e.target)) close();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !sheet.hidden) {
+      close();
+      btn.focus();
+    }
+  });
+  window.matchMedia(PHONE_NAV_QUERY).addEventListener("change", close);
+}
+
 // ---------------- NOTIFICATION BELL (sidebar) ----------------
 const NOTIF_POLL_MS = 30000;
 const NOTIF_STYLES = {
@@ -919,16 +969,18 @@ function initNotificationBell() {
   });
 }
 
-/** Next to the sidebar, level with the bell; full width on phones where that would be too narrow. */
+/** Next to the sidebar, level with the bell; on phones, full width just above the bottom bar. */
 function positionNotificationPanel(btn, panel) {
   const gap = 12;
-  const sidebarRight = document.querySelector(".sidebar")?.getBoundingClientRect().right || 0;
-  let left = sidebarRight + gap;
+  const sidebarRect = document.querySelector(".sidebar")?.getBoundingClientRect();
+  const bottomBar = window.matchMedia(PHONE_NAV_QUERY).matches;
+  let left = bottomBar ? gap : (sidebarRect?.right || 0) + gap;
   if (window.innerWidth - left - gap < 280) left = gap;
   panel.style.left = `${left}px`;
   panel.style.width = `${Math.min(384, window.innerWidth - left - gap)}px`;
   const top = btn.getBoundingClientRect().top;
-  const maxTop = window.innerHeight - panel.offsetHeight - gap;
+  const bottomLimit = bottomBar && sidebarRect ? sidebarRect.top : window.innerHeight;
+  const maxTop = bottomLimit - panel.offsetHeight - gap;
   panel.style.top = `${Math.max(gap, Math.min(top, maxTop))}px`;
 }
 

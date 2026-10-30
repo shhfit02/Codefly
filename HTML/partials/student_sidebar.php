@@ -1,6 +1,8 @@
 <?php
 // Shared student sidebar. Included by every signed-in student page so the menu stays
 // identical everywhere; the active item is highlighted at runtime by JS/home.js.
+// On phones the menu is a bottom bar: data-mobile="more" items go in its More sheet, and
+// data-short is the shorter label shown in the bar.
 // Set $showModeToggle = true before including to show the dark-mode switch (profile page).
 if (basename($_SERVER["SCRIPT_FILENAME"]) === basename(__FILE__)) { http_response_code(404); exit; }
 ?>
@@ -23,10 +25,11 @@ if (basename($_SERVER["SCRIPT_FILENAME"]) === basename(__FILE__)) { http_respons
           <ul class="menu-links">
             <li class="nav-link"><a href="../HTML/home.php"><i class='bx bx-home-alt icon'></i><span class="text nav-text">Home</span></a></li>
             <li class="nav-link"><a href="../HTML/module.php"><i class='bx bx-layer icon'></i><span class="text nav-text">Module</span></a></li>
-            <li class="nav-link"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
-            <li class="nav-link"><a href="../HTML/leaderboard.php"><i class='bx bx-trophy icon'></i><span class="text nav-text">Leaderboard</span></a></li>
-            <li class="nav-link"><a href="../HTML/account-setting.php"><i class='bx bx-cog icon'></i><span class="text nav-text">Settings</span></a></li>
-            <li class="nav-link"><a href="#" id="notif-btn" role="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="notif-panel"><i class='bx bx-bell icon'></i><span id="notif-badge" class="notif-badge hidden"></span><span class="text nav-text">Notifications</span></a></li>
+            <li class="nav-link" data-mobile="more"><a href="../HTML/workspace.php"><i class='bx bx-code-block icon'></i><span class="text nav-text">Code Block</span></a></li>
+            <li class="nav-link"><a href="../HTML/leaderboard.php"><i class='bx bx-trophy icon'></i><span class="text nav-text" data-short="Ranking">Leaderboard</span></a></li>
+            <li class="nav-link" data-mobile="more"><a href="../HTML/account-setting.php"><i class='bx bx-cog icon'></i><span class="text nav-text">Settings</span></a></li>
+            <li class="nav-link"><a href="#" id="notif-btn" role="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="notif-panel"><i class='bx bx-bell icon'></i><span id="notif-badge" class="notif-badge hidden"></span><span class="text nav-text" data-short="Alerts">Notifications</span></a></li>
+            <li class="nav-link nav-more-btn"><a href="#" id="mobile-more-btn" role="button" aria-haspopup="true" aria-expanded="false" aria-controls="mobile-more"><i class='bx bx-dots-horizontal-rounded icon'></i><span class="text nav-text">More</span></a></li>
           </ul>
         </div>
         <div class="bottom-content">

@@ -1238,30 +1238,148 @@ a.notif-item:focus-visible {
   font-size: 18px;
 }
 
-/* ---------- Phones: slimmer sidebar that overlays content when opened ---------- */
+/* "More" button and sheet only exist in the phone bottom bar. */
+.sidebar .nav-more-btn,
+.mobile-more {
+  display: none;
+}
+
+/* ---------- Phones: the sidebar becomes an app-style bottom bar ----------
+   Items marked data-mobile="more" in the sidebar partials move into the "More" sheet
+   (built by JS/home.js), so the bar keeps 4 items plus More. Keep the 600px in sync
+   with PHONE_NAV_QUERY in JS/home.js. */
 @media (max-width: 600px) {
   :root {
-    --sidebar-collapsed: 64px;
+    --phone-nav-height: 64px;
   }
 
-  .sidebar {
-    padding: 10px 6px;
+  body:has(> .sidebar) {
+    padding-bottom: calc(var(--phone-nav-height) + env(safe-area-inset-bottom));
   }
 
-  .sidebar li .icon {
-    min-width: 52px;
+  .sidebar,
+  .sidebar.close {
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    height: auto;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.08);
   }
 
-  /* Opening the menu slides it over the page instead of squeezing the content */
-  .sidebar:not(.close) {
-    box-shadow: 0 0 0 100vmax rgba(15, 23, 42, 0.35);
+  .sidebar header,
+  .sidebar .bottom-content,
+  .sidebar .menu-links [data-mobile="more"] {
+    display: none;
+  }
+
+  .sidebar .menu-bar {
+    height: auto;
+    display: block;
+  }
+
+  .sidebar .menu {
+    margin-top: 0;
+  }
+
+  .sidebar .menu-links {
+    display: flex;
+  }
+
+  .sidebar .menu-links li {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 52px;
+    margin-top: 0;
+  }
+
+  .sidebar .nav-more-btn {
+    display: flex;
+  }
+
+  .sidebar .menu-links li a {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 12px;
+  }
+
+  .sidebar .menu-links li .icon {
+    min-width: 0;
+    font-size: 22px;
+  }
+
+  .sidebar .menu-links .text,
+  .sidebar.close .menu-links .text {
+    opacity: 1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  /* Short labels so five items fit side by side. */
+  .sidebar .menu-links .text[data-short] {
+    font-size: 0;
+  }
+
+  .sidebar .menu-links .text[data-short]::after {
+    content: attr(data-short);
+    font-size: 11px;
+  }
+
+  /* Hover tooltips are for the collapsed desktop sidebar; a tap would leave one showing. */
+  .sidebar .menu-links .nav-link a[data-tooltip]::before,
+  .sidebar .menu-links .nav-link a[data-tooltip]::after {
+    display: none;
+  }
+
+  .sidebar li.active a {
+    box-shadow: none;
+  }
+
+  /* Touch keeps :hover after a tap, so a tapped item must not look like the current page. */
+  .sidebar .menu-links li:not(.active) a:hover,
+  .sidebar .menu-links li:not(.active) a[aria-expanded="true"] {
+    background: var(--primary-color-light);
+  }
+
+  .sidebar .menu-links li:not(.active) a:hover .icon,
+  .sidebar .menu-links li:not(.active) a:hover .text,
+  .sidebar .menu-links li:not(.active) a[aria-expanded="true"] .icon,
+  .sidebar .menu-links li:not(.active) a[aria-expanded="true"] .text {
+    color: var(--primary-color);
+  }
+
+  .sidebar .notif-badge {
+    top: 2px;
+    left: calc(50% + 4px);
+  }
+
+  .mobile-more:not([hidden]) {
+    display: block;
+    position: fixed;
+    right: 8px;
+    bottom: calc(var(--phone-nav-height) + env(safe-area-inset-bottom) + 8px);
+    width: min(260px, calc(100vw - 16px));
+    padding: 6px 10px 10px;
+    background: var(--sidebar-color);
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+  }
+
+  .mobile-more .text,
+  .sidebar.close .mobile-more .text {
+    opacity: 1;
   }
 
   .home,
-  .sidebar:not(.close) ~ .home {
-    left: var(--sidebar-collapsed);
-    width: calc(100% - var(--sidebar-collapsed));
-    max-width: calc(100% - var(--sidebar-collapsed));
-    padding-right: 10px;
+  .sidebar.close ~ .home {
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    padding-right: 0;
   }
 }
