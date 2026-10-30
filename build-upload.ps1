@@ -6,13 +6,18 @@
 # Left out: tests, archive, drone bridge and installer sources (the bridge runs on each
 # student's computer), build tooling, the database dump (import it in phpMyAdmin instead)
 # and the *_config.php files (create those on the host: they hold passwords).
+#
+# codefly_database.sql only creates empty tables. The modules, lessons and quiz questions
+# are in codefly_modules.sql (import it after codefly_database.sql). Refresh it from XAMPP
+# after editing modules:
+#   C:\xampp\mysql\bin\mysqldump.exe -u root --add-drop-table --skip-comments --no-tablespaces --skip-add-locks --skip-lock-tables codefly modules lessons lesson_quiz_questions quizzes > codefly_modules.sql
 
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
 $excludedFolders = @('tests/', '_archive/', 'Python/', 'installer/', 'node_modules/', 'photos/')
 $excludedFiles = @(
-    '.gitignore', 'build-upload.ps1', 'codefly_database.sql',
+    '.gitignore', 'build-upload.ps1', 'codefly_database.sql', 'codefly_modules.sql',
     'package.json', 'package-lock.json', 'playwright.config.js', 'postcss.config.js',
     'tailwind.config.js', 'start-bridge.bat', 'tello_bridge.py',
     'PHP/db_config.php', 'PHP/mail_config.php', 'PHP/weather_config.php',
@@ -25,6 +30,17 @@ $files = git ls-files --cached --others --exclude-standard | Where-Object {
     -not ($excludedFiles -contains $path) -and
     -not ($excludedFolders | Where-Object { $path.StartsWith($_) }) -and
     (Test-Path -LiteralPath $path)
+}
+
+# Uploads are git-ignored (users' photos), but the module covers named in the exported
+# module data must go with it, or the imported modules show broken images.
+if (Test-Path 'codefly_modules.sql') {
+    $covers = Select-String -Path 'codefly_modules.sql' -Pattern 'Assets/uploads/[^''"\\]+' -AllMatches |
+        ForEach-Object { $_.Matches.Value } | Sort-Object -Unique
+    foreach ($cover in $covers) {
+        if (Test-Path -LiteralPath $cover) { $files += $cover }
+        else { Write-Warning "$cover is named in codefly_modules.sql but missing here." }
+    }
 }
 
 # The bridge installer is git-ignored but the workspace links to it.
