@@ -124,6 +124,22 @@
         </div>
 
         <div class="flex flex-col gap-6">
+          <!-- Uploads on its own (JS/profilePages.js); the file input has no name so Save changes leaves it out. -->
+          <div class="rounded-2xl bg-white shadow-lg border border-gray-100 p-6">
+            <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Profile photo</p>
+            <div class="flex items-center gap-4 mt-3">
+              <img id="accountAvatarPreview" src="<?= htmlspecialchars($sidebarUser['avatar']) ?>" alt="Your profile photo" class="w-20 h-20 rounded-2xl object-cover border border-gray-200 shrink-0">
+              <div class="min-w-0">
+                <button type="button" id="accountAvatarBtn" class="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition">
+                  <i class='bx bx-camera'></i> Upload photo
+                </button>
+                <p class="text-xs text-slate-500 mt-2">JPG, PNG or WEBP, up to 5 MB</p>
+              </div>
+            </div>
+            <input type="file" id="accountAvatarInput" accept="image/jpeg,image/png,image/webp" class="hidden">
+            <p id="accountAvatarStatus" class="text-sm font-semibold mt-3 hidden" role="status" aria-live="polite"></p>
+          </div>
+
           <div class="rounded-2xl bg-white shadow-lg border border-gray-100 p-6">
             <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Notifications</p>
             <div class="flex items-center justify-between gap-4 mt-3">

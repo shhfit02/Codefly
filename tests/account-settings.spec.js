@@ -66,4 +66,18 @@ test.describe('account settings', () => {
       await expect(page.locator('#accountSettingsStatus')).toContainText('updated');
     }
   });
+
+  test('the admin can upload a profile photo', async ({ page }) => {
+    await login(page, account);
+    await openSettings(page);
+    await page.locator('#accountAvatarInput').setInputFiles('Assets/logo4.png');
+    await expect(page.locator('#accountAvatarStatus')).toContainText('Avatar updated');
+    // The card, the hero and the sidebar all switch to the new photo.
+    for (const selector of ['#accountAvatarPreview', '#accountProfileImage', '.sidebar-user__avatar']) {
+      await expect(page.locator(selector)).toHaveAttribute('src', /uploads\/avatars\/user-\d+-/);
+    }
+
+    await openSettings(page);
+    await expect(page.locator('#accountAvatarPreview')).toHaveAttribute('src', /uploads\/avatars\/user-\d+-/);
+  });
 });

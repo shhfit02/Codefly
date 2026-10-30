@@ -30,6 +30,7 @@
         initEditProfile();
         break;
       case "account-settings":
+        setupAccountAvatarUpload();
         initAccountSettings();
         break;
     }
@@ -733,6 +734,22 @@
     });
   }
 
+  // Admin Settings only (the student Settings page has no photo input).
+  // Also refreshes the hero card and sidebar photos so the new one shows everywhere.
+  function setupAccountAvatarUpload() {
+    setupUploadHandler({
+      inputId: "accountAvatarInput",
+      triggerId: "accountAvatarBtn",
+      type: "avatar",
+      statusElement: document.getElementById("accountAvatarStatus"),
+      previewElement: [
+        document.getElementById("accountAvatarPreview"),
+        document.getElementById("accountProfileImage"),
+        document.querySelector(".sidebar-user__avatar"),
+      ],
+    });
+  }
+
   function setupUploadHandler({ inputId, triggerId, type, statusElement, previewElement }) {
     const input = typeof inputId === "string" ? document.getElementById(inputId) : inputId;
     if (!input) {
@@ -764,8 +781,12 @@
           body: formData,
         });
         const newPath = payload.data?.path || payload.path;
-        if (previewElement && newPath) {
-          previewElement.src = cacheBust(newPath);
+        if (newPath) {
+          [].concat(previewElement).forEach((el) => {
+            if (el) {
+              el.src = cacheBust(newPath);
+            }
+          });
         }
         setStatus(statusElement, payload.message || "Upload complete.", "success");
       } catch (error) {
