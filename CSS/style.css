@@ -560,7 +560,10 @@ input[type=number]::-webkit-outer-spin-button {
 /* ---------- Phones / tablets: below ~1000px the desktop logo, nav and
    fixed footer overlap the centred card, so stack everything instead ---------- */
 @media (max-width: 1000px){
+  /* Scrolls away with the page: a fixed logo would float over the form when scrolling
+     on short screens (small phones, landscape) */
   header{
+    position: absolute;
     padding: 16px 16px;
   }
 
@@ -590,6 +593,7 @@ input[type=number]::-webkit-outer-spin-button {
     width: 100%;
     display: flex;
     justify-content: center;
+    margin-bottom: 24px;
   }
 
   .wrapper.is-hidden{
@@ -629,6 +633,12 @@ input[type=number]::-webkit-outer-spin-button {
 
   .powered-by img{
     height: 60px;
+  }
+
+  .footer-note,
+  .app-footer{
+    max-width: calc(100% - 32px);
+    font-size: 0.7em;
   }
 
   .toast-region{
