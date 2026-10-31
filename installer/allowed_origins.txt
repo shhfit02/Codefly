@@ -3,3 +3,4 @@
 # Use the exact address of the hosted site: scheme and domain, no path, no wildcards.
 # Example:
 # https://codefly.example.com
+https://slategray-louse-895342.hostingersite.com
